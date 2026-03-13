@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+const KIMI_API_KEY = process.env.KIMI_API_KEY || '';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const { leadId, name, company, budget, timeline, notes, projectType } = body;
 
     if (!name) return NextResponse.json({ success: false, error: 'name requis' }, { status: 400 });
-    if (!ANTHROPIC_API_KEY) return NextResponse.json({ success: false, error: 'ANTHROPIC_API_KEY non configuré' }, { status: 503 });
+    if (!KIMI_API_KEY) return NextResponse.json({ success: false, error: 'KIMI_API_KEY non configuré' }, { status: 503 });
 
     const prompt = `Tu es un expert en proposition commerciale pour une agence digitale.
 Génère une proposition commerciale professionnelle et convaincante en français pour le prospect suivant.
@@ -45,27 +45,25 @@ Génère une proposition commerciale professionnelle et convaincante en françai
 
 Sois concis, direct et orienté résultats. Évite le jargon inutile.`;
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.moonshot.cn/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${KIMI_API_KEY}`,
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
+        model: 'moonshot-v1-8k',
         messages: [{ role: 'user', content: prompt }],
       }),
     });
 
     if (!res.ok) {
       const err = await res.text();
-      return NextResponse.json({ success: false, error: `Claude API error: ${err}` }, { status: 500 });
+      return NextResponse.json({ success: false, error: `Kimi API error: ${err}` }, { status: 500 });
     }
 
     const data = await res.json();
-    const proposal = data.content?.[0]?.text ?? '';
+    const proposal = data.choices?.[0]?.message?.content ?? '';
 
     return NextResponse.json({ success: true, data: { proposal, leadId } });
   } catch (err: any) {

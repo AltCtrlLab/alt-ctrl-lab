@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+const KIMI_API_KEY = process.env.KIMI_API_KEY || '';
 
 // Simple in-memory cache (resets on server restart)
 let cache: { data: any; generatedAt: number; dataHash: string } | null = null;
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     // Generate briefing
     let briefing: any;
 
-    if (ANTHROPIC_API_KEY) {
+    if (KIMI_API_KEY) {
       const prompt = `Tu es l'assistant IA d'une agence digitale. Génère un morning briefing concis et actionnable en français.
 
 **Données du moment :**
@@ -81,23 +81,21 @@ Retourne un JSON avec cette structure exacte :
 
 Retourne UNIQUEMENT le JSON, sans markdown ni commentaires.`;
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('https://api.moonshot.cn/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
+          'Authorization': `Bearer ${KIMI_API_KEY}`,
           'content-type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 600,
+          model: 'moonshot-v1-8k',
           messages: [{ role: 'user', content: prompt }],
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        const raw = data.content?.[0]?.text ?? '{}';
+        const raw = data.choices?.[0]?.message?.content ?? '{}';
         try {
           briefing = JSON.parse(raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim());
         } catch (_) {
