@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   PlusCircle,
@@ -14,19 +14,18 @@ import {
   HeartHandshake,
   CalendarDays,
   Workflow,
-  Cpu,
   Terminal,
   Briefcase,
   Palette,
   Code2,
   Megaphone,
   FlaskConical,
-  History,
   Settings,
   Sun,
   Moon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 import {
   getStoredSidebarExpanded,
@@ -71,21 +70,17 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-pink-400' },
       { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-violet-400' },
-      { label: 'Cockpit', href: '/cockpit', icon: Cpu, color: 'text-indigo-400' },
-    ],
-  },
-  {
-    title: 'Agents & Outils',
-    items: [
       { label: 'PIL', href: '/pil', icon: Terminal, color: 'text-rose-400' },
-      { label: 'Portfolio', href: '/portfolio', icon: Briefcase, color: 'text-amber-400' },
-      { label: 'Branding', href: '/branding', icon: Palette, color: 'text-pink-400', agent: 'Abdul Musawwir' },
-      { label: 'Web Dev', href: '/web-dev', icon: Code2, color: 'text-emerald-400', agent: 'Abdul Matin' },
-      { label: 'Marketing', href: '/marketing', icon: Megaphone, color: 'text-amber-400', agent: 'Abdul Fatah' },
-      { label: 'R&D', href: '/rd', icon: FlaskConical, color: 'text-teal-400' },
-      { label: 'Historique', href: '/history', icon: History, color: 'text-zinc-500' },
     ],
   },
+];
+
+const teamAiItems: NavItem[] = [
+  { label: 'Portfolio', href: '/portfolio', icon: Briefcase, color: 'text-amber-400' },
+  { label: 'Branding', href: '/branding', icon: Palette, color: 'text-pink-400', agent: 'Abdul Musawwir' },
+  { label: 'Web Dev', href: '/web-dev', icon: Code2, color: 'text-emerald-400', agent: 'Abdul Matin' },
+  { label: 'Marketing', href: '/marketing', icon: Megaphone, color: 'text-amber-400', agent: 'Abdul Fatah' },
+  { label: 'R&D', href: '/rd', icon: FlaskConical, color: 'text-teal-400' },
 ];
 
 interface SidebarProps {
@@ -97,6 +92,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [teamAiOpen, setTeamAiOpen] = useState(false);
 
   useEffect(() => {
     setIsExpanded(getStoredSidebarExpanded());
@@ -252,6 +248,72 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
             })}
           </div>
         ))}
+
+        {/* Équipe IA — collapsible */}
+        <div>
+          <div className={`mx-2 my-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-neutral-200'}`} />
+          <button
+            onClick={() => setTeamAiOpen(o => !o)}
+            className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 ${isExpanded ? 'px-3 py-2 justify-between' : 'justify-center py-2.5'} ${isDark ? 'text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800'}`}
+            title={!isExpanded ? 'Équipe IA' : undefined}
+          >
+            {isExpanded ? (
+              <>
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`text-[10px] uppercase tracking-widest font-medium ${textMuted}`}>
+                  Équipe IA
+                </motion.p>
+                <ChevronDown size={12} className={`transition-transform duration-200 ${teamAiOpen ? 'rotate-0' : '-rotate-90'} ${textMuted}`} />
+              </>
+            ) : (
+              <span className={`text-[10px] font-bold ${textMuted}`}>AI</span>
+            )}
+          </button>
+          <AnimatePresence initial={false}>
+            {(teamAiOpen || !isExpanded) && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                {teamAiItems.map((item) => {
+                  const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                  const Icon = item.icon;
+                  const badgeCount = item.agent ? pendingCounts[item.agent] || 0 : 0;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href as any}
+                      className={`relative group w-full flex items-center gap-3 rounded-xl transition-all duration-200 ${isExpanded ? 'px-3 py-2' : 'justify-center py-2.5'} ${isActive ? isDark ? 'bg-white/[0.08] text-white' : 'bg-blue-50 text-blue-700' : isDark ? 'text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800'}`}
+                      title={!isExpanded ? item.label : undefined}
+                    >
+                      {isActive && (
+                        <motion.div layoutId="sidebarActive" className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full ${isDark ? 'bg-[rgb(var(--accent-500))]' : 'bg-blue-600'}`} transition={{ type: 'spring', stiffness: 300, damping: 30 }} />
+                      )}
+                      <Icon size={17} className={`shrink-0 ${isActive ? item.color : ''}`} />
+                      {isExpanded && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0">
+                          <span className="text-sm font-medium block truncate">{item.label}</span>
+                          {item.agent && <span className={`text-[10px] block truncate ${textMuted}`}>{item.agent}</span>}
+                        </motion.div>
+                      )}
+                      {isExpanded && badgeCount > 0 && (
+                        <span className="min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[rgb(var(--accent-500))] text-white text-[10px] font-bold px-1">{badgeCount}</span>
+                      )}
+                      {!isExpanded && badgeCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-[rgb(var(--accent-500))] text-white text-[10px] font-bold px-1">{badgeCount}</span>
+                      )}
+                      {!isExpanded && (
+                        <div className={`absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 -translate-x-2 group-hover:translate-x-0 ${isDark ? 'bg-neutral-800 border border-white/10 text-white' : 'bg-white border border-neutral-200 text-neutral-800 shadow-lg'}`}>{item.label}</div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Bottom */}

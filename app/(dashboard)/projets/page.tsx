@@ -98,7 +98,7 @@ export default function ProjetsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       {/* Top bar */}
-      <div className="border-b border-white/[0.06] bg-zinc-950/90 backdrop-blur-sm sticky top-0 z-20">
+      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-sm font-semibold text-zinc-200">Projets Actifs</h1>

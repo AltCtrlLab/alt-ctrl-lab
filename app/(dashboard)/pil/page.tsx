@@ -9,7 +9,6 @@ import { InputCapsule } from '@/components/pil/InputCapsule';
 import { TeamRoster } from '@/components/pil/TeamRoster';
 import { AgentActivityPanel } from '@/components/pil/AgentActivityPanel';
 import { TodoPanel } from '@/components/pil/TodoPanel';
-import { DailyProposals } from '@/components/pil/DailyProposals';
 import { WarRoomArena } from '@/components/cockpit/WarRoomArena';
 import { SemanticTimeline } from '@/components/cockpit/SemanticTimeline';
 import { CockpitStreamProvider } from '@/providers/CockpitStreamProvider';
@@ -23,7 +22,6 @@ import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import CommandPalette from '@/components/pil/CommandPalette';
 import MissionControl from '@/components/pil/MissionControl';
 import KanbanBoard from '@/components/pil/KanbanBoard';
-import { SettingsPanel } from '@/components/pil/SettingsPanel';
 import { VaultExplorer } from '@/components/pil/VaultExplorer';
 import { AgentConstellation } from '@/components/pil/AgentConstellation';
 import { LiveTerminal } from '@/components/pil/LiveTerminal';
@@ -31,11 +29,6 @@ import { ShortcutsOverlay } from '@/components/pil/ShortcutsOverlay';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { TokenAnalytics } from '@/components/pil/TokenAnalytics';
 import { SystemHealth } from '@/components/pil/SystemHealth';
-import { WarRoomReplay } from '@/components/cockpit/WarRoomReplay';
-import { AgentTimeline } from '@/components/pil/AgentTimeline';
-import { TokenBurnRate } from '@/components/pil/TokenBurnRate';
-import { VaultAnalytics } from '@/components/pil/VaultAnalytics';
-import { AgentPerformance } from '@/components/pil/AgentPerformance';
 
 
 // ─── Active Tasks Feed ───────────────────────────────────────────────────────
@@ -311,13 +304,6 @@ export default function PilCockpit() {
               </motion.div>
             )}
 
-            {/* === R&D LAB === */}
-            {currentView === 'rd' && (
-              <motion.div key="rd" {...viewAnimation} className="h-full overflow-y-auto">
-                <DailyProposals isDark={isDark} />
-              </motion.div>
-            )}
-
             {/* === THE VAULT === */}
             {currentView === 'assets' && (
               <motion.div key="assets" {...viewAnimation} className="h-full">
@@ -332,13 +318,6 @@ export default function PilCockpit() {
               </motion.div>
             )}
 
-            {/* === SETTINGS === */}
-            {currentView === 'settings' && (
-              <motion.div key="settings" {...viewAnimation} className="h-full">
-                <SettingsPanel isDark={isDark} accentColor={accentColor} setAccentColor={setAccentColor} isConnected={isConnected} />
-              </motion.div>
-            )}
-
             {/* === TOKEN ANALYTICS === */}
             {currentView === 'analytics' && (
               <motion.div key="analytics" {...viewAnimation} className="h-full overflow-y-auto">
@@ -350,41 +329,6 @@ export default function PilCockpit() {
             {currentView === 'health' && (
               <motion.div key="health" {...viewAnimation} className="h-full">
                 <SystemHealth isDark={isDark} isConnected={isConnected} />
-              </motion.div>
-            )}
-
-            {/* === WAR ROOM REPLAY === */}
-            {currentView === 'replay' && (
-              <motion.div key="replay" {...viewAnimation} className="h-full">
-                <WarRoomReplay isDark={isDark} />
-              </motion.div>
-            )}
-
-            {/* === AGENT TIMELINE === */}
-            {currentView === 'timeline' && (
-              <motion.div key="timeline" {...viewAnimation} className="h-full overflow-y-auto">
-                <AgentTimeline isDark={isDark} />
-              </motion.div>
-            )}
-
-            {/* === TOKEN BURN RATE === */}
-            {currentView === 'burnrate' && (
-              <motion.div key="burnrate" {...viewAnimation} className="h-full overflow-y-auto">
-                <TokenBurnRate isDark={isDark} />
-              </motion.div>
-            )}
-
-            {/* === VAULT ANALYTICS === */}
-            {currentView === 'vault-analytics' && (
-              <motion.div key="vault-analytics" {...viewAnimation} className="h-full overflow-y-auto">
-                <VaultAnalytics isDark={isDark} />
-              </motion.div>
-            )}
-
-            {/* === AGENT PERFORMANCE === */}
-            {currentView === 'performance' && (
-              <motion.div key="performance" {...viewAnimation} className="h-full overflow-y-auto">
-                <AgentPerformance isDark={isDark} />
               </motion.div>
             )}
 
