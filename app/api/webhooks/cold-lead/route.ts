@@ -5,8 +5,10 @@ import { createLead } from '@/lib/db';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, company, website, address, category, notes } = body;
+    const { name, email, phone, company, website, address, category, notes, website_score, websiteScore } = body;
     if (!name) return NextResponse.json({ success: false, error: 'name requis' }, { status: 400 });
+
+    const score = websiteScore ?? website_score ?? null;
 
     const result = await createLead({
       name,
@@ -15,9 +17,14 @@ export async function POST(request: NextRequest) {
       company: company ?? null,
       source: 'GMB',
       status: 'Nouveau',
+      website: website ?? null,
+      websiteScore: score !== null ? Number(score) : null,
+      emailSentCount: 1,
+      lastContactedAt: Date.now(),
       notes: [
         'Source: cold-email (Google Maps)',
         website ? `Site: ${website}` : null,
+        score !== null ? `Score Lighthouse: ${score}/100` : null,
         address ? `Adresse: ${address}` : null,
         category ? `Catégorie: ${category}` : null,
         notes ?? null,

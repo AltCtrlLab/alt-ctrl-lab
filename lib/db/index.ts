@@ -457,6 +457,17 @@ export function getDb() {
       sqlite.exec(`ALTER TABLE automations ADD COLUMN n8n_workflow_id TEXT;`);
     } catch (_) { /* column already exists */ }
 
+    // Migration: add prospection fields to leads
+    const leadMigrations = [
+      `ALTER TABLE leads ADD COLUMN website TEXT;`,
+      `ALTER TABLE leads ADD COLUMN website_score INTEGER;`,
+      `ALTER TABLE leads ADD COLUMN email_sent_count INTEGER DEFAULT 0;`,
+      `ALTER TABLE leads ADD COLUMN last_contacted_at INTEGER;`,
+    ];
+    for (const sql of leadMigrations) {
+      try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
+    }
+
     // Seed n8n workflow IDs
     const seedWorkflows = [
       { name: "Cal.com → Lead", n8nId: "Abf2sv4YFM6MDzjf", status: "Actif", desc: "Booking Cal.com → création lead cockpit" },
@@ -505,6 +516,10 @@ export async function createLead(data: {
   propositionAmount?: number | null;
   timeline?: string | null;
   notes?: string | null;
+  website?: string | null;
+  websiteScore?: number | null;
+  emailSentCount?: number;
+  lastContactedAt?: number | null;
 }) {
   const db = getDb();
   const id = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -523,6 +538,10 @@ export async function createLead(data: {
     propositionAmount: data.propositionAmount ?? null,
     timeline: data.timeline ?? null,
     notes: data.notes ?? null,
+    website: data.website ?? null,
+    websiteScore: data.websiteScore ?? null,
+    emailSentCount: data.emailSentCount ?? 0,
+    lastContactedAt: data.lastContactedAt ?? null,
     createdAt: now,
     updatedAt: now,
   });

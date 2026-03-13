@@ -49,6 +49,25 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const email = searchParams.get('email');
+    const source = searchParams.get('source');
+
+    if (email) {
+      const rawDb = (getDb() as any).$client;
+      const rows = rawDb.prepare('SELECT * FROM leads WHERE email = ? COLLATE NOCASE').all(email);
+      return NextResponse.json({ success: true, data: { leads: rows } });
+    }
+
+    if (source) {
+      const rawDb = (getDb() as any).$client;
+      let query = 'SELECT * FROM leads WHERE source = ?';
+      const params: string[] = [source];
+      if (status) { query += ' AND status = ?'; params.push(status); }
+      query += ' ORDER BY created_at DESC';
+      const rows = rawDb.prepare(query).all(...params);
+      return NextResponse.json({ success: true, data: { leads: rows } });
+    }
+
     const allLeads = await getLeads(status ?? undefined);
     return NextResponse.json({ success: true, data: { leads: allLeads } });
   } catch (err: any) {

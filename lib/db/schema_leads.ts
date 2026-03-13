@@ -45,6 +45,12 @@ export const leads = sqliteTable('leads', {
   notes: text('notes'),
   lostReason: text('lost_reason'),
 
+  // Prospection / cold outreach
+  website: text('website'),
+  websiteScore: integer('website_score'),
+  emailSentCount: integer('email_sent_count').default(0),
+  lastContactedAt: integer('last_contacted_at'),
+
   // Key dates (INTEGER ms timestamps)
   propositionSentAt: integer('proposition_sent_at'),
   relance1SentAt: integer('relance1_sent_at'),
