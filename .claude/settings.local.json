@@ -38,7 +38,23 @@
       "Bash(test -d \"C:\\\\temp\\\\alt-ctrl-lab\\\\public\" && echo \"EXISTS\" || echo \"NOT_FOUND\")",
       "Bash(claude mcp:*)",
       "Bash(git init:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "mcp__chrome-mcp__chrome_navigate",
+      "Bash(netstat -ano | grep 9222 2>/dev/null || echo \"port 9222 not found\")",
+      "Bash(netstat -ano 2>/dev/null | grep \":9222\" || echo \"not found\")",
+      "mcp__chrome-mcp__chrome_screenshot",
+      "mcp__chrome-mcp__chrome_click",
+      "mcp__chrome-mcp__chrome_type",
+      "mcp__chrome-mcp__chrome_execute_script",
+      "Bash(git remote:*)",
+      "Bash(git config:*)",
+      "Bash(git push:*)",
+      "Bash(cmdkey /delete:git:https://github.com 2>/dev/null; cmdkey /delete:https://github.com 2>/dev/null; echo \"done\")",
+      "mcp__chrome-mcp__chrome_get_visible_text",
+      "Bash(curl -sk -X POST https://backboard.railway.app/graphql/v2 \\\\\n  -H \"Authorization: Bearer 183c00d5-7531-4e54-8d6d-52116be723a0\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"query\":\"{ deploymentLogs\\(deploymentId: \\\\\"a0bf5fa7-5e21-4148-bdda-1aa234c4a810\\\\\"\\) { message } }\"}' 2>&1 | python -c \"import sys,json; logs=json.load\\(sys.stdin\\); [print\\(l['message']\\) for l in logs.get\\('data',{}\\).get\\('deploymentLogs',[]\\)]\" 2>&1 | tail -50)",
+      "Bash(curl -sk -X POST https://backboard.railway.app/graphql/v2 \\\\\n  -H \"Authorization: Bearer 183c00d5-7531-4e54-8d6d-52116be723a0\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"query\":\"{ buildLogs\\(deploymentId: \\\\\"a0bf5fa7-5e21-4148-bdda-1aa234c4a810\\\\\"\\) { message } }\"}' 2>&1 | python -c \"\nimport sys,json\ndata = json.load\\(sys.stdin\\)\nlogs = data.get\\('data',{}\\).get\\('buildLogs',[]\\)\nfor l in logs[-80:]:\n    print\\(l['message']\\)\n\" 2>&1)",
+      "Bash(sleep 10 && curl -sk -X POST https://backboard.railway.app/graphql/v2 \\\\\n  -H \"Authorization: Bearer 183c00d5-7531-4e54-8d6d-52116be723a0\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"query\":\"{ project\\(id: \\\\\"f348c163-c857-48ec-b255-698e8a10b39c\\\\\"\\) { services { edges { node { deployments { edges { node { id status createdAt } } } } } } } }\"}' | python -c \"\nimport sys,json\ndata = json.load\\(sys.stdin\\)\ndeps = data['data']['project']['services']['edges'][0]['node']['deployments']['edges']\nfor d in deps[:3]:\n    n = d['node']\n    print\\(n['status'], n['createdAt'], n['id']\\)\n\")",
+      "Bash(git add:*)"
     ]
   }
 }

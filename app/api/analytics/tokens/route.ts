@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // GET /api/analytics/tokens — Métriques tokens par agent
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';

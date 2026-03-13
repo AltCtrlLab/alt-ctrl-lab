@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // /app/api/todos/route.ts
 // CRUD pour les todos avec filtres temporels - VERSION SQLITE BRUTE
 

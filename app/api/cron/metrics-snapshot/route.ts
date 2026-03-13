@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // GET /api/cron/metrics-snapshot — Crée un snapshot des métriques actuelles
 // Peut être appelé par un cron job ou manuellement
 import { NextResponse } from 'next/server';

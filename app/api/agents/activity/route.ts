@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // /app/api/agents/activity/route.ts
 // GET /api/agents/activity?agent_id=matin&limit=50&offset=0
 // GET /api/agents/activity?agent_id=matin&timeframe=24h (hourly aggregation)

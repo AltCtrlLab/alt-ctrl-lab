@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, createFollowup, updateFollowup, getFollowups, deleteFollowup } from '@/lib/db';
 

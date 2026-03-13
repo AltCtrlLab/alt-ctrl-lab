@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, createPortfolioItem, updatePortfolioItem, getPortfolioItems, deletePortfolioItem } from '@/lib/db';
 

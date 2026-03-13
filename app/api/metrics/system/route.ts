@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // GET /api/metrics/system — Métriques système réelles
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';

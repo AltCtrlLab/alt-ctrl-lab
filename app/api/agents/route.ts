@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createTask, getTask, getRecentTasks, updateTaskStatus } from '@/lib/db';
 import { executeAgentTask, registerSSEClient } from '@/lib/worker';

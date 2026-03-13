@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { extractSupervisorPlan, JSONExtractionError } from '@/lib/utils/json';
 import { createTask, updateTaskStatus } from '@/lib/db';

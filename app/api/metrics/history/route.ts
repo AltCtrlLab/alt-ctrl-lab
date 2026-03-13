@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 // GET /api/metrics/history?days=7 — Retourne les snapshots historiques
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
