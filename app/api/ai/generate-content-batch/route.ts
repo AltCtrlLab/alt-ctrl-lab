@@ -40,7 +40,7 @@ Retourne UNIQUEMENT le JSON array, sans commentaires ni balises markdown.`;
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'moonshot-v1-8k',
+        model: 'kimi-k2.5',
         messages: [{ role: 'user', content: prompt }],
       }),
     });
