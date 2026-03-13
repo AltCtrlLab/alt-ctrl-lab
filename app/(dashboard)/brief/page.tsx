@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react';
 import { Header } from '@/components/dashboard/Header';
-import { Sidebar } from '@/components/dashboard/Sidebar';
 import { BriefCreator } from '@/components/dashboard/BriefCreator';
 import { Card } from '@/components/ui/Card';
 import { FileText, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BriefPage() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userXP] = useState(2450);
   const [userStreak] = useState(5);
@@ -48,24 +46,12 @@ export default function BriefPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      <Header 
-        userXP={userXP} 
+      <Header
+        userXP={userXP}
         userStreak={userStreak}
         notifications={0}
       />
-      
-      <Sidebar 
-        isCollapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
-      
-      <main 
-        className={`
-          transition-all duration-300 pt-16 min-h-screen
-          ${sidebarCollapsed ? 'pl-16' : 'pl-64'}
-        `}
-      >
-        <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-6 max-w-4xl mx-auto">
           <Link 
             href="/"
             className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors mb-6"
@@ -108,8 +94,7 @@ export default function BriefPage() {
               </li>
             </ul>
           </Card>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
