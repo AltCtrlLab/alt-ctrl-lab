@@ -90,6 +90,17 @@ export function setStoredSidebarExpanded(expanded: boolean): void {
   localStorage.setItem('acl-sidebar-expanded', expanded ? 'true' : 'false');
 }
 
+export function getStoredDarkMode(): boolean {
+  if (typeof window === 'undefined') return true;
+  const v = localStorage.getItem('acl-dark');
+  return v === null ? true : v !== 'false';
+}
+
+export function setStoredDarkMode(dark: boolean): void {
+  localStorage.setItem('acl-dark', dark ? 'true' : 'false');
+  document.documentElement.classList.toggle('light', !dark);
+}
+
 export function getTheme(isDark: boolean) {
   return {
     mainBg: isDark ? 'bg-neutral-950' : 'bg-[#F4F5F7]',

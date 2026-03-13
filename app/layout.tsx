@@ -20,6 +20,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('acl-dark')==='false')document.documentElement.classList.add('light');}catch(e){}` }} />
+      </head>
       <body className={`${inter.variable} font-sans`}>{children}</body>
     </html>
   );

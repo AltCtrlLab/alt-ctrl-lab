@@ -58,6 +58,45 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* App shell background — responds to dark/light mode */
+.app-shell {
+  background: theme('colors.zinc.950');
+}
+
+html.light .app-shell {
+  background: #F4F5F7;
+}
+
+html.light body {
+  background: #F4F5F7;
+  color: theme('colors.neutral.900');
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Light mode overrides for hardcoded zinc/dark classes */
+html.light .bg-zinc-950 { background-color: #F4F5F7 !important; }
+html.light .bg-zinc-900 { background-color: #FFFFFF !important; }
+html.light .bg-zinc-800 { background-color: #F3F4F6 !important; }
+html.light .border-zinc-800 { border-color: #E5E7EB !important; }
+html.light .border-zinc-700 { border-color: #D1D5DB !important; }
+html.light .text-zinc-300 { color: #374151 !important; }
+html.light .text-zinc-400 { color: #6B7280 !important; }
+html.light .text-zinc-500 { color: #9CA3AF !important; }
+html.light .text-white { color: #111827 !important; }
+html.light .text-zinc-200 { color: #1F2937 !important; }
+html.light .text-zinc-100 { color: #111827 !important; }
+
 ::selection {
   background: rgba(59, 130, 246, 0.3);
   color: white;

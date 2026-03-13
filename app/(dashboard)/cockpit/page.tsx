@@ -47,8 +47,8 @@ export default function CockpitPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white">
-      <header className="sticky top-0 z-50 border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -57,13 +57,13 @@ export default function CockpitPage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold">Alt Ctrl Lab</h1>
-                <p className="text-sm text-neutral-500">Cockpit de monitoring</p>
+                <p className="text-sm text-zinc-500">Cockpit de monitoring</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-900 rounded-full border border-neutral-800">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-zinc-800">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-sm text-neutral-400">Système actif</span>
+                <span className="text-sm text-zinc-400">Système actif</span>
               </div>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function CockpitPage() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-neutral-900 rounded-xl border border-neutral-800 p-4"
+              className="bg-zinc-900 rounded-xl border border-zinc-800 p-4"
             >
               <h2 className="text-lg font-semibold mb-4">Tâches récentes</h2>
               
@@ -92,7 +92,7 @@ export default function CockpitPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
                 </div>
               ) : tasks.length === 0 ? (
-                <p className="text-neutral-500 text-center py-8">Aucune tâche. Lancez votre première mission !</p>
+                <p className="text-zinc-500 text-center py-8">Aucune tâche. Lancez votre première mission !</p>
               ) : (
                 <div className="space-y-3">
                   {tasks.map((task, idx) => (
@@ -101,18 +101,18 @@ export default function CockpitPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="flex items-center justify-between p-3 bg-neutral-950 rounded-lg border border-neutral-800 hover:border-neutral-700 transition-all group"
+                      className="flex items-center justify-between p-3 bg-zinc-950 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-all group"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-white truncate">{task.agentName}</p>
                           {task.serviceId && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
                               {task.serviceId}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-neutral-500 truncate">
+                        <p className="text-xs text-zinc-500 truncate">
                           {task.prompt?.substring(0, 60)}...
                         </p>
                       </div>
@@ -128,28 +128,28 @@ export default function CockpitPage() {
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-neutral-900 rounded-xl border border-neutral-800 p-4"
+              className="bg-zinc-900 rounded-xl border border-zinc-800 p-4"
             >
               <h3 className="font-semibold mb-4">Statistiques</h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-neutral-950 rounded-lg">
-                  <span className="text-neutral-400">Agents actifs</span>
+                <div className="flex justify-between items-center p-3 bg-zinc-950 rounded-lg">
+                  <span className="text-zinc-400">Agents actifs</span>
                   <span className="font-bold text-white text-lg">9</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-neutral-950 rounded-lg">
-                  <span className="text-neutral-400">En cours</span>
+                <div className="flex justify-between items-center p-3 bg-zinc-950 rounded-lg">
+                  <span className="text-zinc-400">En cours</span>
                   <span className="font-bold text-blue-400 text-lg">
                     {tasks.filter(t => ['DIRECTOR_PLANNING', 'EXECUTING_SUBTASK', 'EXECUTOR_DRAFTING'].includes(t.status)).length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-neutral-950 rounded-lg">
-                  <span className="text-neutral-400">Complétées</span>
+                <div className="flex justify-between items-center p-3 bg-zinc-950 rounded-lg">
+                  <span className="text-zinc-400">Complétées</span>
                   <span className="font-bold text-emerald-400 text-lg">
                     {tasks.filter(t => t.status === 'COMPLETED').length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-neutral-950 rounded-lg">
-                  <span className="text-neutral-400">Échecs</span>
+                <div className="flex justify-between items-center p-3 bg-zinc-950 rounded-lg">
+                  <span className="text-zinc-400">Échecs</span>
                   <span className="font-bold text-red-400 text-lg">
                     {tasks.filter(t => t.status === 'FAILED' || t.status === 'FAILED_QA').length}
                   </span>
@@ -161,21 +161,21 @@ export default function CockpitPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-neutral-900 rounded-xl border border-neutral-800 p-4"
+              className="bg-zinc-900 rounded-xl border border-zinc-800 p-4"
             >
               <h3 className="font-semibold mb-4">Architecture</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                  <span className="text-sm text-neutral-400">Micro-Délégation</span>
+                  <span className="text-sm text-zinc-400">Micro-Délégation</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                  <span className="text-sm text-neutral-400">Director Takeover</span>
+                  <span className="text-sm text-zinc-400">Director Takeover</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span className="text-sm text-neutral-400">SSE Temps réel</span>
+                  <span className="text-sm text-zinc-400">SSE Temps réel</span>
                 </div>
               </div>
             </motion.div>
