@@ -1,0 +1,747 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { extractSupervisorPlan, JSONExtractionError } from '@/lib/utils/json';
+import { createTask } from '@/lib/db';
+import { executeHierarchicalTask } from '@/lib/worker';
+import { broadcastTaskUpdate } from '@/lib/worker';
+import { updateGlobalWarRoomState } from '@/lib/warroom-state';
+import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
+import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
+import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
+
+/**
+ * ⭐ SYSTEM PROMPT STRICT POUR SUPERVISEUR KIMI
+ * Copie ce texte EXACTEMENT dans le call API Kimi
+ */
+const SUPERVISOR_SYSTEM_PROMPT = `Tu es AbdulHakim, le CEO visionnaire, Architecte Lead et Directeur Stratégique de Alt Ctrl Lab. Ton standard est le Top 1% mondial. Ta mission n'est pas d'exécuter un brief, mais de l'ÉLEVER, de le challenger et de concevoir un écosystème numérique parfait, rentable et scalable avant de le déléguer à ton équipe d'experts.
+
+# TES 4 EXPERTS (AGENTS DIRECTEURS) :
+- "musawwir" : Directeur Artistique Senior. Neuro-esthétique, UI/UX, branding émotionnel, design system.
+- "fatah" : Growth Architect. SEO, copywriting persuasif (CRO), ingénierie de la viralité, tunnels de vente, psychologie du consommateur.
+- "hasib" : AI Systems & Data Architect. Automatisations n8n, bases vectorielles, intégrations API complexes, webhooks.
+- "matin" : Senior Lead Developer. Architecture Next.js/React/TypeScript, PWA, typage strict, clean code, performances extrêmes.
+
+# TA PHILOSOPHIE (RÈGLES MÉTIER TOP 1%) :
+1. Tu ne fais jamais de simple "design" ou de "code". Tout est un système de conversion et de rétention.
+2. Si le brief humain est faible, incomplet ou cliché, ton "diagnostic_implacable" doit le détruire poliment et proposer un angle disruptif.
+3. Tu penses "Long Terme". Un simple site vitrine doit être pensé comme une future machine d'acquisition data-driven.
+4. Tu orchestres la synergie. Un projet ambitieux implique TOUJOURS plusieurs agents (ex: Fatah pour l'angle psychologique -> Musawwir pour l'UI -> Hasib pour la DB -> Matin pour le code).
+
+# RÈGLES ABSOLUES DE FORMATAGE (VIOLATION = ÉCHEC CRITIQUE) :
+1. Tu DOIS répondre EXCLUSIVEMENT avec un objet JSON valide.
+2. AUCUN texte, AUCUNE salutation, AUCUNE explication avant ou après le JSON.
+3. Le JSON DOIT suivre EXACTEMENT cette structure complexe :
+
+{
+  "diagnostic_implacable": "Analyse froide et experte du brief humain. Qu'est-ce qui manque ? Pourquoi est-ce trop basique ?",
+  "vision_long_terme_roi": "Comment transformer cette demande en un actif ultra-rentable et viral à 3 ans ?",
+  "actions": [
+    {
+      "agent_id": "musawwir|matin|fatah|hasib",
+      "directive_top_1_percent": "La mission exacte, formulée avec une exigence extrême. Pas de tâches basiques.",
+      "angle_psychologique_ou_technique": "Le biais cognitif à exploiter (pour Musawwir/Fatah) ou l'architecture exacte à utiliser (pour Matin/Hasib).",
+      "livrable_attendu": "Ce que l'agent doit concrètement générer.",
+      "priority": "1 (Urgent/Fondation) | 2 (Structure) | 3 (Exécution finale)"
+    }
+  ]
+}
+
+# EXEMPLE D'EXIGENCE (Ne pas copier le contenu, comprendre le niveau) :
+Si le brief est "Créer un logo pour un café", tu ne donnes pas juste la tâche à Musawwir. Ta vision implique Fatah pour analyser la sémantique de la clientèle cible premium, Musawwir pour créer une identité basée sur la neuro-esthétique qui justifie un café à 6€, et Hasib pour proposer un système de fidélité automatisé.
+
+Réponds maintenant avec le JSON uniquement :`;
+
+// ⭐ DICTIONNAIRE DE MAPPING STRICT : Directeur → Exécutant
+const TEAM_MAPPING: Record<string, string> = {
+  'musawwir': 'raqim',  // Directeur Création → Exécutant UI
+  'matin': 'banna',     // Directeur Technique → Exécutant Code
+  'fatah': 'khatib',    // Directeur Growth → Exécutant Copy
+  'hasib': 'sani',      // Directeur Data → Exécutant Automations
+};
+
+// ⭐ NOUVEAU: Mapping Service → Directeur (Pattern Gateway)
+const SERVICE_TO_DIRECTOR: Record<string, string> = {
+  'full_agency': 'abdulhakim',
+  'branding': 'musawwir',
+  'web_dev': 'matin',
+  'marketing': 'fatah',
+  'data': 'hasib'
+};
+
+/**
+ * Appelle l'API Kimi via OpenClaw
+ */
+async function callKimiSupervisor(userBrief: string): Promise<string> {
+  const fullPrompt = `${SUPERVISOR_SYSTEM_PROMPT}
+
+BRIEF UTILISATEUR:
+${userBrief}`;
+  
+  const { spawn } = require('child_process');
+  const os = require('os');
+  const path = require('path');
+  
+  return new Promise((resolve, reject) => {
+    const args = [
+      'agent',
+      '--agent', 'main',
+      '--message', fullPrompt,
+      '--local',
+      '--timeout', '180'
+    ];
+
+    const child = spawn('openclaw', args, {
+      cwd: path.join(os.homedir(), '.openclaw/workspace'),
+      env: { ...process.env, FORCE_COLOR: '0' }
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data: Buffer) => { stdout += data.toString(); });
+    child.stderr.on('data', (data: Buffer) => { stderr += data.toString(); });
+
+    const timeout = setTimeout(() => {
+      child.kill('SIGTERM');
+      reject(new Error('Supervisor timeout'));
+    }, 180000);
+
+    child.on('close', (code: number | null) => {
+      clearTimeout(timeout);
+      if (code !== 0) {
+        reject(new Error(`Supervisor failed: ${stderr}`));
+      } else {
+        resolve(stdout.trim());
+      }
+    });
+
+    child.on('error', (err: Error) => { reject(err); });
+  });
+}
+
+/**
+ * POST /api/supervisor
+ * Pipeline Séquentiel avec Mapping Hiérarchique et Accumulation de Contexte
+ */
+export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
+  try {
+    const { brief, priority = 'medium', service_id } = await request.json();
+
+    if (!brief || typeof brief !== 'string') {
+      return NextResponse.json({
+        success: false,
+        error: { code: 'INVALID_BRIEF', message: 'Brief string required' }
+      }, { status: 400 });
+    }
+
+    // ⭐ GATEWAY PATTERN: Si service spécifique, INTERCEPTER ET ÉLEVER par CEO
+    if (service_id && service_id !== 'full_agency') {
+      const directorId = SERVICE_TO_DIRECTOR[service_id];
+      const executorId = TEAM_MAPPING[directorId];
+      
+      if (!directorId || !executorId) {
+        return NextResponse.json({
+          success: false,
+          error: { code: 'INVALID_SERVICE', message: `Service ${service_id} not found` }
+        }, { status: 400 });
+      }
+
+      // 🔮 PILIER EXECUTIF : Élévation du brief par le CEO
+      console.log(`[Supervisor] CEO elevating brief for ${service_id}...`);
+      broadcastTaskUpdate({
+        id: `elevate_${Date.now()}`,
+        status: 'CEO_ELEVATING_BRIEF',
+        stage: 'BRIEF_TRANSFORMATION'
+      });
+
+      const elevationPrompt = `[SYSTÈME] Voici un brief brut d'un client pour le service "${service_id}".
+
+BRIEF BRUT:
+${brief}
+
+Agis comme un CEO Top 1%. Ton rôle est d'ÉLEVER ce brief.
+Réécris-le pour le transformer en un "Master Brief" ultra-détaillé, injectant:
+- Des enjeux business clairs (pourquoi c'est important ?)
+- De la psychologie cognitive (quelle émotion déclencher ?)
+- Un standard d'excellence implacable (qu'est-ce que Top 1% signifie ici ?)
+- Des contraintes techniques implicites mais critiques
+- Des métriques de succès mesurables
+
+Ton résultat sera envoyé directement à ton Directeur Technique (${directorId}).
+Ne génère que le Master Brief élevé, sans préambule ni conclusion.`;
+
+      try {
+        const { success: elevatedBrief_success, stdout: elevatedBrief } = await executeOpenClawAgent('abdulhakim', elevationPrompt, 120000);
+    if (!elevatedBrief_success) throw new Error(`Agent failed: ${elevatedBrief}`);
+        console.log('[Supervisor] Brief elevated by CEO');
+        
+        // Créer la tâche avec le brief élevé
+        const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        await createTask({
+          id: taskId,
+          agentName: `${directorId}→${executorId}`,
+          prompt: elevatedBrief,
+        });
+
+        // Lancer l'exécution hiérarchique avec le brief élevé
+        void executeHierarchicalTask(
+          taskId,
+          directorId,
+          executorId,
+          elevatedBrief,
+          service_id,
+          900000
+        );
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            taskId,
+            service: service_id,
+            director: directorId,
+            executor: executorId,
+            status: 'ELEVATED_BRIEF_QUEUED',
+            brief_elevation: 'CEO_TRANSFORMED',
+            message: 'Master Brief generated by CEO and queued for execution'
+          },
+          meta: { timestamp: new Date().toISOString(), executionTime: Date.now() - startTime }
+        }, { status: 202 });
+        
+      } catch (elevationError) {
+        console.error('[Supervisor] Brief elevation failed, falling back to raw brief:', elevationError);
+        // Fallback: utiliser le brief brut
+        const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        await createTask({
+          id: taskId,
+          agentName: `${directorId}→${executorId}`,
+          prompt: brief,
+        });
+
+        void executeHierarchicalTask(
+          taskId,
+          directorId,
+          executorId,
+          brief,
+          service_id,
+          900000
+        );
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            taskId,
+            service: service_id,
+            status: 'RAW_BRIEF_QUEUED',
+            brief_elevation: 'FAILED_FALLBACK',
+            message: 'Using raw brief (elevation failed)'
+          },
+          meta: { timestamp: new Date().toISOString() }
+        }, { status: 202 });
+      }
+    }
+
+    console.log('[Supervisor] Analyzing brief:', brief.substring(0, 100) + '...');
+
+    // ⭐ PILIER 4 : War Room Protocol pour full_agency
+    if (service_id === 'full_agency') {
+      console.log('[Supervisor] Launching War Room Protocol...');
+      
+      // Démarrer le War Room en arrière-plan
+      void runWarRoomProtocol(brief, TEAM_MAPPING);
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          protocol: 'WAR_ROOM_PROTOCOL',
+          phases: ['EXPLORATION', 'DEBATE', 'DECISION', 'EXECUTION'],
+          status: 'WAR_ROOM_INITIATED',
+          message: 'Strategic decision-making in progress. Monitor via SSE /api/agents/stream'
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          executionTime: Date.now() - startTime
+        }
+      }, { status: 202 });
+    }
+
+    // ⭐ LEGACY: Ce code n'est plus utilisé - remplacé par CEO Elevation et War Room
+    // Gardé pour référence mais jamais exécuté
+    if (false) {
+      const kimResponse = '{"actions":[]}';
+      console.log('[Supervisor] Raw response:', kimResponse.substring(0, 200));
+      
+      // 2. Extraction et validation JSON
+      let plan;
+      try {
+        plan = extractSupervisorPlan(kimResponse);
+      } catch (parseError) {
+        // ... legacy error handling
+      }
+      
+      // 3. Pipeline séquentiel
+      void runSequentialPipeline(plan, TEAM_MAPPING);
+    }
+    
+    // Fallback: Should never reach here
+    return NextResponse.json({
+      success: false,
+      error: {
+        code: 'UNREACHABLE',
+        message: 'This code path should be unreachable'
+      }
+    }, { status: 500 });
+
+  } catch (error) {
+    console.error('[Supervisor] Fatal error:', error);
+    return NextResponse.json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }, { status: 500 });
+  }
+}
+
+/**
+ * 🔮 WAR ROOM PROTOCOL - Pilier 4 : Raisonnement Avancé (Tree of Thoughts)
+ * 3 phases: Exploration → Débat → Décision
+ */
+async function runWarRoomProtocol(brief: string, teamMapping: Record<string, string>): Promise<void> {
+  const warRoomId = `warroom_${Date.now()}`;
+  
+  console.log(`[WarRoom] ${warRoomId}: Starting War Room Protocol...`);
+  
+  // 🆕 Initialiser l'état global pour hydratation frontend
+  updateGlobalWarRoomState({
+    id: warRoomId,
+    phase: 'EXPLORATION',
+    startedAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  
+  broadcastTaskUpdate({
+    id: warRoomId,
+    status: 'WAR_ROOM_INITIATED',
+    stage: 'STRATEGIC_DECISION_MAKING'
+  });
+
+  try {
+    // ============================================================================
+    // PHASE 1 : EXPLORATION (CEO Divergence)
+    // ============================================================================
+    console.log(`[WarRoom] ${warRoomId}: Phase 1 - CEO Exploration...`);
+    broadcastTaskUpdate({
+      id: warRoomId,
+      status: 'WAR_ROOM_EXPLORATION',
+      stage: 'CEO_DIVERGENCE'
+    });
+
+    const explorationPrompt = `Tu es AbdulHakim, CEO de Alt Ctrl Lab. Brief: "${brief}"
+
+MISSION : Génère 3 VISIONS stratégiques radicalement différentes.
+
+RÈGLES:
+- Vision A = Approche Rapide/Monolithe (MVP rapide, un seul bloc)
+- Vision B = Approche Scalable/Microservices (Architecture distribuée, résiliente)
+- Vision C = Approche Innovante/Edge (Technologies bleeding-edge, serverless, AI-native)
+
+FORMAT DE RÉPONSE:
+VISION A [MONOLITHE RAPIDE]:
+[Description en 1 paragraphe de l'architecture et des choix techniques]
+
+VISION B [MICROSERVICES SCALABLE]:
+[Description en 1 paragraphe]
+
+VISION C [EDGE INNOVANT]:
+[Description en 1 paragraphe]
+
+Réponds uniquement avec ces 3 visions, aucun autre texte.`;
+
+    const { success: visionsRaw_success, stdout: visionsRaw } = await executeOpenClawAgent('abdulhakim', explorationPrompt, 120000);
+    if (!visionsRaw_success) throw new Error(`Agent failed: ${visionsRaw}`);
+    
+    // Parser les 3 visions
+    const visionA = visionsRaw.match(/VISION A[\s\S]*?(?=VISION B|$)/i)?.[0]?.replace(/VISION A.*
+/i, '').trim() || '';
+    const visionB = visionsRaw.match(/VISION B[\s\S]*?(?=VISION C|$)/i)?.[0]?.replace(/VISION B.*
+/i, '').trim() || '';
+    const visionC = visionsRaw.match(/VISION C[\s\S]*?$/i)?.[0]?.replace(/VISION C.*
+/i, '').trim() || '';
+    
+    // 🧠 TÉLÉMÉTRIE: Log des visions CEO
+    console.log('
+╔════════════════════════════════════════════════════════════════╗');
+    console.log('║           🧠 VISIONS DU CEO (Phase 1: Exploration)              ║');
+    console.log('╚════════════════════════════════════════════════════════════════╝');
+    console.log('
+📍 VISION A [MONOLITHE RAPIDE]:');
+    console.log(visionA);
+    console.log('
+📍 VISION B [MICROSERVICES SCALABLE]:');
+    console.log(visionB);
+    console.log('
+📍 VISION C [EDGE INNOVANT]:');
+    console.log(visionC);
+    console.log('
+══════════════════════════════════════════════════════════════════
+');
+    
+    broadcastTaskUpdate({
+      id: warRoomId,
+      status: 'WAR_ROOM_EXPLORATION_DONE',
+      stage: 'VISIONS_GENERATED',
+      data: {
+        visions: {
+          A: { type: 'MONOLITHE_RAPIDE', content: visionA },
+          B: { type: 'MICROSERVICES_SCALABLE', content: visionB },
+          C: { type: 'EDGE_INNOVANT', content: visionC }
+        }
+      }
+    });
+
+    // 🆕 Mise à jour état global pour hydratation
+    updateGlobalWarRoomState({
+      id: warRoomId,
+      phase: 'EXPLORATION',
+      visions: {
+        A: { type: 'MONOLITHE_RAPIDE', content: visionA },
+        B: { type: 'MICROSERVICES_SCALABLE', content: visionB },
+        C: { type: 'EDGE_INNOVANT', content: visionC }
+      }
+    });
+
+    // ============================================================================
+    // PHASE 2 : DÉBAT (Cross-Examination)
+    // ============================================================================
+    console.log(`[WarRoom] ${warRoomId}: Phase 2 - Expert Debate...`);
+    broadcastTaskUpdate({
+      id: warRoomId,
+      status: 'WAR_ROOM_DEBATE',
+      stage: 'CROSS_EXAMINATION'
+    });
+
+    const visionsText = `
+VISION A [MONOLITHE RAPIDE]: ${visionA}
+
+VISION B [MICROSERVICES SCALABLE]: ${visionB}
+
+VISION C [EDGE INNOVANT]: ${visionC}`;
+
+    // Lance 2 évaluations en PARALLÈLE (Promise.all)
+    const [matinEvaluation, musawwirEvaluation] = await Promise.all([
+      // Matin (CTO) - Évaluation technique
+      executeOpenClawAgent('matin', `Tu es Matin, CTO Technique de Alt Ctrl Lab.
+
+Voici 3 visions architecturales proposées par le CEO pour ce projet:
+${visionsText}
+
+MISSION: Audite CHAQUE vision sur:
+1. Faisabilité technique (sur 10).then(r => r.success ? r.stdout : Promise.reject(new Error(r.stderr)))
+2. Dette technique potentielle (sur 10)
+3. Performance/scalabilité (sur 10)
+
+FORMAT DE RÉPONSE:
+VISION A: Note=/10 | [Justification technique en 2 phrases]
+VISION B: Note=/10 | [Justification]
+VISION C: Note=/10 | [Justification]
+
+Donne des notes sévères et réalistes.`, 90000),
+
+      // Musawwir (DA) - Évaluation UX/Design
+      executeOpenClawAgent('musawwir', `Tu es Musawwir, Directeur Artistique de Alt Ctrl Lab.
+
+Voici 3 visions proposées par le CEO:
+${visionsText}
+
+MISSION: Audite CHAQUE vision sur:
+1. Expérience utilisateur (UX).then(r => r.success ? r.stdout : Promise.reject(new Error(r.stderr))) (sur 10)
+2. Charge cognitive pour l'utilisateur (sur 10, 10=très simple)
+3. Impact visuel et mémorabilité (sur 10)
+
+FORMAT DE RÉPONSE:
+VISION A: Note=/10 | [Justification UX en 2 phrases]
+VISION B: Note=/10 | [Justification]
+VISION C: Note=/10 | [Justification]
+
+Sois exigeant sur l'expérience utilisateur.`, 90000)
+    ]);
+
+    console.log(`[WarRoom] ${warRoomId}: Debate completed`);
+    
+    // ⚔️ TÉLÉMÉTRIE: Log des évaluations experts
+    console.log('
+╔════════════════════════════════════════════════════════════════╗');
+    console.log('║        ⚔️  DÉBAT CTO/DA (Phase 2: Cross-Examination)            ║');
+    console.log('╚════════════════════════════════════════════════════════════════╝');
+    console.log('
+👨‍💻 ÉVALUATION CTO (Matin - Critère Technique):');
+    console.log(matinEvaluation);
+    console.log('
+🎨 ÉVALUATION DA (Musawwir - Critère UX/Design):');
+    console.log(musawwirEvaluation);
+    console.log('
+══════════════════════════════════════════════════════════════════
+');
+    
+    broadcastTaskUpdate({
+      id: warRoomId,
+      status: 'WAR_ROOM_DEBATE_DONE',
+      stage: 'EXPERT_EVALUATIONS',
+      data: { 
+        evaluations: {
+          cto: { agent: 'matin', role: 'CTO', content: matinEvaluation },
+          da: { agent: 'musawwir', role: 'Directeur Artistique', content: musawwirEvaluation }
+        }
+      }
+    });
+
+    // 🆕 Mise à jour état global pour hydratation
+    updateGlobalWarRoomState({
+      id: warRoomId,
+      phase: 'DEBATE',
+      evaluations: {
+        cto: { agent: 'matin', role: 'CTO', content: matinEvaluation },
+        da: { agent: 'musawwir', role: 'Directeur Artistique', content: musawwirEvaluation }
+      }
+    });
+
+    // ============================================================================
+    // PHASE 3 : DÉCISION (CEO Convergence)
+    // ============================================================================
+    console.log(`[WarRoom] ${warRoomId}: Phase 3 - Executive Decision...`);
+    broadcastTaskUpdate({
+      id: warRoomId,
+      status: 'WAR_ROOM_DECISION',
+      stage: 'CEO_CONVERGENCE'
+    });
+
+    const decisionPrompt = `Tu es AbdulHakim, CEO de Alt Ctrl Lab.
+
+TES 3 VISIONS INITIALES:
+${visionsText}
+
+ÉVALUATION DU CTO (Matin - Critère Technique):
+${matinEvaluation}
+
+ÉVALUATION DU DA (Musawwir - Critère UX):
+${musawwirEvaluation}
+
+MISSION FINALE:
+1. Analyse les notes et justifications de tes experts
+2. Choisis LA meilleure vision (A, B ou C) OU propose un HYBRIDE
+3. Génère LE PLAN D'ACTION FINAL sous forme de JSON strict:
+
+{
+  "diagnostic_implacable": "Analyse de la situation",
+  "vision_long_terme_roi": "Vision à 3 ans",
+  "vision_choisie": "A|B|C|HYBRIDE",
+  "justification_decision": "Pourquoi cette vision",
+  "actions": [
+    {
+      "agent_id": "musawwir|matin|fatah|hasib",
+      "directive_top_1_percent": "Mission exacte",
+      "angle_psychologique_ou_technique": "Approche",
+      "livrable_attendu": "Résultat concret",
+      "priority": "1|2|3"
+    }
+  ]
+}
+
+RÈGLE ABSOLUE: Réponds UNIQUEMENT avec le JSON valide, aucun texte avant/après.`;
+
+    const { success: finalDecision_success, stdout: finalDecision } = await executeOpenClawAgent('abdulhakim', decisionPrompt, 180000);
+    if (!finalDecision_success) throw new Error(`Agent failed: ${finalDecision}`);
+    
+    // 🎯 TÉLÉMÉTRIE: Log de la décision CEO
+    console.log('
+╔════════════════════════════════════════════════════════════════╗');
+    console.log('║        🎯 DÉCISION CEO (Phase 3: Convergence)                   ║');
+    console.log('╚════════════════════════════════════════════════════════════════╝');
+    console.log('
+📋 PLAN D\'ACTION FINAL:');
+    console.log(finalDecision);
+    console.log('
+══════════════════════════════════════════════════════════════════
+');
+    
+    // Extraire et logger le plan structuré
+    const finalPlan = extractSupervisorPlan(finalDecision);
+    console.log('[WarRoom] Plan structuré extrait:', JSON.stringify(finalPlan, null, 2));
+    
+    broadcastTaskUpdate({
+      id: warRoomId,
+      status: 'WAR_ROOM_DECISION_DONE',
+      stage: 'EXECUTIVE_PLAN_READY',
+      data: {
+        decision: finalDecision,
+        plan: finalPlan
+      }
+    });
+    
+    // 🆕 Mise à jour état global pour hydratation
+    updateGlobalWarRoomState({
+      id: warRoomId,
+      phase: 'DECISION',
+      decision: finalDecision,
+      plan: finalPlan
+    });
+    
+    // Lancer le pipeline séquentiel avec le plan validé
+    void runSequentialPipeline(finalPlan, teamMapping);
+    
+    console.log(`[WarRoom] ${warRoomId}: ✅ War Room Protocol completed, pipeline launched`);
+
+  } catch (error) {
+    console.error(`[WarRoom] ${warRoomId}: ❌ War Room failed:`, error);
+    broadcastTaskUpdate({
+      id: warRoomId,
+      status: 'WAR_ROOM_FAILED',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
+    // Fallback: lancer un plan standard
+    const fallbackPlan = {
+      actions: [{
+        agent_id: 'matin',
+        directive_top_1_percent: brief,
+        angle_psychologique_ou_technique: 'Standard execution',
+        livrable_attendu: 'Implementation',
+        priority: '1'
+      }]
+    };
+    void runSequentialPipeline(fallbackPlan, teamMapping);
+  }
+}
+
+/**
+ * Helper: Appel agent Kimi générique
+ */
+async function executeOpenClawAgent(agentId: string, prompt: string, timeoutMs: number).then(r => r.success ? r.stdout : Promise.reject(new Error(r.stderr))): Promise<string> {
+  const { spawn } = require('child_process');
+  const os = require('os');
+  const path = require('path');
+  
+  return new Promise((resolve, reject) => {
+    const child = spawn('openclaw', [
+      'agent',
+      '--agent', agentId,
+      '--message', prompt,
+      '--local',
+      '--timeout', String(Math.floor(timeoutMs / 1000))
+    ], {
+      cwd: path.join(os.homedir(), '.openclaw/workspace'),
+      env: { ...process.env, FORCE_COLOR: '0' }
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data: Buffer) => { stdout += data.toString(); });
+    child.stderr.on('data', (data: Buffer) => { stderr += data.toString(); });
+
+    const timeout = setTimeout(() => {
+      child.kill('SIGTERM');
+      reject(new Error(`Timeout ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    child.on('close', (code: number | null) => {
+      clearTimeout(timeout);
+      if (code !== 0) {
+        reject(new Error(`Agent ${agentId} failed: ${stderr}`));
+      } else {
+        resolve(stdout.trim());
+      }
+    });
+
+    child.on('error', (err: Error) => { reject(err); });
+  });
+}
+async function runSequentialPipeline(
+  plan: { actions: any[] }, 
+  teamMapping: Record<string, string>
+): Promise<void> {
+  let accumulatedContext = "";
+  
+  for (const action of plan.actions) {
+    const directorId = action.agent_id;
+    const executorId = teamMapping[directorId];
+    
+    if (!executorId) {
+      console.error(`[Pipeline] No executor mapping for director ${directorId}`);
+      break;
+    }
+
+    const taskId = `pipe_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Enrichissement du brief avec contexte hérité
+    const enrichedBrief = `${action.directive_top_1_percent}
+
+ANGLE/ARCHITECTURE: ${action.angle_psychologique_ou_technique}
+
+LIVRABLE ATTENDU: ${action.livrable_attendu}
+
+${accumulatedContext ? `--- CONTEXTE HÉRITÉ DES ÉTAPES PRÉCÉDENTES ---
+${accumulatedContext}` : ''}`;
+
+    try {
+      await createTask({
+        id: taskId,
+        agentName: `${directorId}→${executorId}`,
+        prompt: enrichedBrief,
+      });
+
+      console.log(`[Pipeline] Launching: ${directorId} → ${executorId} (task: ${taskId})`);
+
+      // ⭐ Lancement avec await pour séquentialité, mais cette fonction est détachée
+      await executeHierarchicalTask(
+        taskId, 
+        directorId, 
+        executorId, 
+        enrichedBrief,
+        undefined,  // serviceId
+        900000  // 15 minutes
+      );
+
+      // Vérifier le résultat après exécution
+      const { getTask } = await import('@/lib/db');
+      const task = await getTask(taskId);
+
+      if (task?.status === 'COMPLETED' && task.result) {
+        accumulatedContext += `
+
+--- LIVRABLE DE ${directorId} ---
+${task.result.substring(0, 5000)}`;
+        console.log(`[Pipeline] ✅ ${directorId} completed, context accumulated`);
+      } else if (task?.status === 'FAILED' || task?.status === 'FAILED_QA' || (task?.status as string) === 'FATAL_ERROR') {
+        console.error(`[Pipeline] ❌ ${directorId} failed: ${task.error || 'Unknown error'}`);
+        break; // Circuit breaker
+      }
+    } catch (error) {
+      console.error(`[Pipeline] ❌ Error in ${directorId}→${executorId}:`, error);
+      break;
+    }
+  }
+  
+  console.log('[Pipeline] 🎉 Pipeline completed or stopped');
+}
+
+/**
+ * GET /api/supervisor - Info
+ */
+export async function GET() {
+  return NextResponse.json({
+    service: 'Alt Ctrl Lab Supervisor',
+    version: '2.0.0',
+    architecture: 'Sequential Pipeline with Hierarchical Mapping',
+    team_mapping: TEAM_MAPPING,
+    features: [
+      'Séquentiel strict (for...of)',
+      'Transfert de contexte entre étapes',
+      'Circuit breaker sur échec',
+      'QA Loop intégrée (5 min timeout)',
+      '9 agents distincts (4D + 4E + 1CEO)'
+    ]
+  });
+}

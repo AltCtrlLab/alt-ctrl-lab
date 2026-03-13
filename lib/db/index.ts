@@ -1,0 +1,876 @@
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
+import { tasks, agentActivities, agentMetrics, todos, componentVault } from './schema';
+import { proposals } from './schema_proposals';
+import { discoveries, innovations, knowledgeGraphEdges, detectedPatterns, autoPlaybooks, learningLog, rdMetrics } from './schema_rd';
+import { newsItems } from './schema_news';
+import { leads } from './schema_leads';
+import { projects, timeEntries } from './schema_projects';
+import { invoices, expenses } from './schema_finances';
+import { contentItems } from './schema_content';
+import { automations } from './schema_automations';
+import { portfolioItems } from './schema_portfolio';
+import { followups } from './schema_postvente';
+import { Invoice, NewInvoice, Expense, NewExpense } from './schema_finances';
+import { ContentItem, NewContentItem } from './schema_content';
+import { Automation, NewAutomation } from './schema_automations';
+import { PortfolioItem, NewPortfolioItem } from './schema_portfolio';
+import { Followup, NewFollowup } from './schema_postvente';
+import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
+// Re-export scoring logic (client-safe)
+export { computeLeadScore, type ScoreCriteria } from '../scoring';
+import path from 'path';
+import os from 'os';
+
+const DB_PATH = path.join(os.homedir(), '.openclaw/altctrl.db');
+
+export let db: ReturnType<typeof drizzle> | null = null;
+
+export function getDb() {
+  if (!db) {
+    const sqlite = new Database(DB_PATH);
+    
+    // 🔒 RÉSILIENCE DB Phase 2 : Pragmas pour concurrence Swarm
+    sqlite.exec('PRAGMA journal_mode = WAL;');
+    sqlite.exec('PRAGMA busy_timeout = 5000;');
+    
+    db = drizzle(sqlite);
+    
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY,
+        agent_name TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'PENDING',
+        prompt TEXT NOT NULL,
+        result TEXT,
+        error TEXT,
+        iteration INTEGER,
+        stage TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+      CREATE INDEX IF NOT EXISTS idx_tasks_created ON tasks(created_at);
+
+      CREATE TABLE IF NOT EXISTS agent_activities (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        agent_name TEXT NOT NULL,
+        agent_role TEXT NOT NULL,
+        task_id TEXT NOT NULL,
+        parent_task_id TEXT,
+        activity_type TEXT NOT NULL,
+        prompt TEXT NOT NULL,
+        result TEXT,
+        result_size INTEGER,
+        tokens_input INTEGER,
+        tokens_output INTEGER,
+        execution_time_ms INTEGER,
+        status TEXT NOT NULL,
+        qa_result TEXT,
+        is_swarm INTEGER DEFAULT 0,
+        swarm_size INTEGER,
+        started_at INTEGER NOT NULL,
+        completed_at INTEGER
+      );
+
+      CREATE TABLE IF NOT EXISTS agent_metrics (
+        agent_id TEXT PRIMARY KEY,
+        total_tasks INTEGER DEFAULT 0,
+        successful_tasks INTEGER DEFAULT 0,
+        failed_tasks INTEGER DEFAULT 0,
+        qa_rejections INTEGER DEFAULT 0,
+        total_tokens_in INTEGER DEFAULT 0,
+        total_tokens_out INTEGER DEFAULT 0,
+        avg_execution_time_ms INTEGER,
+        success_rate REAL DEFAULT 0,
+        total_swarms_led INTEGER DEFAULT 0,
+        last_activity_at INTEGER,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS todos (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        category TEXT NOT NULL DEFAULT 'work',
+        priority TEXT NOT NULL DEFAULT 'medium',
+        assigned_to TEXT,
+        assigned_to_name TEXT,
+        due_date INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        completed_at INTEGER,
+        is_completed INTEGER DEFAULT 0,
+        is_recurring INTEGER DEFAULT 0,
+        source TEXT DEFAULT 'manual',
+        source_task_id TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS proposals (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        original_concept TEXT NOT NULL,
+        source_url TEXT NOT NULL,
+        source_platform TEXT,
+        alt_ctrl_mutation TEXT NOT NULL,
+        technical_architecture TEXT,
+        impact_analysis TEXT,
+        discovered_by TEXT NOT NULL DEFAULT 'abdulkhabir',
+        elevated_by TEXT NOT NULL DEFAULT 'abdulbasir',
+        status TEXT NOT NULL DEFAULT 'PENDING',
+        created_at INTEGER NOT NULL,
+        decided_at INTEGER,
+        decision_by TEXT,
+        implementation_task_id TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS metrics_snapshots (
+        id TEXT PRIMARY KEY,
+        total_tasks INTEGER DEFAULT 0,
+        completed_tasks INTEGER DEFAULT 0,
+        failed_tasks INTEGER DEFAULT 0,
+        total_tokens INTEGER DEFAULT 0,
+        success_rate REAL DEFAULT 0,
+        active_agents INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_snapshots_created ON metrics_snapshots(created_at);
+
+      CREATE TABLE IF NOT EXISTS component_vault (
+        id TEXT PRIMARY KEY,
+        brief_text TEXT NOT NULL,
+        code_content TEXT NOT NULL,
+        embedding TEXT NOT NULL,
+        service_id TEXT,
+        created_at TEXT NOT NULL,
+        success_rate REAL DEFAULT 1.0,
+        reuse_count INTEGER DEFAULT 0
+      );
+      CREATE INDEX IF NOT EXISTS idx_vault_service ON component_vault(service_id);
+
+      -- R&D Tables
+      CREATE TABLE IF NOT EXISTS discoveries (
+        id TEXT PRIMARY KEY,
+        source_url TEXT NOT NULL,
+        source_platform TEXT NOT NULL,
+        source_context TEXT,
+        raw_title TEXT NOT NULL,
+        raw_content TEXT NOT NULL,
+        extracted_concept TEXT NOT NULL,
+        engagement_score REAL,
+        recency_score REAL,
+        tech_maturity TEXT,
+        status TEXT NOT NULL DEFAULT 'raw',
+        discovered_at INTEGER NOT NULL,
+        processed_at INTEGER,
+        discovered_by TEXT NOT NULL DEFAULT 'abdulkhabir',
+        embedding TEXT,
+        related_concepts TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_discoveries_status ON discoveries(status);
+      CREATE INDEX IF NOT EXISTS idx_discoveries_platform ON discoveries(source_platform);
+      CREATE INDEX IF NOT EXISTS idx_discoveries_time ON discoveries(discovered_at);
+
+      CREATE TABLE IF NOT EXISTS innovations (
+        id TEXT PRIMARY KEY,
+        discovery_id TEXT REFERENCES discoveries(id),
+        title TEXT NOT NULL,
+        original_concept TEXT NOT NULL,
+        alt_ctrl_mutation TEXT NOT NULL,
+        technical_architecture TEXT,
+        implementation_complexity TEXT,
+        estimated_implementation_days INTEGER,
+        impact_score REAL,
+        impact_analysis TEXT,
+        business_value TEXT,
+        opportunity_score REAL,
+        novelty_score REAL,
+        feasibility_score REAL,
+        strategic_fit_score REAL,
+        category TEXT,
+        tags TEXT,
+        status TEXT NOT NULL DEFAULT 'proposed',
+        elevated_by TEXT NOT NULL DEFAULT 'abdulbasir',
+        decided_by TEXT,
+        implementation_task_id TEXT,
+        created_at INTEGER NOT NULL,
+        decided_at INTEGER,
+        implemented_at INTEGER
+      );
+      CREATE INDEX IF NOT EXISTS idx_innovations_status ON innovations(status);
+      CREATE INDEX IF NOT EXISTS idx_innovations_score ON innovations(opportunity_score);
+
+      CREATE TABLE IF NOT EXISTS knowledge_graph_edges (
+        id TEXT PRIMARY KEY,
+        source_id TEXT NOT NULL,
+        source_type TEXT NOT NULL,
+        target_id TEXT NOT NULL,
+        target_type TEXT NOT NULL,
+        relation_type TEXT NOT NULL,
+        confidence REAL NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_kg_source ON knowledge_graph_edges(source_id);
+      CREATE INDEX IF NOT EXISTS idx_kg_target ON knowledge_graph_edges(target_id);
+
+      CREATE TABLE IF NOT EXISTS detected_patterns (
+        id TEXT PRIMARY KEY,
+        pattern_type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        evidence_ids TEXT NOT NULL,
+        evidence_count INTEGER NOT NULL,
+        first_seen_at INTEGER NOT NULL,
+        last_seen_at INTEGER NOT NULL,
+        trend_direction TEXT,
+        actionable INTEGER DEFAULT 0,
+        suggested_action TEXT,
+        status TEXT NOT NULL DEFAULT 'detected',
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_patterns_type ON detected_patterns(pattern_type);
+      CREATE INDEX IF NOT EXISTS idx_patterns_status ON detected_patterns(status);
+
+      CREATE TABLE IF NOT EXISTS auto_playbooks (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        agent_name TEXT NOT NULL,
+        trigger_condition TEXT NOT NULL,
+        core_instructions TEXT NOT NULL,
+        examples TEXT,
+        generated_from_pattern TEXT,
+        generated_reasoning TEXT,
+        usage_count INTEGER DEFAULT 0,
+        success_rate REAL,
+        status TEXT NOT NULL DEFAULT 'draft',
+        created_at INTEGER NOT NULL,
+        last_used_at INTEGER
+      );
+      CREATE INDEX IF NOT EXISTS idx_playbooks_agent ON auto_playbooks(agent_name);
+
+      CREATE TABLE IF NOT EXISTS learning_log (
+        id TEXT PRIMARY KEY,
+        event_type TEXT NOT NULL,
+        related_discovery_id TEXT,
+        related_innovation_id TEXT,
+        related_task_id TEXT,
+        impact_description TEXT NOT NULL,
+        tokens_consumed INTEGER,
+        time_spent_ms INTEGER,
+        outcome TEXT,
+        roi_estimate REAL,
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_learning_event ON learning_log(event_type);
+
+      CREATE TABLE IF NOT EXISTS rd_metrics (
+        id TEXT PRIMARY KEY,
+        period TEXT NOT NULL,
+        period_type TEXT NOT NULL,
+        discoveries_count INTEGER DEFAULT 0,
+        discoveries_by_platform TEXT,
+        avg_engagement_score REAL,
+        innovations_generated INTEGER DEFAULT 0,
+        innovations_approved INTEGER DEFAULT 0,
+        innovations_implemented INTEGER DEFAULT 0,
+        avg_opportunity_score REAL,
+        estimated_value_created REAL,
+        tokens_invested INTEGER,
+        implementations_completed INTEGER DEFAULT 0,
+        conversion_rate REAL,
+        time_to_implementation_days REAL,
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_rd_metrics_period ON rd_metrics(period);
+
+      CREATE TABLE IF NOT EXISTS news_items (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        summary TEXT,
+        url TEXT NOT NULL,
+        image_url TEXT,
+        source TEXT NOT NULL,
+        source_label TEXT,
+        published_at INTEGER,
+        fetched_at INTEGER NOT NULL,
+        category TEXT DEFAULT 'general',
+        importance INTEGER DEFAULT 5
+      );
+      CREATE INDEX IF NOT EXISTS idx_news_fetched ON news_items(fetched_at);
+
+      CREATE TABLE IF NOT EXISTS leads (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        company TEXT,
+        email TEXT,
+        phone TEXT,
+        source TEXT NOT NULL DEFAULT 'Site',
+        status TEXT NOT NULL DEFAULT 'Nouveau',
+        score INTEGER NOT NULL DEFAULT 0,
+        score_criteria TEXT,
+        budget TEXT,
+        proposition_amount REAL,
+        timeline TEXT,
+        notes TEXT,
+        lost_reason TEXT,
+        proposition_sent_at INTEGER,
+        relance1_sent_at INTEGER,
+        relance2_sent_at INTEGER,
+        signed_at INTEGER,
+        discovery_call_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+      CREATE INDEX IF NOT EXISTS idx_leads_created ON leads(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_leads_score ON leads(score DESC);
+
+      CREATE TABLE IF NOT EXISTS projects (
+        id TEXT PRIMARY KEY,
+        client_name TEXT NOT NULL,
+        project_type TEXT NOT NULL,
+        phase TEXT NOT NULL DEFAULT 'Onboarding',
+        status TEXT NOT NULL DEFAULT 'Actif',
+        budget REAL,
+        start_date INTEGER,
+        kickoff_date INTEGER,
+        deadline INTEGER,
+        delivered_at INTEGER,
+        hours_estimated REAL DEFAULT 0,
+        hours_actual REAL DEFAULT 0,
+        notes TEXT,
+        team_agents TEXT,
+        lead_id TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+      CREATE INDEX IF NOT EXISTS idx_projects_phase ON projects(phase);
+      CREATE INDEX IF NOT EXISTS idx_projects_deadline ON projects(deadline);
+
+      CREATE TABLE IF NOT EXISTS time_entries (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        description TEXT NOT NULL,
+        hours REAL NOT NULL,
+        date INTEGER NOT NULL,
+        category TEXT NOT NULL DEFAULT 'Autre',
+        created_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_time_entries_project ON time_entries(project_id);
+      CREATE INDEX IF NOT EXISTS idx_time_entries_date ON time_entries(date DESC);
+
+      CREATE TABLE IF NOT EXISTS invoices (
+        id TEXT PRIMARY KEY,
+        client_name TEXT NOT NULL,
+        project_id TEXT,
+        amount REAL NOT NULL,
+        status TEXT NOT NULL DEFAULT 'Brouillon',
+        due_date INTEGER,
+        paid_at INTEGER,
+        sent_at INTEGER,
+        notes TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS expenses (
+        id TEXT PRIMARY KEY,
+        label TEXT NOT NULL,
+        amount REAL NOT NULL,
+        category TEXT NOT NULL DEFAULT 'Autre',
+        date INTEGER NOT NULL,
+        notes TEXT,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS content_items (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'Post LinkedIn',
+        platform TEXT NOT NULL DEFAULT 'LinkedIn',
+        status TEXT NOT NULL DEFAULT 'Idée',
+        agent TEXT NOT NULL DEFAULT 'manuel',
+        hook TEXT,
+        body TEXT,
+        cta TEXT,
+        scheduled_at INTEGER,
+        published_at INTEGER,
+        tags TEXT,
+        notes TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS automations (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        tool TEXT NOT NULL DEFAULT 'n8n',
+        status TEXT NOT NULL DEFAULT 'Inactif',
+        trigger_type TEXT,
+        last_run_at INTEGER,
+        run_count INTEGER DEFAULT 0,
+        error_count INTEGER DEFAULT 0,
+        webhook_url TEXT,
+        notes TEXT,
+        n8n_workflow_id TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS portfolio_items (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        client_name TEXT NOT NULL,
+        project_type TEXT NOT NULL,
+        description TEXT,
+        results TEXT,
+        tags TEXT,
+        cover_url TEXT,
+        featured INTEGER DEFAULT 0,
+        published INTEGER DEFAULT 0,
+        project_id TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS followups (
+        id TEXT PRIMARY KEY,
+        client_name TEXT NOT NULL,
+        project_id TEXT,
+        lead_id TEXT,
+        type TEXT NOT NULL DEFAULT 'Check-in',
+        status TEXT NOT NULL DEFAULT 'À faire',
+        priority TEXT NOT NULL DEFAULT 'Normale',
+        scheduled_at INTEGER,
+        done_at INTEGER,
+        score_nps INTEGER,
+        notes TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    `);
+
+    // Migration: add n8n_workflow_id column if not exists
+    try {
+      sqlite.exec(`ALTER TABLE automations ADD COLUMN n8n_workflow_id TEXT;`);
+    } catch (_) { /* column already exists */ }
+
+    // Seed n8n workflow IDs
+    const seedWorkflows = [
+      { name: "Cal.com → Lead", n8nId: "Abf2sv4YFM6MDzjf", status: "Actif", desc: "Booking Cal.com → création lead cockpit" },
+      { name: "Lead Status → Emails", n8nId: "JdlnQqbcXOp05V5K", status: "Actif", desc: "Envoi emails automatiques selon statut lead" },
+      { name: "Relances Propositions", n8nId: "2C14mzrMUPd0LFtG", status: "Actif", desc: "Relances automatiques propositions en attente" },
+      { name: "Deadline Tracker", n8nId: "F4rA5iSg4hkeYR8u", status: "Actif", desc: "Alertes deadlines projets" },
+      { name: "KPIs Recap Hebdo", n8nId: "lWjT0ZFRxT8ooOOe", status: "Actif", desc: "Rapport KPIs hebdomadaire automatique" },
+      { name: "Testimonial J+3", n8nId: "d8TDuNjVOA3vGMhJ", status: "Actif", desc: "Demande témoignage 3j après livraison" },
+      { name: "Archivage J+10", n8nId: "Du5zWtxfG9R665xt", status: "Actif", desc: "Archivage automatique J+10 livraison" },
+      { name: "Website Audit", n8nId: "xs1PZCi6QyKdSba0", status: "Actif", desc: "Audit site web automatisé" },
+      { name: "Google Maps Scraper", n8nId: "nrRSJkM4xCBrzRau", status: "Inactif", desc: "Scraping Google Maps pour prospection cold email" },
+      { name: "Content Ideas", n8nId: "bw7n0KtV2IKWSxZz", status: "Inactif", desc: "Génération idées de contenu IA" },
+      { name: "Auto-Draft Writer", n8nId: "AWBGnPHKwG56YGlC", status: "Inactif", desc: "Rédaction automatique contenu IA" },
+      { name: "Auto-Publishing", n8nId: "zstXGRPP2HvaDYVz", status: "Inactif", desc: "Publication automatique contenu" },
+      { name: "Performance Tracker", n8nId: "QccQpFcxfiXYpAkJ", status: "Inactif", desc: "Tracking performance contenu publié" },
+    ];
+
+    const existingN8n = sqlite.prepare("SELECT n8n_workflow_id FROM automations WHERE n8n_workflow_id IS NOT NULL").all();
+    if (existingN8n.length === 0) {
+      const insertStmt = sqlite.prepare(`
+        INSERT OR IGNORE INTO automations (id, name, description, tool, status, n8n_workflow_id, run_count, error_count, created_at, updated_at)
+        VALUES (?, ?, ?, 'n8n', ?, ?, 0, 0, ?, ?)
+      `);
+      const now = Date.now();
+      for (const wf of seedWorkflows) {
+        const id = `auto_n8n_${wf.n8nId}`;
+        insertStmt.run(id, wf.name, wf.desc, wf.status, wf.n8nId, now, now);
+      }
+    }
+  }
+  return db;
+}
+
+// ─── LEADS ────────────────────────────────────────────────────────────────────
+
+export async function createLead(data: {
+  name: string;
+  company?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  source?: string;
+  status?: string;
+  score?: number;
+  scoreCriteria?: string | null;
+  budget?: string | null;
+  propositionAmount?: number | null;
+  timeline?: string | null;
+  notes?: string | null;
+}) {
+  const db = getDb();
+  const id = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const now = Date.now();
+  await db.insert(leads).values({
+    id,
+    name: data.name,
+    company: data.company ?? null,
+    email: data.email ?? null,
+    phone: data.phone ?? null,
+    source: (data.source as any) ?? 'Site',
+    status: (data.status as any) ?? 'Nouveau',
+    score: data.score ?? 0,
+    scoreCriteria: data.scoreCriteria ?? null,
+    budget: (data.budget as any) ?? null,
+    propositionAmount: data.propositionAmount ?? null,
+    timeline: data.timeline ?? null,
+    notes: data.notes ?? null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { id };
+}
+
+export async function updateLead(id: string, data: Record<string, unknown>) {
+  const db = getDb();
+  await db.update(leads).set({ ...data, updatedAt: Date.now() } as any).where(eq(leads.id, id));
+}
+
+export async function getLeads(status?: string) {
+  const db = getDb();
+  if (status) {
+    return db.select().from(leads).where(eq(leads.status, status as any)).orderBy(desc(leads.createdAt));
+  }
+  return db.select().from(leads).orderBy(desc(leads.createdAt));
+}
+
+export async function getLeadById(id: string) {
+  const db = getDb();
+  const result = await db.select().from(leads).where(eq(leads.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function deleteLead(id: string) {
+  const db = getDb();
+  await db.delete(leads).where(eq(leads.id, id));
+}
+
+// ─── PROJECTS ─────────────────────────────────────────────────────────────────
+
+export async function createProject(data: {
+  clientName: string;
+  projectType: string;
+  phase?: string;
+  status?: string;
+  budget?: number | null;
+  startDate?: number | null;
+  kickoffDate?: number | null;
+  deadline?: number | null;
+  hoursEstimated?: number;
+  notes?: string | null;
+  teamAgents?: string | null;
+  leadId?: string | null;
+}) {
+  const db = getDb();
+  const id = `proj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const now = Date.now();
+  await db.insert(projects).values({
+    id,
+    clientName: data.clientName,
+    projectType: data.projectType as any,
+    phase: (data.phase as any) ?? 'Onboarding',
+    status: (data.status as any) ?? 'Actif',
+    budget: data.budget ?? null,
+    startDate: data.startDate ?? null,
+    kickoffDate: data.kickoffDate ?? null,
+    deadline: data.deadline ?? null,
+    hoursEstimated: data.hoursEstimated ?? 0,
+    hoursActual: 0,
+    notes: data.notes ?? null,
+    teamAgents: data.teamAgents ?? null,
+    leadId: data.leadId ?? null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { id };
+}
+
+export async function updateProject(id: string, data: Record<string, unknown>) {
+  const db = getDb();
+  await db.update(projects).set({ ...data, updatedAt: Date.now() } as any).where(eq(projects.id, id));
+}
+
+export async function getProjects(status?: string) {
+  const db = getDb();
+  if (status && status !== 'all') {
+    return db.select().from(projects).where(eq(projects.status, status as any)).orderBy(desc(projects.createdAt));
+  }
+  return db.select().from(projects).orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectById(id: string) {
+  const db = getDb();
+  const result = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function deleteProject(id: string) {
+  const db = getDb();
+  await db.delete(timeEntries).where(eq(timeEntries.projectId, id));
+  await db.delete(projects).where(eq(projects.id, id));
+}
+
+// ─── TIME ENTRIES ─────────────────────────────────────────────────────────────
+
+async function recalcProjectHours(projectId: string) {
+  const db = getDb();
+  const entries = await db.select().from(timeEntries).where(eq(timeEntries.projectId, projectId));
+  const total = entries.reduce((sum, e) => sum + (e.hours ?? 0), 0);
+  await db.update(projects).set({ hoursActual: total, updatedAt: Date.now() } as any).where(eq(projects.id, projectId));
+}
+
+export async function createTimeEntry(data: {
+  projectId: string;
+  description: string;
+  hours: number;
+  date: number;
+  category?: string;
+}) {
+  const db = getDb();
+  const id = `te_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  await db.insert(timeEntries).values({
+    id,
+    projectId: data.projectId,
+    description: data.description,
+    hours: data.hours,
+    date: data.date,
+    category: (data.category as any) ?? 'Autre',
+    createdAt: Date.now(),
+  });
+  await recalcProjectHours(data.projectId);
+  return { id };
+}
+
+export async function getTimeEntriesForProject(projectId: string) {
+  const db = getDb();
+  return db.select().from(timeEntries)
+    .where(eq(timeEntries.projectId, projectId))
+    .orderBy(desc(timeEntries.date));
+}
+
+export async function deleteTimeEntry(id: string) {
+  const db = getDb();
+  const entry = await db.select().from(timeEntries).where(eq(timeEntries.id, id)).limit(1);
+  await db.delete(timeEntries).where(eq(timeEntries.id, id));
+  if (entry[0]) await recalcProjectHours(entry[0].projectId);
+}
+
+// Task operations
+export async function createTask(data: { id: string; agentName: string; prompt: string }) {
+  const db = getDb();
+  const now = new Date();
+  await db.insert(tasks).values({
+    id: data.id,
+    agentName: data.agentName,
+    prompt: data.prompt,
+    status: 'PENDING',
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { id: data.id, status: 'PENDING' };
+}
+
+export async function updateTaskStatus(
+  id: string, 
+  status: string, 
+  result?: string,
+  error?: string,
+  iteration?: number,
+  stage?: string
+) {
+  const db = getDb();
+  const updateData: any = { status, updatedAt: new Date() };
+  if (result !== undefined) updateData.result = result;
+  if (error !== undefined) updateData.error = error;
+  if (iteration !== undefined) updateData.iteration = iteration;
+  if (stage !== undefined) updateData.stage = stage;
+  await db.update(tasks).set(updateData).where(eq(tasks.id, id));
+}
+
+export async function getTask(id: string) {
+  const db = getDb();
+  const result = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function getRecentTasks(limit: number = 50) {
+  const db = getDb();
+  return await db.select().from(tasks).orderBy(desc(tasks.createdAt)).limit(limit);
+}
+
+// Agent Activity operations
+export async function logAgentActivity(data: any) {
+  const db = getDb();
+  await db.insert(agentActivities).values({
+    ...data,
+    resultSize: data.result?.length || 0,
+  });
+}
+
+// Proposals operations
+export async function createProposal(data: any) {
+  const db = getDb();
+  await db.insert(proposals).values({
+    ...data,
+    discoveredBy: data.discoveredBy || 'abdulkhabir',
+    elevatedBy: data.elevatedBy || 'abdulbasir',
+    status: 'PENDING',
+    createdAt: new Date(),
+  });
+  return { id: data.id };
+}
+
+export async function getPendingProposals() {
+  const db = getDb();
+  return await db.select().from(proposals).where(eq(proposals.status, 'PENDING')).orderBy(desc(proposals.createdAt));
+}
+
+export async function updateProposalStatus(id: string, status: 'APPROVED' | 'REJECTED', decisionBy?: string, implementationTaskId?: string) {
+  const db = getDb();
+  await db.update(proposals).set({ status, decidedAt: new Date(), decisionBy, implementationTaskId }).where(eq(proposals.id, id));
+}
+
+// ============================================================
+// FINANCES HELPERS
+// ============================================================
+export async function createInvoice(data: Omit<NewInvoice, 'id' | 'createdAt' | 'updatedAt'>) {
+  const now = Date.now();
+  const id = `inv_${now}_${Math.random().toString(36).slice(2, 7)}`;
+  await getDb().insert(invoices).values({ ...data, id, createdAt: now, updatedAt: now });
+  return id;
+}
+export async function updateInvoice(id: string, data: Partial<Invoice>) {
+  await getDb().update(invoices).set({ ...data, updatedAt: Date.now() }).where(eq(invoices.id, id));
+}
+export async function getInvoices(status?: string) {
+  const db = getDb();
+  if (status) return db.select().from(invoices).where(eq(invoices.status, status as any)).orderBy(desc(invoices.createdAt));
+  return db.select().from(invoices).orderBy(desc(invoices.createdAt));
+}
+export async function deleteInvoice(id: string) {
+  await getDb().delete(invoices).where(eq(invoices.id, id));
+}
+export async function createExpense(data: Omit<NewExpense, 'id' | 'createdAt'>) {
+  const now = Date.now();
+  const id = `exp_${now}_${Math.random().toString(36).slice(2, 7)}`;
+  await getDb().insert(expenses).values({ ...data, id, createdAt: now });
+  return id;
+}
+export async function updateExpense(id: string, data: Partial<Expense>) {
+  await getDb().update(expenses).set(data).where(eq(expenses.id, id));
+}
+export async function getExpenses(category?: string) {
+  const db = getDb();
+  if (category) return db.select().from(expenses).where(eq(expenses.category, category as any)).orderBy(desc(expenses.date));
+  return db.select().from(expenses).orderBy(desc(expenses.date));
+}
+export async function deleteExpense(id: string) {
+  await getDb().delete(expenses).where(eq(expenses.id, id));
+}
+
+// ============================================================
+// CONTENT HELPERS
+// ============================================================
+export async function createContentItem(data: Omit<NewContentItem, 'id' | 'createdAt' | 'updatedAt'>) {
+  const now = Date.now();
+  const id = `cnt_${now}_${Math.random().toString(36).slice(2, 7)}`;
+  await getDb().insert(contentItems).values({ ...data, id, createdAt: now, updatedAt: now });
+  return id;
+}
+export async function updateContentItem(id: string, data: Partial<ContentItem>) {
+  await getDb().update(contentItems).set({ ...data, updatedAt: Date.now() }).where(eq(contentItems.id, id));
+}
+export async function getContentItems(filters?: { status?: string; platform?: string; agent?: string }) {
+  const db = getDb();
+  let q = db.select().from(contentItems);
+  const items = await q.orderBy(desc(contentItems.createdAt));
+  if (!filters) return items;
+  return items.filter(i =>
+    (!filters.status || i.status === filters.status) &&
+    (!filters.platform || i.platform === filters.platform) &&
+    (!filters.agent || i.agent === filters.agent)
+  );
+}
+export async function deleteContentItem(id: string) {
+  await getDb().delete(contentItems).where(eq(contentItems.id, id));
+}
+
+// ============================================================
+// AUTOMATIONS HELPERS
+// ============================================================
+export async function createAutomation(data: Omit<NewAutomation, 'id' | 'createdAt' | 'updatedAt'>) {
+  const now = Date.now();
+  const id = `aut_${now}_${Math.random().toString(36).slice(2, 7)}`;
+  await getDb().insert(automations).values({ ...data, id, createdAt: now, updatedAt: now });
+  return id;
+}
+export async function updateAutomation(id: string, data: Partial<Automation>) {
+  await getDb().update(automations).set({ ...data, updatedAt: Date.now() }).where(eq(automations.id, id));
+}
+export async function getAutomations(status?: string) {
+  const db = getDb();
+  if (status) return db.select().from(automations).where(eq(automations.status, status as any)).orderBy(desc(automations.createdAt));
+  return db.select().from(automations).orderBy(desc(automations.createdAt));
+}
+export async function deleteAutomation(id: string) {
+  await getDb().delete(automations).where(eq(automations.id, id));
+}
+
+// ============================================================
+// PORTFOLIO HELPERS
+// ============================================================
+export async function createPortfolioItem(data: Omit<NewPortfolioItem, 'id' | 'createdAt' | 'updatedAt'>) {
+  const now = Date.now();
+  const id = `prt_${now}_${Math.random().toString(36).slice(2, 7)}`;
+  await getDb().insert(portfolioItems).values({ ...data, id, createdAt: now, updatedAt: now });
+  return id;
+}
+export async function updatePortfolioItem(id: string, data: Partial<PortfolioItem>) {
+  await getDb().update(portfolioItems).set({ ...data, updatedAt: Date.now() }).where(eq(portfolioItems.id, id));
+}
+export async function getPortfolioItems(filters?: { projectType?: string; featured?: boolean; published?: boolean }) {
+  const db = getDb();
+  const items = await db.select().from(portfolioItems).orderBy(desc(portfolioItems.createdAt));
+  if (!filters) return items;
+  return items.filter(i =>
+    (!filters.projectType || i.projectType === filters.projectType) &&
+    (filters.featured === undefined || Boolean(i.featured) === filters.featured) &&
+    (filters.published === undefined || Boolean(i.published) === filters.published)
+  );
+}
+export async function deletePortfolioItem(id: string) {
+  await getDb().delete(portfolioItems).where(eq(portfolioItems.id, id));
+}
+
+// ============================================================
+// POST-VENTE HELPERS
+// ============================================================
+export async function createFollowup(data: Omit<NewFollowup, 'id' | 'createdAt' | 'updatedAt'>) {
+  const now = Date.now();
+  const id = `flw_${now}_${Math.random().toString(36).slice(2, 7)}`;
+  await getDb().insert(followups).values({ ...data, id, createdAt: now, updatedAt: now });
+  return id;
+}
+export async function updateFollowup(id: string, data: Partial<Followup>) {
+  await getDb().update(followups).set({ ...data, updatedAt: Date.now() }).where(eq(followups.id, id));
+}
+export async function getFollowups(filters?: { status?: string; type?: string }) {
+  const db = getDb();
+  const items = await db.select().from(followups).orderBy(desc(followups.createdAt));
+  if (!filters) return items;
+  return items.filter(i =>
+    (!filters.status || i.status === filters.status) &&
+    (!filters.type || i.type === filters.type)
+  );
+}
+export async function deleteFollowup(id: string) {
+  await getDb().delete(followups).where(eq(followups.id, id));
+}

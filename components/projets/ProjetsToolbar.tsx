@@ -1,0 +1,93 @@
+'use client';
+
+import { LayoutGrid, GitBranch, Plus, Search } from 'lucide-react';
+import type { ProjectType, ProjectPhase, ProjectStatus } from '@/lib/db/schema_projects';
+
+interface ProjetsToolbarProps {
+  viewMode: 'cards' | 'timeline';
+  onViewChange: (mode: 'cards' | 'timeline') => void;
+  search: string;
+  onSearchChange: (v: string) => void;
+  filterType: ProjectType | '';
+  onFilterType: (t: ProjectType | '') => void;
+  filterStatus: ProjectStatus | '';
+  onFilterStatus: (s: ProjectStatus | '') => void;
+  onNewProjet: () => void;
+  totalProjects: number;
+}
+
+const TYPES: ProjectType[] = ['Web', 'Branding', 'IA', 'Marketing'];
+const STATUSES: ProjectStatus[] = ['Actif', 'En pause', 'Terminé', 'Annulé'];
+
+export function ProjetsToolbar({
+  viewMode, onViewChange,
+  search, onSearchChange,
+  filterType, onFilterType,
+  filterStatus, onFilterStatus,
+  onNewProjet, totalProjects,
+}: ProjetsToolbarProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      {/* Search */}
+      <div className="relative flex-1 min-w-[200px] max-w-xs">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => onSearchChange(e.target.value)}
+          placeholder="Chercher un projet..."
+          className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
+        />
+      </div>
+
+      {/* Type filter */}
+      <select
+        value={filterType}
+        onChange={e => onFilterType(e.target.value as any)}
+        className="text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+      >
+        <option value="">Tous les types</option>
+        {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+      </select>
+
+      {/* Status filter */}
+      <select
+        value={filterStatus}
+        onChange={e => onFilterStatus(e.target.value as any)}
+        className="text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-violet-500/50 cursor-pointer"
+      >
+        <option value="">Tous les statuts</option>
+        {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+      </select>
+
+      <span className="text-xs text-zinc-600">{totalProjects} projet{totalProjects !== 1 ? 's' : ''}</span>
+
+      <div className="flex-1" />
+
+      {/* View toggle */}
+      <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+        {(['cards', 'timeline'] as const).map(mode => (
+          <button
+            key={mode}
+            onClick={() => onViewChange(mode)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              viewMode === mode ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            {mode === 'cards' ? <LayoutGrid className="w-3.5 h-3.5" /> : <GitBranch className="w-3.5 h-3.5" />}
+            {mode === 'cards' ? 'Cartes' : 'Timeline'}
+          </button>
+        ))}
+      </div>
+
+      {/* New project */}
+      <button
+        onClick={onNewProjet}
+        className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg transition-colors"
+      >
+        <Plus className="w-4 h-4" />
+        Nouveau projet
+      </button>
+    </div>
+  );
+}
