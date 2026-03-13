@@ -135,9 +135,9 @@ export function Sidebar({ isCollapsed = false, onToggle, pendingCounts = {} }: S
   const pathname = usePathname();
 
   return (
-    <aside 
+    <aside
       className={cn(
-        "fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] border-r border-zinc-800 bg-zinc-950/95 backdrop-blur-xl transition-all duration-300",
+        "relative flex-shrink-0 h-full border-r border-zinc-800 bg-zinc-950/95 backdrop-blur-xl transition-all duration-300",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
