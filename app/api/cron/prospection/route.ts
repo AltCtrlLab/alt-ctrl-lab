@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { createLead, getDb } from '@/lib/db';
-import Anthropic from '@anthropic-ai/sdk';
+import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
 
 const CRON_SECRET = process.env.CRON_SECRET || 'altctrl-cron-secret';
 const GOOGLE_PLACES_KEY = process.env.GOOGLE_PLACES_KEY || '';
@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
       const results = { scanned: 0, qualified: 0, skipped: 0, sent: 0, errors: [] as string[] };
 
       try {
-        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
         const rawDb = (getDb() as any).$client;
 
         const queries: string[] = [];
@@ -139,14 +138,19 @@ export async function POST(request: NextRequest) {
             } catch { /* ignore */ }
 
             // 4 — Filtre score
-            if (lighthouseScore !== null && lighthouseScore >= minScore) {
+            if (lighthouseScore === null) {
+              results.skipped++;
+              send('skip', { message: `   ↳ ${name} — score indisponible (PageSpeed KO)` });
+              continue;
+            }
+            if (lighthouseScore >= minScore) {
               results.skipped++;
               send('skip', { message: `   ↳ ${name} — score ${lighthouseScore}/100 (trop bon, pas ciblé)` });
               continue;
             }
 
             results.qualified++;
-            send('qualify', { message: `   ✅ ${name} — score ${lighthouseScore ?? '?'}/100 — qualifié !`, score: lighthouseScore });
+            send('qualify', { message: `   ✅ ${name} — score ${lighthouseScore}/100 — qualifié !`, score: lighthouseScore });
 
             // 5 — Claude email
             send('claude', { message: `   ✍️ Génération email personnalisé pour ${name}...` });
@@ -158,12 +162,7 @@ export async function POST(request: NextRequest) {
             let emailBody = '';
 
             try {
-              const msg = await anthropic.messages.create({
-                model: 'claude-haiku-4-5-20251001',
-                max_tokens: 600,
-                messages: [{
-                  role: 'user',
-                  content: `Tu es un consultant web. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour ${name} à ${address}.
+              const prompt = `Tu es un consultant web. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour ${name} à ${address}.
 
 Le site ${website} a un ${scoreDesc}. Problèmes typiques : lenteur, mauvais SEO local, pas mobile-friendly.
 
@@ -172,11 +171,12 @@ Email doit :
 - Expliquer brièvement l'impact business (clients perdus, SEO, conversions)
 - Proposer un audit gratuit avec lien : ${CAL_LINK}
 
-Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique. Commence directement. Maximum 120 mots. En français.`,
-                }],
-              });
-              emailBody = (msg.content[0] as any).text;
-              const subjectMatch = emailBody.match(/^Objet\s*:\s*(.+)/im);
+Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique. Commence directement. Maximum 120 mots. En français.`;
+
+              const result = await executeOpenClawAgent('khatib', prompt, 60000);
+              emailBody = (result.stdout || result.stderr || '').trim();
+              if (!emailBody) throw new Error('Réponse vide de OpenClaw');
+              const subjectMatch = emailBody.match(/^(?:Objet|Subject)\s*:\s*(.+)/im);
               if (subjectMatch) {
                 emailSubject = subjectMatch[1].trim();
                 emailBody = emailBody.replace(/^Objet\s*:.+\n?/im, '').trim();
