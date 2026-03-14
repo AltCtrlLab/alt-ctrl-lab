@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
             // 3 — PageSpeed Insights
             let lighthouseScore: number | null = null;
             try {
-              const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(website)}&strategy=mobile&key=${GOOGLE_PLACES_KEY}`;
+              const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(website)}&strategy=mobile${GOOGLE_PLACES_KEY ? `&key=${GOOGLE_PLACES_KEY}` : ''}`;
               const psRes = await fetch(psUrl);
               if (psRes.ok) {
                 const psData = await psRes.json();
@@ -138,19 +138,15 @@ export async function POST(request: NextRequest) {
             } catch { /* ignore */ }
 
             // 4 — Filtre score
-            if (lighthouseScore === null) {
-              results.skipped++;
-              send('skip', { message: `   ↳ ${name} — score indisponible (PageSpeed KO)` });
-              continue;
-            }
-            if (lighthouseScore >= minScore) {
+            if (lighthouseScore !== null && lighthouseScore >= minScore) {
               results.skipped++;
               send('skip', { message: `   ↳ ${name} — score ${lighthouseScore}/100 (trop bon, pas ciblé)` });
               continue;
             }
 
             results.qualified++;
-            send('qualify', { message: `   ✅ ${name} — score ${lighthouseScore}/100 — qualifié !`, score: lighthouseScore });
+            const scoreLabel = lighthouseScore !== null ? `${lighthouseScore}/100` : 'non vérifié';
+            send('qualify', { message: `   ✅ ${name} — score ${scoreLabel} — qualifié !`, score: lighthouseScore });
 
             // 5 — Claude email
             send('claude', { message: `   ✍️ Génération email personnalisé pour ${name}...` });
