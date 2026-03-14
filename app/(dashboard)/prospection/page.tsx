@@ -75,6 +75,7 @@ export default function ProspectionPage() {
   const [villes, setVilles] = useState<string[]>(VILLES_DEFAULT);
   const [villeInput, setVilleInput] = useState('');
   const [minScore, setMinScore] = useState(65);
+  const [maxLeads, setMaxLeads] = useState(10);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [relancingId, setRelancingId] = useState<string | null>(null);
   const [setupStatus, setSetupStatus] = useState<string | null>(null);
@@ -106,9 +107,9 @@ export default function ProspectionPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'altctrl-cron-secret'}`,
           'x-dashboard-key': 'altctrl-cron-secret',
         },
+        body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads }),
       });
       const data = await res.json();
       if (data.success) {
@@ -292,35 +293,40 @@ export default function ProspectionPage() {
               />
             </div>
 
-            <div>
-              <p className="text-xs text-zinc-500 mb-2">
-                Score Lighthouse minimum :{' '}
-                <span className="text-orange-400 font-mono">{minScore}/100</span>
-              </p>
-              <input
-                type="range"
-                min={40}
-                max={90}
-                value={minScore}
-                onChange={e => setMinScore(Number(e.target.value))}
-                className="w-64 accent-orange-500"
-              />
-            </div>
+            <div className="flex gap-8 flex-wrap">
+              <div>
+                <p className="text-xs text-zinc-500 mb-2">
+                  Score Lighthouse minimum :{' '}
+                  <span className="text-orange-400 font-mono">{minScore}/100</span>
+                  <span className="text-zinc-600 ml-1">(sites en dessous de ce score sont contactés)</span>
+                </p>
+                <input
+                  type="range"
+                  min={40}
+                  max={90}
+                  value={minScore}
+                  onChange={e => setMinScore(Number(e.target.value))}
+                  className="w-64 accent-orange-500"
+                />
+              </div>
 
-            <div className="pt-2 border-t border-zinc-800 flex items-center gap-3">
-              <button
-                onClick={setupAutomations}
-                disabled={settingUp}
-                className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 text-zinc-200 rounded-lg text-xs font-medium transition-colors"
-              >
-                {settingUp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                Setup automatisations n8n
-              </button>
-              {setupStatus && (
-                <span className={`text-xs ${setupStatus.startsWith('Erreur') || setupStatus.startsWith('Partiel') ? 'text-amber-400' : 'text-emerald-400'}`}>
-                  {setupStatus}
-                </span>
-              )}
+              <div>
+                <p className="text-xs text-zinc-500 mb-2">
+                  Max emails par campagne :{' '}
+                  <span className="text-orange-400 font-mono">{maxLeads}</span>
+                </p>
+                <input
+                  type="range"
+                  min={1}
+                  max={50}
+                  value={maxLeads}
+                  onChange={e => setMaxLeads(Number(e.target.value))}
+                  className="w-64 accent-orange-500"
+                />
+                <p className="text-xs text-zinc-600 mt-1">
+                  {maxLeads <= 5 ? 'Test — idéal pour valider' : maxLeads <= 20 ? 'Standard' : 'Volume élevé'}
+                </p>
+              </div>
             </div>
           </div>
         )}

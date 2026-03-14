@@ -11,22 +11,35 @@ const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL || 'hello@altctrllab.c
 const MAILJET_FROM_NAME = process.env.MAILJET_FROM_NAME || 'Alt Ctrl Lab';
 const CAL_LINK = 'https://cal.com/altctrllab/discovery';
 
-// Config campagne par défaut — surchargeable via env
-const DEFAULT_NICHES = (process.env.PROSPECTION_NICHES || 'artisans,restaurants,PME locales').split(',');
-const DEFAULT_VILLES = (process.env.PROSPECTION_VILLES || 'Genève,Lausanne,Annecy').split(',');
-const MIN_SCORE = parseInt(process.env.PROSPECTION_MIN_SCORE || '65', 10);
-const MAX_PER_RUN = parseInt(process.env.PROSPECTION_MAX_PER_RUN || '20', 10);
+// Config campagne — defaults surchargés par env, puis par body
+const ENV_NICHES = (process.env.PROSPECTION_NICHES || 'artisans,restaurants,PME locales').split(',');
+const ENV_VILLES = (process.env.PROSPECTION_VILLES || 'Genève,Lausanne,Annecy').split(',');
+const ENV_MIN_SCORE = parseInt(process.env.PROSPECTION_MIN_SCORE || '65', 10);
+const ENV_MAX_PER_RUN = parseInt(process.env.PROSPECTION_MAX_PER_RUN || '10', 10);
 
 /**
  * POST /api/cron/prospection
- * Déclencheur : Railway cron — lundi 8h00
- * Pipeline : Google Places → PageSpeed → filtre <MIN_SCORE → Claude email → Mailjet → createLead
+ * Déclencheur : Railway cron (lundi 8h) OU trigger manuel depuis le dashboard
+ *
+ * Body optionnel (priorité sur env vars) :
+ *   { niches?: string[], villes?: string[], minScore?: number, maxLeads?: number }
  */
 export async function POST(request: NextRequest) {
   const auth = request.headers.get('authorization');
-  if (auth !== `Bearer ${CRON_SECRET}`) {
+  const dashKey = request.headers.get('x-dashboard-key');
+  const isAuth = auth === `Bearer ${CRON_SECRET}` || dashKey === CRON_SECRET;
+  if (!isAuth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Lire config depuis le body (override env)
+  let bodyConfig: { niches?: string[]; villes?: string[]; minScore?: number; maxLeads?: number } = {};
+  try { bodyConfig = await request.json(); } catch { /* pas de body = defaults */ }
+
+  const niches = bodyConfig.niches?.length ? bodyConfig.niches : ENV_NICHES;
+  const villes = bodyConfig.villes?.length ? bodyConfig.villes : ENV_VILLES;
+  const minScore = bodyConfig.minScore ?? ENV_MIN_SCORE;
+  const maxLeads = bodyConfig.maxLeads ?? ENV_MAX_PER_RUN;
 
   const results = { scanned: 0, qualified: 0, skipped: 0, sent: 0, errors: [] as string[] };
 
@@ -36,8 +49,8 @@ export async function POST(request: NextRequest) {
 
     // Construire les requêtes niche × ville
     const queries: string[] = [];
-    for (const niche of DEFAULT_NICHES) {
-      for (const ville of DEFAULT_VILLES) {
+    for (const niche of niches) {
+      for (const ville of villes) {
         queries.push(`${niche.trim()} ${ville.trim()}`);
       }
     }
@@ -55,7 +68,7 @@ export async function POST(request: NextRequest) {
       const places: any[] = placesData.results || [];
 
       for (const place of places.slice(0, 5)) {
-        if (results.sent >= MAX_PER_RUN) break;
+        if (results.sent >= maxLeads) break;
         results.scanned++;
 
         const website: string | null = place.website ?? null;
@@ -82,7 +95,7 @@ export async function POST(request: NextRequest) {
         } catch { /* ignore pagespeed errors */ }
 
         // 4 — Filtre score
-        if (lighthouseScore !== null && lighthouseScore >= MIN_SCORE) {
+        if (lighthouseScore !== null && lighthouseScore >= minScore) {
           results.skipped++;
           continue;
         }
