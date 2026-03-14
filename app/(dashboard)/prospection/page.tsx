@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Target, Play, RefreshCw, Mail, Users, TrendingUp, MapPin,
   Loader2, ChevronDown, ChevronUp, X, Euro, Calendar,
-  AlertTriangle, Clock,
+  AlertTriangle, Clock, ExternalLink, Search, FileText, History,
 } from 'lucide-react';
 import { N8nLivePanel } from '@/components/automations/N8nLivePanel';
 import { LeadDetailModal } from '@/components/leads/LeadDetailModal';
@@ -81,6 +81,9 @@ export default function ProspectionPage() {
   const [relancingId, setRelancingId] = useState<string | null>(null);
   const [setupStatus, setSetupStatus] = useState<string | null>(null);
   const [settingUp, setSettingUp] = useState(false);
+  const [activeTab, setActiveTab] = useState<'campagne' | 'historique'>('campagne');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [emailPreview, setEmailPreview] = useState<{ name: string; notes: string } | null>(null);
   const [templateView, setTemplateView] = useState<'code' | 'preview'>('code');
   const [emailTemplate, setEmailTemplate] = useState(`Tu es un consultant web expert en performance et SEO local. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour {{name}} à {{address}}.
 
@@ -460,7 +463,34 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
           ))}
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-zinc-800">
+          <button
+            onClick={() => setActiveTab('campagne')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'campagne'
+                ? 'border-orange-400 text-orange-300'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            <Target className="w-3.5 h-3.5" />
+            Leads ({totalLeads})
+          </button>
+          <button
+            onClick={() => setActiveTab('historique')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'historique'
+                ? 'border-orange-400 text-orange-300'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            Historique complet
+          </button>
+        </div>
+
         {/* Leads table */}
+        {activeTab === 'campagne' && (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
           <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-orange-400" />
@@ -481,12 +511,14 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
             </div>
           ) : (
             <>
-              <div className="hidden sm:grid grid-cols-[2fr_1fr_1.5fr_1fr_auto_auto] gap-3 px-4 py-2 border-b border-zinc-800/50 text-xs text-zinc-600 font-medium">
+              <div className="hidden sm:grid grid-cols-[1.5fr_1fr_1fr_1.2fr_0.8fr_auto_auto_auto] gap-3 px-4 py-2 border-b border-zinc-800/50 text-xs text-zinc-600 font-medium">
                 <span>Entreprise</span>
-                <span>Score site</span>
+                <span>Site web</span>
+                <span>Score</span>
                 <span>Email</span>
                 <span>Statut</span>
                 <span>Envois</span>
+                <span>Msg</span>
                 <span>Action</span>
               </div>
 
@@ -495,19 +527,36 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
                   const daysSince = lead.last_contacted_at
                     ? Math.floor((Date.now() - lead.last_contacted_at) / 86400000)
                     : null;
+                  const hasEmail = lead.notes?.includes('--- EMAIL ENVOYÉ ---');
                   return (
                     <div
                       key={lead.id}
-                      className="grid grid-cols-[2fr_1fr_1.5fr_1fr_auto_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors"
+                      className="grid grid-cols-[1.5fr_1fr_1fr_1.2fr_0.8fr_auto_auto_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors"
                     >
                       <button className="text-left" onClick={() => setSelectedLead(lead)}>
                         <p className="text-sm font-medium text-zinc-200 truncate">
                           {lead.company ?? lead.name}
                         </p>
                         <p className="text-xs text-zinc-600 truncate">
-                          {lead.website ?? (daysSince !== null ? `J+${daysSince}` : new Date(lead.created_at).toLocaleDateString('fr-FR'))}
+                          {daysSince !== null ? `J+${daysSince}` : new Date(lead.created_at).toLocaleDateString('fr-FR')}
                         </p>
                       </button>
+
+                      {/* URL capsule */}
+                      {lead.website ? (
+                        <a
+                          href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors truncate max-w-[140px]"
+                          title={lead.website}
+                        >
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{lead.website.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                        </a>
+                      ) : (
+                        <span className="text-xs text-zinc-600">—</span>
+                      )}
 
                       <ScoreBadge score={lead.website_score} />
 
@@ -530,6 +579,16 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
                         <span>{lead.email_sent_count ?? 0}</span>
                       </div>
 
+                      {/* Email preview button */}
+                      <button
+                        onClick={() => hasEmail ? setEmailPreview({ name: lead.company ?? lead.name, notes: lead.notes! }) : null}
+                        disabled={!hasEmail}
+                        title={hasEmail ? 'Voir l\'email envoyé' : 'Aucun email enregistré'}
+                        className="p-1.5 text-zinc-600 hover:text-blue-400 disabled:opacity-20 transition-colors"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                      </button>
+
                       <button
                         onClick={() => sendManualRelance(lead)}
                         disabled={relancingId === lead.id || !lead.email}
@@ -548,10 +607,170 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
             </>
           )}
         </div>
+        )}
+
+        {/* Historique complet */}
+        {activeTab === 'historique' && (
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
+            <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-3">
+              <History className="w-4 h-4 text-orange-400" />
+              <span className="text-sm font-semibold text-zinc-100">Historique prospection</span>
+              <span className="text-xs text-zinc-500">Toutes les entreprises contactées</span>
+              <div className="ml-auto relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher..."
+                  className="text-xs bg-zinc-800 border border-zinc-700 rounded-lg pl-8 pr-3 py-1.5 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 w-56"
+                />
+              </div>
+            </div>
+
+            {(() => {
+              const filtered = leads.filter(l => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (l.name?.toLowerCase().includes(q)) ||
+                       (l.company?.toLowerCase().includes(q)) ||
+                       (l.email?.toLowerCase().includes(q)) ||
+                       (l.website?.toLowerCase().includes(q)) ||
+                       (l.notes?.toLowerCase().includes(q));
+              });
+              return filtered.length === 0 ? (
+                <div className="p-8 text-center text-zinc-500 text-sm">
+                  {searchQuery ? `Aucun résultat pour "${searchQuery}"` : 'Aucun lead dans l\'historique'}
+                </div>
+              ) : (
+                <div className="divide-y divide-zinc-800/30 max-h-[600px] overflow-y-auto">
+                  {filtered.map(lead => {
+                    const hasEmail = lead.notes?.includes('--- EMAIL ENVOYÉ ---');
+                    return (
+                      <div key={lead.id} className="px-4 py-3 hover:bg-zinc-800/20 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-zinc-200 truncate">
+                                {lead.company ?? lead.name}
+                              </p>
+                              <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                                lead.status === 'Signé' ? 'bg-emerald-500/10 text-emerald-400' :
+                                ['Qualifié', 'Discovery fait'].includes(lead.status) ? 'bg-violet-500/10 text-violet-400' :
+                                lead.status === 'Perdu' ? 'bg-rose-500/10 text-rose-400' :
+                                'bg-zinc-800 text-zinc-500'
+                              }`}>
+                                {lead.status}
+                              </span>
+                              <ScoreBadge score={lead.website_score} />
+                            </div>
+                            <div className="flex items-center gap-3 mt-1">
+                              {lead.website && (
+                                <a
+                                  href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  <span className="truncate max-w-[200px]">{lead.website.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                                </a>
+                              )}
+                              {lead.email && (
+                                <span className="text-xs text-zinc-500">{lead.email}</span>
+                              )}
+                              <span className="text-xs text-zinc-600">
+                                {new Date(lead.created_at).toLocaleDateString('fr-FR')}
+                              </span>
+                              {(lead.email_sent_count ?? 0) > 0 && (
+                                <span className="flex items-center gap-1 text-xs text-zinc-500">
+                                  <Mail className="w-3 h-3" /> {lead.email_sent_count} envoi{(lead.email_sent_count ?? 0) > 1 ? 's' : ''}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {hasEmail && (
+                              <button
+                                onClick={() => setEmailPreview({ name: lead.company ?? lead.name, notes: lead.notes! })}
+                                className="p-1.5 text-zinc-600 hover:text-blue-400 transition-colors"
+                                title="Voir l'email envoyé"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setSelectedLead(lead)}
+                              className="p-1.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                              title="Détails"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+            <div className="px-4 py-2 border-t border-zinc-800 text-xs text-zinc-600">
+              {leads.length} entreprise{leads.length > 1 ? 's' : ''} dans la base
+              {searchQuery && ` · ${leads.filter(l => {
+                const q = searchQuery.toLowerCase();
+                return (l.name?.toLowerCase().includes(q)) || (l.company?.toLowerCase().includes(q)) || (l.email?.toLowerCase().includes(q)) || (l.website?.toLowerCase().includes(q));
+              }).length} résultat(s)`}
+            </div>
+          </div>
+        )}
 
         {/* N8n Live Panel */}
         <N8nLivePanel />
       </div>
+
+      {/* Email preview modal */}
+      {emailPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEmailPreview(null)}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-orange-400" />
+                <span className="text-sm font-semibold text-zinc-100">Email envoyé — {emailPreview.name}</span>
+              </div>
+              <button onClick={() => setEmailPreview(null)} className="text-zinc-500 hover:text-zinc-300">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto">
+              {(() => {
+                const parts = emailPreview.notes.split('--- EMAIL ENVOYÉ ---');
+                if (parts.length < 2) return <p className="text-xs text-zinc-500">Aucun email enregistré</p>;
+                const emailPart = parts[1].trim();
+                const lines = emailPart.split('\n');
+                const subject = lines.find(l => l.startsWith('Objet:'))?.replace('Objet: ', '') ?? '';
+                const to = lines.find(l => l.startsWith('À:'))?.replace('À: ', '') ?? '';
+                const date = lines.find(l => l.startsWith('Date:'))?.replace('Date: ', '') ?? '';
+                const bodyStart = lines.findIndex(l => l.startsWith('Date:'));
+                const body = bodyStart >= 0 ? lines.slice(bodyStart + 2).join('\n').trim() : '';
+                return (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+                      <span className="text-zinc-500 font-medium">Objet</span>
+                      <span className="text-zinc-200 font-medium">{subject}</span>
+                      <span className="text-zinc-500 font-medium">À</span>
+                      <span className="text-zinc-300">{to}</span>
+                      <span className="text-zinc-500 font-medium">Date</span>
+                      <span className="text-zinc-400">{date}</span>
+                    </div>
+                    <div className="border-t border-zinc-800 pt-3">
+                      <div className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">{body}</div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedLead && (
         <LeadDetailModal

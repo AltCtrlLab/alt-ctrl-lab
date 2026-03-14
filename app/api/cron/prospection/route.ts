@@ -254,7 +254,14 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
                   lighthouseScore !== null ? `Score Lighthouse: ${lighthouseScore}/100` : null,
                   `Adresse: ${address}`,
                   `Query: ${query}`,
-                ].filter(Boolean).join('\n'),
+                  ``,
+                  `--- EMAIL ENVOYÉ ---`,
+                  `Objet: ${emailSubject}`,
+                  `À: ${contactEmail}`,
+                  `Date: ${new Date().toLocaleString('fr-FR')}`,
+                  ``,
+                  emailBody,
+                ].filter(x => x !== null).join('\n'),
               });
               results.sent++;
               send('done_lead', { message: `   🎯 Lead créé — ${name} (${results.sent}/${maxLeads})`, current: results.sent, total: maxLeads });
