@@ -28,13 +28,14 @@ export async function POST(request: NextRequest) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  let bodyConfig: { niches?: string[]; villes?: string[]; minScore?: number; maxLeads?: number } = {};
+  let bodyConfig: { niches?: string[]; villes?: string[]; minScore?: number; maxLeads?: number; emailTemplate?: string } = {};
   try { bodyConfig = await request.json(); } catch { /* defaults */ }
 
   const niches = bodyConfig.niches?.length ? bodyConfig.niches : ENV_NICHES;
   const villes = bodyConfig.villes?.length ? bodyConfig.villes : ENV_VILLES;
   const minScore = bodyConfig.minScore ?? ENV_MIN_SCORE;
   const maxLeads = bodyConfig.maxLeads ?? ENV_MAX_PER_RUN;
+  const emailTemplate = bodyConfig.emailTemplate || null;
 
   const encoder = new TextEncoder();
 
@@ -134,8 +135,14 @@ export async function POST(request: NextRequest) {
                 const psData = await psRes.json();
                 const perf = psData.lighthouseResult?.categories?.performance?.score;
                 if (perf != null) lighthouseScore = Math.round(perf * 100);
+                else send('warn', { message: `   ⚠️ PageSpeed: pas de score dans la réponse pour ${website}` });
+              } else {
+                const errText = await psRes.text();
+                send('warn', { message: `   ⚠️ PageSpeed HTTP ${psRes.status}: ${errText.substring(0, 120)}` });
               }
-            } catch { /* ignore */ }
+            } catch (e: any) {
+              send('warn', { message: `   ⚠️ PageSpeed fetch error: ${e.message}` });
+            }
 
             // 4 — Filtre score
             if (lighthouseScore !== null && lighthouseScore >= minScore) {
@@ -158,16 +165,23 @@ export async function POST(request: NextRequest) {
             let emailBody = '';
 
             try {
-              const prompt = `Tu es un consultant web. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour ${name} à ${address}.
+              const DEFAULT_TEMPLATE = `Tu es un consultant web expert en performance et SEO local. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour {{name}} à {{address}}.
 
-Le site ${website} a un ${scoreDesc}. Problèmes typiques : lenteur, mauvais SEO local, pas mobile-friendly.
+Le site {{website}} a un score de performance mobile de {{score}}/100. Problèmes typiques : lenteur, mauvais SEO local, pas mobile-friendly.
 
 Email doit :
 - Commencer par une observation spécifique sur leur business/site (1 phrase)
 - Expliquer brièvement l'impact business (clients perdus, SEO, conversions)
-- Proposer un audit gratuit avec lien : ${CAL_LINK}
+- Proposer un audit gratuit avec lien : {{cal_link}}
 
 Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique. Commence directement. Maximum 120 mots. En français.`;
+
+              const prompt = (emailTemplate || DEFAULT_TEMPLATE)
+                .replace(/\{\{name\}\}/g, name)
+                .replace(/\{\{address\}\}/g, address)
+                .replace(/\{\{website\}\}/g, website)
+                .replace(/\{\{score\}\}/g, lighthouseScore !== null ? String(lighthouseScore) : 'non vérifié')
+                .replace(/\{\{cal_link\}\}/g, CAL_LINK);
 
               const result = await executeOpenClawAgent('khatib', prompt, 60000);
               emailBody = (result.stdout || result.stderr || '').trim();

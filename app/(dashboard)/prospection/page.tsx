@@ -81,6 +81,17 @@ export default function ProspectionPage() {
   const [relancingId, setRelancingId] = useState<string | null>(null);
   const [setupStatus, setSetupStatus] = useState<string | null>(null);
   const [settingUp, setSettingUp] = useState(false);
+  const [templateView, setTemplateView] = useState<'code' | 'preview'>('code');
+  const [emailTemplate, setEmailTemplate] = useState(`Tu es un consultant web expert en performance et SEO local. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour {{name}} à {{address}}.
+
+Le site {{website}} a un score de performance mobile de {{score}}/100. Problèmes typiques : lenteur, mauvais SEO local, pas mobile-friendly.
+
+Email doit :
+- Commencer par une observation spécifique sur leur business/site (1 phrase)
+- Expliquer brièvement l'impact business (clients perdus, SEO, conversions)
+- Proposer un audit gratuit avec lien : {{cal_link}}
+
+Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique. Commence directement. Maximum 120 mots. En français.`);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -111,7 +122,7 @@ export default function ProspectionPage() {
           'Content-Type': 'application/json',
           'x-dashboard-key': 'altctrl-cron-secret',
         },
-        body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads }),
+        body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads, emailTemplate }),
       });
 
       if (!res.body) throw new Error('Pas de stream');
@@ -383,6 +394,49 @@ export default function ProspectionPage() {
                   {maxLeads <= 3 ? 'Test rapide — valider la config' : maxLeads <= 15 ? 'Standard' : 'Volume élevé'}
                 </p>
               </div>
+            </div>
+
+            {/* Template email */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-zinc-500">
+                  Template prompt email
+                  <span className="text-zinc-600 ml-2">Variables : <span className="font-mono text-zinc-500">{'{{name}} {{address}} {{website}} {{score}} {{cal_link}}'}</span></span>
+                </p>
+                <div className="flex rounded-lg overflow-hidden border border-zinc-700 text-xs">
+                  <button
+                    onClick={() => setTemplateView('code')}
+                    className={`px-3 py-1 transition-colors ${templateView === 'code' ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-400'}`}
+                  >
+                    Prompt
+                  </button>
+                  <button
+                    onClick={() => setTemplateView('preview')}
+                    className={`px-3 py-1 transition-colors ${templateView === 'preview' ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-400'}`}
+                  >
+                    Aperçu
+                  </button>
+                </div>
+              </div>
+
+              {templateView === 'code' ? (
+                <textarea
+                  value={emailTemplate}
+                  onChange={e => setEmailTemplate(e.target.value)}
+                  rows={8}
+                  className="w-full text-xs bg-zinc-800/80 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 font-mono resize-y"
+                />
+              ) : (
+                <div className="w-full text-xs bg-zinc-800/80 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-400 font-mono whitespace-pre-wrap min-h-[12rem]">
+                  {emailTemplate
+                    .replace(/\{\{name\}\}/g, 'Boulangerie Dupont')
+                    .replace(/\{\{address\}\}/g, '12 rue du Four, Genève')
+                    .replace(/\{\{website\}\}/g, 'boulangerie-dupont.ch')
+                    .replace(/\{\{score\}\}/g, '38')
+                    .replace(/\{\{cal_link\}\}/g, 'https://cal.com/altctrllab/discovery')
+                  }
+                </div>
+              )}
             </div>
           </div>
         )}
