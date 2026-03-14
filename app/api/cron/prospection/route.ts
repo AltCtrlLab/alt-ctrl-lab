@@ -74,8 +74,8 @@ function getFallbackParagraphs(name: string, website: string, score: number | nu
     : `Nous avons analysé ${domain} et identifié plusieurs axes d'optimisation sur mobile.`;
 
   return {
-    intro: `${scoreText} C'est un point que nous souhaitions porter à votre attention car il a un impact direct sur votre visibilité en ligne et sur le nombre de clients qui vous contactent via votre site.`,
-    impact: `Aujourd'hui, plus de 65% des recherches locales se font depuis un smartphone. Un site qui met plus de 3 secondes à charger perd en moyenne 53% de ses visiteurs — autant de clients potentiels qui se tournent vers vos concurrents. Notre équipe accompagne des entreprises comme ${name} pour transformer leur présence digitale en véritable levier de croissance.`,
+    intro: `${scoreText} En travaillant avec des entreprises de votre secteur, nous avons remarqué un schéma récurrent : des sites qui sous-performent sur mobile perdent silencieusement des clients chaque jour — sans que personne ne s'en rende compte.`,
+    impact: `Les chiffres sont parlants : 53% des visiteurs mobiles quittent un site qui met plus de 3 secondes à charger. Pour une entreprise comme ${name}, cela représente des dizaines de prospects qui se tournent vers vos concurrents chaque semaine. Notre équipe a identifié des optimisations concrètes qui pourraient changer la donne pour votre visibilité locale.`,
   };
 }
 
@@ -95,29 +95,53 @@ async function personalizeWithClaude(params: {
     const { name, address, website, score, niche } = params;
     const scoreInfo = score !== null ? `Score PageSpeed mobile : ${score}/100.` : 'Score PageSpeed non disponible.';
 
+    const scoreContext = score !== null
+      ? score < 40
+        ? `Leur score PageSpeed mobile est de ${score}/100 — c'est critique. Les utilisateurs quittent un site qui met plus de 3s à charger. Pour un ${niche}, chaque seconde de latence = des clients perdus.`
+        : score < 65
+          ? `Leur score PageSpeed mobile est de ${score}/100 — moyen. Des optimisations simples (images, cache, code) pourraient transformer leur taux de conversion.`
+          : `Leur score PageSpeed mobile est de ${score}/100 — correct mais perfectible. Leurs concurrents qui atteignent 90+ captent les clients impatients.`
+      : `Nous n'avons pas pu mesurer leur score PageSpeed — soit le site est très lent, soit mal configuré. C'est en soi un signal d'alerte.`;
+
     const msg = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 400,
+      max_tokens: 500,
       messages: [{
         role: 'user',
-        content: `Tu es un expert en marketing digital et prospection B2B. Rédige deux paragraphes pour un cold email professionnel.
+        content: `Tu es le directeur créatif d'une agence digitale premium. Tu maîtrises le copywriting persuasif, le storytelling, et la psychologie de vente. Tu écris des cold emails qui CONVERTISSENT.
 
-DONNÉES DU PROSPECT :
+CONTEXTE PROSPECT :
 - Entreprise : ${name}
 - Secteur : ${niche}
-- Adresse : ${address}
+- Localisation : ${address}
 - Site web : ${website}
-- ${scoreInfo}
+- ${scoreContext}
 
-RÈGLES STRICTES :
-- Toujours parler en "NOUS" (notre équipe, nous avons analysé…), JAMAIS en "je"
-- Ton professionnel mais chaleureux, pas agressif ni vendeur
-- Mentionner des détails spécifiques à leur secteur (${niche}) et leur zone géographique
-- Être concret sur les problèmes identifiés et leur impact business
+NOTRE AGENCE : ALT CTRL LAB — laboratoire digital qui aide les entreprises locales à dominer leur marché en ligne.
 
-FORMAT DE RÉPONSE (respecte exactement ce format) :
-INTRO: [Premier paragraphe — 2-3 phrases. Observation concrète sur leur site/business + pourquoi nous les contactons. Max 60 mots.]
-IMPACT: [Deuxième paragraphe — 2-3 phrases. Impact business chiffré adapté à leur secteur + ce que notre équipe peut apporter. Max 70 mots.]`,
+FRAMEWORK DE RÉDACTION :
+
+Pour le INTRO, utilise la technique "Pattern Interrupt + Empathie" :
+1. Accroche contextuelle — montre qu'on a VRAIMENT regardé leur business (mentionne leur secteur "${niche}" et leur zone "${address}" de façon naturelle, pas générique)
+2. Observation précise — un point spécifique de leur présence en ligne qui mérite attention (pas juste "votre site est lent")
+3. Bridge — pourquoi nous leur écrivons (curiosité, pas pitch)
+
+Pour le IMPACT, utilise la technique "Douleur → Coût → Vision" :
+1. Douleur sectorielle — un problème concret que les ${niche} rencontrent en ligne (perte de clients qui cherchent sur Google, concurrents mieux positionnés, etc.)
+2. Coût de l'inaction — chiffre ou estimation réaliste de l'impact (ex: "une étude Google montre que 53% des visites mobiles sont abandonnées si le chargement dépasse 3 secondes")
+3. Vision positive — ce que ça changerait concrètement pour EUX (plus de réservations, plus de visibilité locale, etc.) sans être vendeur
+
+RÈGLES ABSOLUES :
+- TOUJOURS "Nous" / "Notre équipe" / "Nos analystes" — JAMAIS "Je"
+- Ton : expert bienveillant qui partage une observation, PAS vendeur qui pousse un produit
+- Interdiction de : "N'hésitez pas", "Je me permets", "Dans l'espoir de", "Cordialement" ou toute formule générique
+- Chaque phrase doit apporter de la VALEUR ou de la CURIOSITÉ, pas du remplissage
+- Sois spécifique au secteur ${niche} — utilise le vocabulaire du métier
+- Max 60 mots pour INTRO, max 80 mots pour IMPACT
+
+FORMAT STRICT (respecte EXACTEMENT) :
+INTRO: [texte]
+IMPACT: [texte]`,
       }],
     });
 
