@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createLead, getDb } from '@/lib/db';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -11,7 +11,6 @@ const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL || 'hello@altctrllab.c
 const MAILJET_FROM_NAME = process.env.MAILJET_FROM_NAME || 'Alt Ctrl Lab';
 const CAL_LINK = 'https://cal.com/altctrllab/discovery';
 
-// Config campagne — defaults surchargés par env, puis par body
 const ENV_NICHES = (process.env.PROSPECTION_NICHES || 'artisans,restaurants,PME locales').split(',');
 const ENV_VILLES = (process.env.PROSPECTION_VILLES || 'Genève,Lausanne,Annecy').split(',');
 const ENV_MIN_SCORE = parseInt(process.env.PROSPECTION_MIN_SCORE || '65', 10);
@@ -19,104 +18,140 @@ const ENV_MAX_PER_RUN = parseInt(process.env.PROSPECTION_MAX_PER_RUN || '10', 10
 
 /**
  * POST /api/cron/prospection
- * Déclencheur : Railway cron (lundi 8h) OU trigger manuel depuis le dashboard
- *
- * Body optionnel (priorité sur env vars) :
- *   { niches?: string[], villes?: string[], minScore?: number, maxLeads?: number }
+ * Réponse : Server-Sent Events pour suivi temps réel
+ * Body : { niches?, villes?, minScore?, maxLeads? }
  */
 export async function POST(request: NextRequest) {
   const auth = request.headers.get('authorization');
   const dashKey = request.headers.get('x-dashboard-key');
-  const isAuth = auth === `Bearer ${CRON_SECRET}` || dashKey === CRON_SECRET;
-  if (!isAuth) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (auth !== `Bearer ${CRON_SECRET}` && dashKey !== CRON_SECRET) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  // Lire config depuis le body (override env)
   let bodyConfig: { niches?: string[]; villes?: string[]; minScore?: number; maxLeads?: number } = {};
-  try { bodyConfig = await request.json(); } catch { /* pas de body = defaults */ }
+  try { bodyConfig = await request.json(); } catch { /* defaults */ }
 
   const niches = bodyConfig.niches?.length ? bodyConfig.niches : ENV_NICHES;
   const villes = bodyConfig.villes?.length ? bodyConfig.villes : ENV_VILLES;
   const minScore = bodyConfig.minScore ?? ENV_MIN_SCORE;
   const maxLeads = bodyConfig.maxLeads ?? ENV_MAX_PER_RUN;
 
-  const results = { scanned: 0, qualified: 0, skipped: 0, sent: 0, errors: [] as string[] };
+  const encoder = new TextEncoder();
 
-  try {
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const rawDb = (getDb() as any).$client;
-
-    // Construire les requêtes niche × ville
-    const queries: string[] = [];
-    for (const niche of niches) {
-      for (const ville of villes) {
-        queries.push(`${niche.trim()} ${ville.trim()}`);
-      }
-    }
-
-    for (const query of queries) {
-      // 1 — Google Places textsearch
-      const placesUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
-      placesUrl.searchParams.set('query', query);
-      placesUrl.searchParams.set('language', 'fr');
-      placesUrl.searchParams.set('key', GOOGLE_PLACES_KEY);
-
-      const placesRes = await fetch(placesUrl.toString());
-      if (!placesRes.ok) continue;
-      const placesData = await placesRes.json();
-      const places: any[] = placesData.results || [];
-
-      for (const place of places.slice(0, 5)) {
-        if (results.sent >= maxLeads) break;
-        results.scanned++;
-
-        const website: string | null = place.website ?? null;
-        const name: string = place.name;
-        const address: string = place.formatted_address ?? '';
-
-        if (!website) { results.skipped++; continue; }
-
-        // 2 — Suppression check : email déjà contacté ?
-        // On check par website URL plutôt qu'email (pas encore extrait)
-        const existing = rawDb.prepare('SELECT id FROM leads WHERE website = ? COLLATE NOCASE').get(website);
-        if (existing) { results.skipped++; continue; }
-
-        // 3 — PageSpeed Insights
-        let lighthouseScore: number | null = null;
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (type: string, payload: object) => {
         try {
-          const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(website)}&strategy=mobile&key=${GOOGLE_PLACES_KEY}`;
-          const psRes = await fetch(psUrl);
-          if (psRes.ok) {
-            const psData = await psRes.json();
-            const perf = psData.lighthouseResult?.categories?.performance?.score;
-            if (perf != null) lighthouseScore = Math.round(perf * 100);
-          }
-        } catch { /* ignore pagespeed errors */ }
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type, ...payload })}\n\n`));
+        } catch { /* client disconnected */ }
+      };
 
-        // 4 — Filtre score
-        if (lighthouseScore !== null && lighthouseScore >= minScore) {
-          results.skipped++;
-          continue;
+      const results = { scanned: 0, qualified: 0, skipped: 0, sent: 0, errors: [] as string[] };
+
+      try {
+        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const rawDb = (getDb() as any).$client;
+
+        const queries: string[] = [];
+        for (const niche of niches) {
+          for (const ville of villes) {
+            queries.push(`${niche.trim()} ${ville.trim()}`);
+          }
         }
 
-        results.qualified++;
+        send('start', { message: `Campagne démarrée — ${maxLeads} emails cibles · ${queries.length} recherches`, config: { niches, villes, minScore, maxLeads } });
 
-        // 5 — Claude génère email personnalisé
-        const scoreDesc = lighthouseScore !== null
-          ? `score de performance mobile de ${lighthouseScore}/100`
-          : 'des performances mobiles non optimisées';
+        outer: for (const query of queries) {
+          send('query', { message: `🔍 Recherche : ${query}` });
 
-        let emailSubject = `Votre site web perd des clients, ${name}`;
-        let emailBody = '';
+          const placesUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
+          placesUrl.searchParams.set('query', query);
+          placesUrl.searchParams.set('language', 'fr');
+          placesUrl.searchParams.set('key', GOOGLE_PLACES_KEY);
 
-        try {
-          const msg = await anthropic.messages.create({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 600,
-            messages: [{
-              role: 'user',
-              content: `Tu es un consultant web. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour ${name} à ${address}.
+          const placesRes = await fetch(placesUrl.toString());
+          if (!placesRes.ok) {
+            send('warn', { message: `⚠️ Places API erreur pour "${query}"` });
+            continue;
+          }
+          const placesData = await placesRes.json();
+          const places: any[] = placesData.results || [];
+          send('info', { message: `   ${places.length} lieux trouvés` });
+
+          for (const place of places) {
+            if (results.sent >= maxLeads) break outer;
+
+            const name: string = place.name;
+            const address: string = place.formatted_address ?? '';
+            results.scanned++;
+
+            // 1 — Récupérer website via Place Details (textsearch ne le retourne pas)
+            let website: string | null = place.website ?? null;
+            if (!website && place.place_id) {
+              try {
+                const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=website&key=${GOOGLE_PLACES_KEY}`;
+                const detailRes = await fetch(detailUrl);
+                if (detailRes.ok) {
+                  const detail = await detailRes.json();
+                  website = detail.result?.website ?? null;
+                }
+              } catch { /* ignore */ }
+            }
+
+            if (!website) {
+              results.skipped++;
+              send('skip', { message: `   ↳ ${name} — pas de site web` });
+              continue;
+            }
+
+            // 2 — Suppression check
+            const existing = rawDb.prepare('SELECT id FROM leads WHERE website = ? COLLATE NOCASE').get(website);
+            if (existing) {
+              results.skipped++;
+              send('skip', { message: `   ↳ ${name} — déjà contacté` });
+              continue;
+            }
+
+            send('scan', { message: `   ↳ ${name} — audit Lighthouse en cours...` });
+
+            // 3 — PageSpeed Insights
+            let lighthouseScore: number | null = null;
+            try {
+              const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(website)}&strategy=mobile&key=${GOOGLE_PLACES_KEY}`;
+              const psRes = await fetch(psUrl);
+              if (psRes.ok) {
+                const psData = await psRes.json();
+                const perf = psData.lighthouseResult?.categories?.performance?.score;
+                if (perf != null) lighthouseScore = Math.round(perf * 100);
+              }
+            } catch { /* ignore */ }
+
+            // 4 — Filtre score
+            if (lighthouseScore !== null && lighthouseScore >= minScore) {
+              results.skipped++;
+              send('skip', { message: `   ↳ ${name} — score ${lighthouseScore}/100 (trop bon, pas ciblé)` });
+              continue;
+            }
+
+            results.qualified++;
+            send('qualify', { message: `   ✅ ${name} — score ${lighthouseScore ?? '?'}/100 — qualifié !`, score: lighthouseScore });
+
+            // 5 — Claude email
+            send('claude', { message: `   ✍️ Génération email personnalisé pour ${name}...` });
+            const scoreDesc = lighthouseScore !== null
+              ? `score de performance mobile de ${lighthouseScore}/100`
+              : 'des performances mobiles non optimisées';
+
+            let emailSubject = `Votre site web perd des clients, ${name}`;
+            let emailBody = '';
+
+            try {
+              const msg = await anthropic.messages.create({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 600,
+                messages: [{
+                  role: 'user',
+                  content: `Tu es un consultant web. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour ${name} à ${address}.
 
 Le site ${website} a un ${scoreDesc}. Problèmes typiques : lenteur, mauvais SEO local, pas mobile-friendly.
 
@@ -126,121 +161,108 @@ Email doit :
 - Proposer un audit gratuit avec lien : ${CAL_LINK}
 
 Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique. Commence directement. Maximum 120 mots. En français.`,
-            }],
-          });
-          emailBody = (msg.content[0] as any).text;
-          // Extraire un objet depuis la réponse si présent
-          const subjectMatch = emailBody.match(/^Objet\s*:\s*(.+)/im);
-          if (subjectMatch) {
-            emailSubject = subjectMatch[1].trim();
-            emailBody = emailBody.replace(/^Objet\s*:.+\n?/im, '').trim();
-          }
-        } catch (e: any) {
-          results.errors.push(`Claude error for ${name}: ${e.message}`);
-          continue;
-        }
+                }],
+              });
+              emailBody = (msg.content[0] as any).text;
+              const subjectMatch = emailBody.match(/^Objet\s*:\s*(.+)/im);
+              if (subjectMatch) {
+                emailSubject = subjectMatch[1].trim();
+                emailBody = emailBody.replace(/^Objet\s*:.+\n?/im, '').trim();
+              }
+            } catch (e: any) {
+              results.errors.push(`Claude error for ${name}: ${e.message}`);
+              send('error', { message: `   ❌ Erreur Claude pour ${name}: ${e.message}` });
+              continue;
+            }
 
-        // 6 — Extraire email contact depuis Google Places details
-        let contactEmail: string | null = null;
-        try {
-          if (place.place_id) {
-            const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=website,formatted_phone_number&key=${GOOGLE_PLACES_KEY}`;
-            const detailRes = await fetch(detailUrl);
-            if (detailRes.ok) {
-              const detail = await detailRes.json();
-              // Google Places ne donne pas l'email, on essaie de trouver depuis le site
-              // Méthode simplifiée : on construit l'email type contact@domain
+            // 6 — Email contact (contact@domain)
+            let contactEmail: string | null = null;
+            try {
               const domain = new URL(website).hostname.replace('www.', '');
               contactEmail = `contact@${domain}`;
+            } catch {
+              results.skipped++;
+              continue;
             }
-          }
-        } catch { /* ignore */ }
 
-        if (!contactEmail) {
-          // Fallback : contact@domain
-          try {
-            const domain = new URL(website).hostname.replace('www.', '');
-            contactEmail = `contact@${domain}`;
-          } catch {
-            results.skipped++;
-            continue;
-          }
-        }
-
-        // 7 — Mailjet envoi
-        if (MAILJET_API_KEY && MAILJET_SECRET_KEY) {
-          try {
-            const mjRes = await fetch('https://api.mailjet.com/v3.1/send', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: 'Basic ' + Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString('base64'),
-              },
-              body: JSON.stringify({
-                Messages: [{
-                  From: { Email: MAILJET_FROM_EMAIL, Name: MAILJET_FROM_NAME },
-                  To: [{ Email: contactEmail, Name: name }],
-                  Subject: emailSubject,
-                  TextPart: emailBody,
-                  HTMLPart: emailBody.split('\n').map(l => `<p>${l}</p>`).join(''),
-                }],
-              }),
-            });
-            if (!mjRes.ok) {
-              const err = await mjRes.text();
-              results.errors.push(`Mailjet error for ${name}: ${err.substring(0, 100)}`);
+            // 7 — Mailjet
+            send('send', { message: `   📧 Envoi à ${contactEmail}...` });
+            if (MAILJET_API_KEY && MAILJET_SECRET_KEY) {
+              try {
+                const mjRes = await fetch('https://api.mailjet.com/v3.1/send', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Basic ' + Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString('base64'),
+                  },
+                  body: JSON.stringify({
+                    Messages: [{
+                      From: { Email: MAILJET_FROM_EMAIL, Name: MAILJET_FROM_NAME },
+                      To: [{ Email: contactEmail, Name: name }],
+                      Subject: emailSubject,
+                      TextPart: emailBody,
+                      HTMLPart: emailBody.split('\n').map(l => `<p>${l}</p>`).join(''),
+                    }],
+                  }),
+                });
+                if (!mjRes.ok) {
+                  const err = await mjRes.text();
+                  send('warn', { message: `   ⚠️ Mailjet warning: ${err.substring(0, 80)}` });
+                }
+              } catch (e: any) {
+                send('warn', { message: `   ⚠️ Mailjet erreur: ${e.message}` });
+              }
             }
-          } catch (e: any) {
-            results.errors.push(`Mailjet send error for ${name}: ${e.message}`);
+
+            // 8 — createLead
+            try {
+              await createLead({
+                name,
+                email: contactEmail,
+                company: name,
+                source: 'GMB',
+                status: 'Nouveau',
+                website,
+                websiteScore: lighthouseScore,
+                emailSentCount: 1,
+                lastContactedAt: Date.now(),
+                notes: [
+                  'Source: cold-email (Google Maps)',
+                  `Site: ${website}`,
+                  lighthouseScore !== null ? `Score Lighthouse: ${lighthouseScore}/100` : null,
+                  `Adresse: ${address}`,
+                  `Query: ${query}`,
+                ].filter(Boolean).join('\n'),
+              });
+              results.sent++;
+              send('done_lead', { message: `   🎯 Lead créé — ${name} (${results.sent}/${maxLeads})`, current: results.sent, total: maxLeads });
+            } catch (e: any) {
+              results.errors.push(`createLead error for ${name}: ${e.message}`);
+              send('error', { message: `   ❌ createLead erreur: ${e.message}` });
+            }
+
+            await new Promise(r => setTimeout(r, 300));
           }
         }
 
-        // 8 — Créer lead dans cockpit
-        try {
-          await createLead({
-            name,
-            email: contactEmail,
-            company: name,
-            source: 'GMB',
-            status: 'Nouveau',
-            website,
-            websiteScore: lighthouseScore,
-            emailSentCount: 1,
-            lastContactedAt: Date.now(),
-            notes: [
-              'Source: cold-email (Google Maps)',
-              `Site: ${website}`,
-              lighthouseScore !== null ? `Score Lighthouse: ${lighthouseScore}/100` : null,
-              `Adresse: ${address}`,
-              `Query: ${query}`,
-              `Email envoyé: ${emailSubject}`,
-            ].filter(Boolean).join('\n'),
-          });
-          results.sent++;
-        } catch (e: any) {
-          results.errors.push(`createLead error for ${name}: ${e.message}`);
-        }
-
-        // Rate limiting : pause entre les prospects
-        await new Promise(r => setTimeout(r, 500));
+        send('complete', {
+          message: `✅ Campagne terminée`,
+          results,
+        });
+      } catch (err: any) {
+        send('fatal', { message: `❌ Erreur fatale: ${err.message}` });
+      } finally {
+        controller.close();
       }
-    }
+    },
+  });
 
-    return NextResponse.json({ success: true, data: results });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message, data: results }, { status: 500 });
-  }
-}
-
-// Trigger manuel depuis la page Prospection
-export async function GET(request: NextRequest) {
-  const auth = request.headers.get('authorization');
-  // En dev ou via dashboard, on accepte sans auth stricte
-  const isDev = process.env.NODE_ENV === 'development';
-  const dashboardKey = request.headers.get('x-dashboard-key');
-  if (!isDev && auth !== `Bearer ${CRON_SECRET}` && dashboardKey !== CRON_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  // Déléguer au POST
-  return POST(request);
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    },
+  });
 }

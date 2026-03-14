@@ -70,6 +70,7 @@ export default function ProspectionPage() {
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [triggerStatus, setTriggerStatus] = useState<string | null>(null);
+  const [liveLog, setLiveLog] = useState<{ type: string; message: string }[]>([]);
   const [configOpen, setConfigOpen] = useState(false);
   const [selectedNiches, setSelectedNiches] = useState<string[]>(['Artisans', 'Restaurants', 'PME locales']);
   const [villes, setVilles] = useState<string[]>(VILLES_DEFAULT);
@@ -102,6 +103,7 @@ export default function ProspectionPage() {
   async function launchCampaign() {
     setTriggering(true);
     setTriggerStatus(null);
+    setLiveLog([]);
     try {
       const res = await fetch('/api/cron/prospection', {
         method: 'POST',
@@ -111,15 +113,33 @@ export default function ProspectionPage() {
         },
         body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads }),
       });
-      const data = await res.json();
-      if (data.success) {
-        const d = data.data;
-        setTriggerStatus(
-          `Campagne terminée — ${d.scanned} scannés, ${d.qualified} qualifiés, ${d.sent} emails envoyés`
-        );
-        setTimeout(fetchLeads, 2000);
-      } else {
-        setTriggerStatus(`Erreur: ${data.error}`);
+
+      if (!res.body) throw new Error('Pas de stream');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === 'complete') {
+              const d = event.results;
+              setTriggerStatus(`Campagne terminée — ${d.scanned} scannés · ${d.qualified} qualifiés · ${d.sent} emails envoyés`);
+              setLiveLog(prev => [...prev, { type: 'complete', message: event.message }]);
+              fetchLeads();
+            } else {
+              setLiveLog(prev => [...prev, { type: event.type, message: event.message }]);
+            }
+          } catch { /* ignore parse errors */ }
+        }
       }
     } catch (err: any) {
       setTriggerStatus(`Erreur: ${err.message}`);
@@ -247,6 +267,41 @@ export default function ProspectionPage() {
           </div>
         )}
 
+        {/* Live log */}
+        {(triggering || liveLog.length > 0) && (
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-zinc-800 flex items-center gap-2">
+              {triggering && <Loader2 className="w-3.5 h-3.5 text-orange-400 animate-spin" />}
+              <span className="text-xs font-semibold text-zinc-300">Suivi temps réel</span>
+              {triggering && (
+                <span className="text-xs text-zinc-500">En cours...</span>
+              )}
+              {!triggering && liveLog.length > 0 && (
+                <button onClick={() => setLiveLog([])} className="ml-auto text-zinc-600 hover:text-zinc-400">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="p-3 max-h-64 overflow-y-auto font-mono text-xs space-y-0.5">
+              {liveLog.map((entry, i) => (
+                <div key={i} className={
+                  entry.type === 'qualify' || entry.type === 'done_lead' || entry.type === 'complete' ? 'text-emerald-400' :
+                  entry.type === 'error' || entry.type === 'fatal' ? 'text-rose-400' :
+                  entry.type === 'warn' ? 'text-amber-400' :
+                  entry.type === 'query' ? 'text-orange-300 mt-2' :
+                  entry.type === 'skip' ? 'text-zinc-600' :
+                  'text-zinc-400'
+                }>
+                  {entry.message}
+                </div>
+              ))}
+              {triggering && liveLog.length === 0 && (
+                <span className="text-zinc-600">Connexion au pipeline...</span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Config panel */}
         {configOpen && (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-5">
@@ -312,7 +367,7 @@ export default function ProspectionPage() {
 
               <div>
                 <p className="text-xs text-zinc-500 mb-2">
-                  Max emails par campagne :{' '}
+                  Emails par campagne :{' '}
                   <span className="text-orange-400 font-mono">{maxLeads}</span>
                 </p>
                 <input
