@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { createLead, getDb } from '@/lib/db';
-import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
 
 const CRON_SECRET = process.env.CRON_SECRET || 'altctrl-cron-secret';
 const GOOGLE_PLACES_KEY = process.env.GOOGLE_PLACES_KEY || '';
@@ -116,11 +115,12 @@ export async function POST(request: NextRequest) {
               continue;
             }
 
-            // 2 — Suppression check
-            const existing = rawDb.prepare('SELECT id FROM leads WHERE website = ? COLLATE NOCASE').get(website);
-            if (existing) {
+            // 2 — Dedup check (website OR company name)
+            const existingByWebsite = rawDb.prepare('SELECT id FROM leads WHERE website = ? COLLATE NOCASE').get(website);
+            const existingByName = rawDb.prepare('SELECT id FROM leads WHERE (company = ? OR name = ?) COLLATE NOCASE').get(name, name);
+            if (existingByWebsite || existingByName) {
               results.skipped++;
-              send('skip', { message: `   ↳ ${name} — déjà contacté` });
+              send('skip', { message: `   ↳ ${name} — déjà en base` });
               continue;
             }
 
@@ -155,47 +155,32 @@ export async function POST(request: NextRequest) {
             const scoreLabel = lighthouseScore !== null ? `${lighthouseScore}/100` : 'non vérifié';
             send('qualify', { message: `   ✅ ${name} — score ${scoreLabel} — qualifié !`, score: lighthouseScore });
 
-            // 5 — Claude email
-            send('claude', { message: `   ✍️ Génération email personnalisé pour ${name}...` });
+            // 5 — Email from template
+            send('info', { message: `   ✉️ Préparation email pour ${name}...` });
             const scoreDesc = lighthouseScore !== null
-              ? `score de performance mobile de ${lighthouseScore}/100`
-              : 'des performances mobiles non optimisées';
+              ? `un score de performance de ${lighthouseScore}/100 sur mobile`
+              : 'des performances mobiles qui pourraient être améliorées';
 
-            let emailSubject = `Votre site web perd des clients, ${name}`;
-            let emailBody = '';
+            const DEFAULT_EMAIL_TEMPLATE = `En consultant votre site {{website}}, j'ai remarqué {{score_desc}}. C'est un point qui peut avoir un impact direct sur votre visibilité et vos conversions.
 
-            try {
-              const DEFAULT_TEMPLATE = `Tu es un consultant web expert en performance et SEO local. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour {{name}} à {{address}}.
+Aujourd'hui, plus de 60% des recherches locales se font sur mobile. Un site lent ou mal optimisé, c'est des clients qui partent chez vos concurrents avant même de vous avoir contacté — et un référencement Google qui en pâtit.
 
-Le site {{website}} a un score de performance mobile de {{score}}/100. Problèmes typiques : lenteur, mauvais SEO local, pas mobile-friendly.
+Je propose un audit gratuit et sans engagement de votre présence en ligne. En 15 minutes, je vous montre concrètement ce qui peut être amélioré et l'impact business attendu.
 
-Email doit :
-- Commencer par une observation spécifique sur leur business/site (1 phrase)
-- Expliquer brièvement l'impact business (clients perdus, SEO, conversions)
-- Proposer un audit gratuit avec lien : {{cal_link}}
+Réservez un créneau ici : {{cal_link}}
 
-Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique. Commence directement. Maximum 120 mots. En français.`;
+Cordialement,
+Alt Ctrl Lab`;
 
-              const prompt = (emailTemplate || DEFAULT_TEMPLATE)
-                .replace(/\{\{name\}\}/g, name)
-                .replace(/\{\{address\}\}/g, address)
-                .replace(/\{\{website\}\}/g, website)
-                .replace(/\{\{score\}\}/g, lighthouseScore !== null ? String(lighthouseScore) : 'non vérifié')
-                .replace(/\{\{cal_link\}\}/g, CAL_LINK);
+            const emailBody = (emailTemplate || DEFAULT_EMAIL_TEMPLATE)
+              .replace(/\{\{name\}\}/g, name)
+              .replace(/\{\{address\}\}/g, address)
+              .replace(/\{\{website\}\}/g, website)
+              .replace(/\{\{score\}\}/g, lighthouseScore !== null ? String(lighthouseScore) : '—')
+              .replace(/\{\{score_desc\}\}/g, scoreDesc)
+              .replace(/\{\{cal_link\}\}/g, CAL_LINK);
 
-              const result = await executeOpenClawAgent('khatib', prompt, 60000);
-              emailBody = (result.stdout || result.stderr || '').trim();
-              if (!emailBody) throw new Error('Réponse vide de OpenClaw');
-              const subjectMatch = emailBody.match(/^(?:Objet|Subject)\s*:\s*(.+)/im);
-              if (subjectMatch) {
-                emailSubject = subjectMatch[1].trim();
-                emailBody = emailBody.replace(/^Objet\s*:.+\n?/im, '').trim();
-              }
-            } catch (e: any) {
-              results.errors.push(`Claude error for ${name}: ${e.message}`);
-              send('error', { message: `   ❌ Erreur Claude pour ${name}: ${e.message}` });
-              continue;
-            }
+            const emailSubject = `${name} — votre site web perd des clients`;
 
             // 6 — Email contact (contact@domain)
             let contactEmail: string | null = null;

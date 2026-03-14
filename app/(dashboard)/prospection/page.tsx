@@ -85,16 +85,16 @@ export default function ProspectionPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [emailPreview, setEmailPreview] = useState<{ name: string; notes: string } | null>(null);
   const [templateView, setTemplateView] = useState<'code' | 'preview'>('code');
-  const [emailTemplate, setEmailTemplate] = useState(`Tu es un consultant web expert en performance et SEO local. Rédige un cold email court (3 paragraphes max, ton direct et humain, pas de pitch agressif) pour {{name}} à {{address}}.
+  const [emailTemplate, setEmailTemplate] = useState(`En consultant votre site {{website}}, j'ai remarqué {{score_desc}}. C'est un point qui peut avoir un impact direct sur votre visibilité et vos conversions.
 
-Le site {{website}} a un score de performance mobile de {{score}}/100. Problèmes typiques : lenteur, mauvais SEO local, pas mobile-friendly.
+Aujourd'hui, plus de 60% des recherches locales se font sur mobile. Un site lent ou mal optimisé, c'est des clients qui partent chez vos concurrents avant même de vous avoir contacté — et un référencement Google qui en pâtit.
 
-Email doit :
-- Commencer par une observation spécifique sur leur business/site (1 phrase)
-- Expliquer brièvement l'impact business (clients perdus, SEO, conversions)
-- Proposer un audit gratuit avec lien : {{cal_link}}
+Je propose un audit gratuit et sans engagement de votre présence en ligne. En 15 minutes, je vous montre concrètement ce qui peut être amélioré et l'impact business attendu.
 
-Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique. Commence directement. Maximum 120 mots. En français.`);
+Réservez un créneau ici : {{cal_link}}
+
+Cordialement,
+Alt Ctrl Lab`);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -403,15 +403,15 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs text-zinc-500">
-                  Template prompt email
-                  <span className="text-zinc-600 ml-2">Variables : <span className="font-mono text-zinc-500">{'{{name}} {{address}} {{website}} {{score}} {{cal_link}}'}</span></span>
+                  Template email
+                  <span className="text-zinc-600 ml-2">Variables : <span className="font-mono text-zinc-500">{'{{name}} {{address}} {{website}} {{score}} {{score_desc}} {{cal_link}}'}</span></span>
                 </p>
                 <div className="flex rounded-lg overflow-hidden border border-zinc-700 text-xs">
                   <button
                     onClick={() => setTemplateView('code')}
                     className={`px-3 py-1 transition-colors ${templateView === 'code' ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-400'}`}
                   >
-                    Prompt
+                    Éditer
                   </button>
                   <button
                     onClick={() => setTemplateView('preview')}
@@ -430,12 +430,13 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
                   className="w-full text-xs bg-zinc-800/80 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 font-mono resize-y"
                 />
               ) : (
-                <div className="w-full text-xs bg-zinc-800/80 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-400 font-mono whitespace-pre-wrap min-h-[12rem]">
+                <div className="w-full text-xs bg-zinc-800/80 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-400 whitespace-pre-wrap min-h-[12rem] leading-relaxed">
                   {emailTemplate
                     .replace(/\{\{name\}\}/g, 'Boulangerie Dupont')
                     .replace(/\{\{address\}\}/g, '12 rue du Four, Genève')
                     .replace(/\{\{website\}\}/g, 'boulangerie-dupont.ch')
                     .replace(/\{\{score\}\}/g, '38')
+                    .replace(/\{\{score_desc\}\}/g, 'un score de performance de 38/100 sur mobile')
                     .replace(/\{\{cal_link\}\}/g, 'https://cal.com/altctrllab/discovery')
                   }
                 </div>
