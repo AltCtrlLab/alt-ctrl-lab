@@ -701,7 +701,7 @@ export default function ProspectionPage() {
       {/* Email preview modal */}
       {emailPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEmailPreview(null)}>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-800">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-orange-400" />
@@ -713,15 +713,18 @@ export default function ProspectionPage() {
             </div>
             <div className="p-5 overflow-y-auto">
               {(() => {
-                const parts = emailPreview.notes.split('--- EMAIL ENVOYÉ ---');
-                if (parts.length < 2) return <p className="text-xs text-zinc-500">Aucun email enregistré</p>;
-                const emailPart = parts[1].trim();
-                const lines = emailPart.split('\n');
+                const emailSection = emailPreview.notes.split('--- EMAIL ENVOYÉ ---');
+                if (emailSection.length < 2) return <p className="text-xs text-zinc-500">Aucun email enregistré</p>;
+                const emailMeta = emailSection[1].trim();
+                const lines = emailMeta.split('\n');
                 const subject = lines.find(l => l.startsWith('Objet:'))?.replace('Objet: ', '') ?? '';
                 const to = lines.find(l => l.startsWith('À:'))?.replace('À: ', '') ?? '';
                 const date = lines.find(l => l.startsWith('Date:'))?.replace('Date: ', '') ?? '';
-                const bodyStart = lines.findIndex(l => l.startsWith('Date:'));
-                const body = bodyStart >= 0 ? lines.slice(bodyStart + 2).join('\n').trim() : '';
+
+                // Extract HTML if present
+                const htmlParts = emailPreview.notes.split('--- EMAIL HTML ---');
+                const htmlContent = htmlParts.length >= 2 ? htmlParts[1].trim() : null;
+
                 return (
                   <div className="space-y-3">
                     <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
@@ -733,7 +736,19 @@ export default function ProspectionPage() {
                       <span className="text-zinc-400">{date}</span>
                     </div>
                     <div className="border-t border-zinc-800 pt-3">
-                      <div className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">{body}</div>
+                      {htmlContent ? (
+                        <iframe
+                          srcDoc={htmlContent}
+                          className="w-full rounded-lg border border-zinc-800"
+                          style={{ minHeight: '500px', background: '#0a0a0a' }}
+                          sandbox="allow-same-origin"
+                          title="Email preview"
+                        />
+                      ) : (
+                        <div className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                          {emailMeta.split('\n').filter(l => !l.startsWith('Objet:') && !l.startsWith('À:') && !l.startsWith('Date:')).join('\n').trim()}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

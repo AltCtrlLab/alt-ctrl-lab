@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { createLead, getDb } from '@/lib/db';
 import Anthropic from '@anthropic-ai/sdk';
+import fs from 'fs';
+import path from 'path';
 
 const CRON_SECRET = process.env.CRON_SECRET || 'altctrl-cron-secret';
 const GOOGLE_PLACES_KEY = process.env.GOOGLE_PLACES_KEY || '';
@@ -17,6 +19,20 @@ const ENV_MIN_SCORE = parseInt(process.env.PROSPECTION_MIN_SCORE || '65', 10);
 const ENV_MAX_PER_RUN = parseInt(process.env.PROSPECTION_MAX_PER_RUN || '10', 10);
 
 // ─── HTML Email Template ────────────────────────────────────────────────────
+// Template fichier editable : lib/email/prospection-template.html
+let _cachedTemplate: string | null = null;
+
+function loadEmailTemplate(): string {
+  if (_cachedTemplate) return _cachedTemplate;
+  try {
+    const templatePath = path.join(process.cwd(), 'lib/email/prospection-template.html');
+    _cachedTemplate = fs.readFileSync(templatePath, 'utf-8');
+    return _cachedTemplate;
+  } catch {
+    return '<html><body><p>{{intro}}</p><p>{{impact}}</p><p><a href="{{cal_link}}">Réserver un audit</a></p></body></html>';
+  }
+}
+
 function buildEmailHTML(params: {
   name: string;
   website: string;
@@ -29,124 +45,20 @@ function buildEmailHTML(params: {
   const scoreDisplay = score !== null ? `${score}` : '—';
   const scoreColor = score === null ? '#6b7280' : score < 40 ? '#ef4444' : score < 65 ? '#f59e0b' : '#22c55e';
   const scoreLabel = score === null ? 'Non mesuré' : score < 40 ? 'Critique' : score < 65 ? 'À améliorer' : 'Correct';
+  const loadTime = score !== null && score < 50 ? '&gt; 4 secondes' : 'À vérifier';
   const domain = (() => { try { return new URL(website).hostname.replace('www.', ''); } catch { return website; } })();
 
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0a;padding:32px 16px;">
-    <tr><td align="center">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-
-        <!-- HEADER -->
-        <tr><td style="background:linear-gradient(135deg,#18181b 0%,#1c1917 100%);border-radius:16px 16px 0 0;padding:32px 40px;border-bottom:1px solid rgba(251,146,60,0.2);">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              <td>
-                <span style="font-size:20px;font-weight:700;color:#fb923c;letter-spacing:-0.5px;">ALT CTRL LAB</span>
-                <span style="font-size:12px;color:#71717a;margin-left:12px;">Performance & Growth Digital</span>
-              </td>
-            </tr>
-          </table>
-        </td></tr>
-
-        <!-- INTRO -->
-        <tr><td style="background-color:#18181b;padding:40px 40px 24px;">
-          <p style="margin:0 0 8px;font-size:15px;color:#a1a1aa;">Bonjour,</p>
-          <p style="margin:0 0 20px;font-size:16px;line-height:1.7;color:#e4e4e7;">
-            ${intro}
-          </p>
-        </td></tr>
-
-        <!-- DIAGNOSTIC SECTION -->
-        <tr><td style="background-color:#18181b;padding:0 40px 32px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(251,146,60,0.08) 0%,rgba(251,146,60,0.02) 100%);border:1px solid rgba(251,146,60,0.15);border-radius:12px;">
-            <tr><td style="padding:24px;">
-              <p style="margin:0 0 16px;font-size:11px;font-weight:700;color:#fb923c;text-transform:uppercase;letter-spacing:1.5px;">
-                📊 Diagnostic rapide — ${domain}
-              </p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <!-- Score circle -->
-                  <td width="80" valign="top">
-                    <div style="width:64px;height:64px;border-radius:50%;border:3px solid ${scoreColor};display:flex;align-items:center;justify-content:center;text-align:center;line-height:64px;">
-                      <span style="font-size:22px;font-weight:800;color:${scoreColor};">${scoreDisplay}</span>
-                    </div>
-                  </td>
-                  <!-- Metrics -->
-                  <td valign="top" style="padding-left:16px;">
-                    <table role="presentation" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="padding:3px 0;">
-                          <span style="font-size:13px;color:#a1a1aa;">Performance mobile</span>
-                          <span style="font-size:13px;font-weight:600;color:${scoreColor};margin-left:8px;">${scoreLabel}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:3px 0;">
-                          <span style="font-size:13px;color:#a1a1aa;">Temps de chargement</span>
-                          <span style="font-size:13px;font-weight:600;color:#f59e0b;margin-left:8px;">${score !== null && score < 50 ? '> 4 secondes' : 'À vérifier'}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:3px 0;">
-                          <span style="font-size:13px;color:#a1a1aa;">SEO local</span>
-                          <span style="font-size:13px;font-weight:600;color:#f59e0b;margin-left:8px;">Optimisable</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td></tr>
-          </table>
-        </td></tr>
-
-        <!-- IMPACT -->
-        <tr><td style="background-color:#18181b;padding:0 40px 32px;">
-          <p style="margin:0;font-size:15px;line-height:1.7;color:#d4d4d8;">
-            ${impact}
-          </p>
-        </td></tr>
-
-        <!-- CTA -->
-        <tr><td style="background-color:#18181b;padding:0 40px 40px;" align="center">
-          <table role="presentation" cellpadding="0" cellspacing="0">
-            <tr><td style="background:linear-gradient(135deg,#ea580c 0%,#fb923c 100%);border-radius:10px;padding:0;">
-              <a href="${calLink}" target="_blank" style="display:inline-block;padding:16px 40px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">
-                Réserver un audit gratuit →
-              </a>
-            </td></tr>
-          </table>
-          <p style="margin:12px 0 0;font-size:12px;color:#52525b;">
-            15 minutes · Sans engagement · 100% gratuit
-          </p>
-        </td></tr>
-
-        <!-- SEPARATOR -->
-        <tr><td style="background-color:#18181b;padding:0 40px;">
-          <div style="border-top:1px solid rgba(255,255,255,0.06);"></div>
-        </td></tr>
-
-        <!-- FOOTER -->
-        <tr><td style="background-color:#18181b;border-radius:0 0 16px 16px;padding:28px 40px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              <td>
-                <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#e4e4e7;">L'équipe Alt Ctrl Lab</p>
-                <p style="margin:0 0 2px;font-size:12px;color:#71717a;">Performance web · SEO local · Croissance digitale</p>
-                <p style="margin:0;font-size:12px;color:#52525b;">hello@altctrllab.com</p>
-              </td>
-            </tr>
-          </table>
-        </td></tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+  return loadEmailTemplate()
+    .replace(/\{\{intro\}\}/g, intro)
+    .replace(/\{\{impact\}\}/g, impact)
+    .replace(/\{\{domain\}\}/g, domain)
+    .replace(/\{\{score_display\}\}/g, scoreDisplay)
+    .replace(/\{\{score_color\}\}/g, scoreColor)
+    .replace(/\{\{score_label\}\}/g, scoreLabel)
+    .replace(/\{\{load_time\}\}/g, loadTime)
+    .replace(/\{\{cal_link\}\}/g, calLink)
+    .replace(/\{\{name\}\}/g, name)
+    .replace(/\{\{website\}\}/g, website);
 }
 
 // ─── Fallback paragraphs (si Claude API échoue) ─────────────────────────────
@@ -442,11 +354,8 @@ export async function POST(request: NextRequest) {
                   `À: ${contactEmail}`,
                   `Date: ${new Date().toLocaleString('fr-FR')}`,
                   ``,
-                  `${intro}`,
-                  ``,
-                  `${impact}`,
-                  ``,
-                  `→ ${CAL_LINK}`,
+                  `--- EMAIL HTML ---`,
+                  emailHTML,
                 ].filter(x => x !== null).join('\n'),
               });
               results.sent++;
