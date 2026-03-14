@@ -102,20 +102,21 @@ export default function ProspectionPage() {
     setTriggering(true);
     setTriggerStatus(null);
     try {
-      const res = await fetch('/api/n8n/trigger', {
+      const res = await fetch('/api/cron/prospection', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workflowId: GOOGLE_MAPS_WORKFLOW_ID,
-          data: { niches: selectedNiches, villes, minScore },
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'altctrl-cron-secret'}`,
+          'x-dashboard-key': 'altctrl-cron-secret',
+        },
       });
       const data = await res.json();
       if (data.success) {
+        const d = data.data;
         setTriggerStatus(
-          `Campagne lancée ! Niches: ${selectedNiches.join(', ')} · Villes: ${villes.join(', ')}`
+          `Campagne terminée — ${d.scanned} scannés, ${d.qualified} qualifiés, ${d.sent} emails envoyés`
         );
-        setTimeout(fetchLeads, 5000);
+        setTimeout(fetchLeads, 2000);
       } else {
         setTriggerStatus(`Erreur: ${data.error}`);
       }
