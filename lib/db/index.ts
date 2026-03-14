@@ -22,12 +22,14 @@ export { computeLeadScore, type ScoreCriteria } from '../scoring';
 import path from 'path';
 import os from 'os';
 
-const DB_PATH = path.join(os.homedir(), '.openclaw/altctrl.db');
+const DB_PATH = process.env.DB_PATH || path.join(os.homedir(), '.openclaw/altctrl.db');
+import fs from 'fs';
 
 export let db: ReturnType<typeof drizzle> | null = null;
 
 export function getDb() {
   if (!db) {
+    fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
     const sqlite = new Database(DB_PATH);
     
     // 🔒 RÉSILIENCE DB Phase 2 : Pragmas pour concurrence Swarm
