@@ -84,17 +84,9 @@ export default function ProspectionPage() {
   const [activeTab, setActiveTab] = useState<'campagne' | 'historique'>('campagne');
   const [searchQuery, setSearchQuery] = useState('');
   const [emailPreview, setEmailPreview] = useState<{ name: string; notes: string } | null>(null);
-  const [templateView, setTemplateView] = useState<'code' | 'preview'>('code');
-  const [emailTemplate, setEmailTemplate] = useState(`En consultant votre site {{website}}, j'ai remarqué {{score_desc}}. C'est un point qui peut avoir un impact direct sur votre visibilité et vos conversions.
-
-Aujourd'hui, plus de 60% des recherches locales se font sur mobile. Un site lent ou mal optimisé, c'est des clients qui partent chez vos concurrents avant même de vous avoir contacté — et un référencement Google qui en pâtit.
-
-Je propose un audit gratuit et sans engagement de votre présence en ligne. En 15 minutes, je vous montre concrètement ce qui peut être amélioré et l'impact business attendu.
-
-Réservez un créneau ici : {{cal_link}}
-
-Cordialement,
-Alt Ctrl Lab`);
+  // Template n'est plus utilisé côté API (remplacé par HTML + Claude IA)
+  // Gardé ici pour info dans la config
+  const [emailTemplate] = useState('');
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -125,7 +117,7 @@ Alt Ctrl Lab`);
           'Content-Type': 'application/json',
           'x-dashboard-key': 'altctrl-cron-secret',
         },
-        body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads, emailTemplate }),
+        body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads }),
       });
 
       if (!res.body) throw new Error('Pas de stream');
@@ -399,48 +391,26 @@ Alt Ctrl Lab`);
               </div>
             </div>
 
-            {/* Template email */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-zinc-500">
-                  Template email
-                  <span className="text-zinc-600 ml-2">Variables : <span className="font-mono text-zinc-500">{'{{name}} {{address}} {{website}} {{score}} {{score_desc}} {{cal_link}}'}</span></span>
-                </p>
-                <div className="flex rounded-lg overflow-hidden border border-zinc-700 text-xs">
-                  <button
-                    onClick={() => setTemplateView('code')}
-                    className={`px-3 py-1 transition-colors ${templateView === 'code' ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-400'}`}
-                  >
-                    Éditer
-                  </button>
-                  <button
-                    onClick={() => setTemplateView('preview')}
-                    className={`px-3 py-1 transition-colors ${templateView === 'preview' ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-400'}`}
-                  >
-                    Aperçu
-                  </button>
+            {/* Email info */}
+            <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Mail className="w-4 h-4 text-orange-400" />
+                <span className="text-xs font-semibold text-zinc-200">Email HTML personnalisé par IA</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="rounded-lg bg-zinc-800/60 p-3">
+                  <p className="text-zinc-500 mb-1">Template</p>
+                  <p className="text-zinc-300">HTML moderne avec CSS inline, sections diagnostic, CTA et signature pro</p>
+                </div>
+                <div className="rounded-lg bg-zinc-800/60 p-3">
+                  <p className="text-zinc-500 mb-1">Personnalisation</p>
+                  <p className="text-zinc-300">Claude IA rédige 2 paragraphes uniques par prospect (secteur, zone, score)</p>
+                </div>
+                <div className="rounded-lg bg-zinc-800/60 p-3">
+                  <p className="text-zinc-500 mb-1">Fallback</p>
+                  <p className="text-zinc-300">Template par défaut si Claude est indisponible — aucun email vide</p>
                 </div>
               </div>
-
-              {templateView === 'code' ? (
-                <textarea
-                  value={emailTemplate}
-                  onChange={e => setEmailTemplate(e.target.value)}
-                  rows={8}
-                  className="w-full text-xs bg-zinc-800/80 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 font-mono resize-y"
-                />
-              ) : (
-                <div className="w-full text-xs bg-zinc-800/80 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-400 whitespace-pre-wrap min-h-[12rem] leading-relaxed">
-                  {emailTemplate
-                    .replace(/\{\{name\}\}/g, 'Boulangerie Dupont')
-                    .replace(/\{\{address\}\}/g, '12 rue du Four, Genève')
-                    .replace(/\{\{website\}\}/g, 'boulangerie-dupont.ch')
-                    .replace(/\{\{score\}\}/g, '38')
-                    .replace(/\{\{score_desc\}\}/g, 'un score de performance de 38/100 sur mobile')
-                    .replace(/\{\{cal_link\}\}/g, 'https://cal.com/altctrllab/discovery')
-                  }
-                </div>
-              )}
             </div>
           </div>
         )}
