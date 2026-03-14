@@ -62,21 +62,33 @@ export async function POST(request: NextRequest) {
         send('start', { message: `Campagne démarrée — ${maxLeads} emails cibles · ${queries.length} recherches`, config: { niches, villes, minScore, maxLeads } });
 
         outer: for (const query of queries) {
+          if (results.sent >= maxLeads) break;
+
           send('query', { message: `🔍 Recherche : ${query}` });
 
-          const placesUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
-          placesUrl.searchParams.set('query', query);
-          placesUrl.searchParams.set('language', 'fr');
-          placesUrl.searchParams.set('key', GOOGLE_PLACES_KEY);
+          let nextPageToken: string | undefined;
+          let pageNum = 0;
 
-          const placesRes = await fetch(placesUrl.toString());
-          if (!placesRes.ok) {
-            send('warn', { message: `⚠️ Places API erreur pour "${query}"` });
-            continue;
-          }
-          const placesData = await placesRes.json();
-          const places: any[] = placesData.results || [];
-          send('info', { message: `   ${places.length} lieux trouvés` });
+          do {
+            pageNum++;
+            const placesUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
+            placesUrl.searchParams.set('query', query);
+            placesUrl.searchParams.set('language', 'fr');
+            placesUrl.searchParams.set('key', GOOGLE_PLACES_KEY);
+            if (nextPageToken) placesUrl.searchParams.set('pagetoken', nextPageToken);
+
+            // Google requires ~2s delay before using nextPageToken
+            if (nextPageToken) await new Promise(r => setTimeout(r, 2000));
+
+            const placesRes = await fetch(placesUrl.toString());
+            if (!placesRes.ok) {
+              send('warn', { message: `⚠️ Places API erreur pour "${query}"` });
+              break;
+            }
+            const placesData = await placesRes.json();
+            const places: any[] = placesData.results || [];
+            nextPageToken = placesData.next_page_token;
+            send('info', { message: `   ${places.length} lieux trouvés (page ${pageNum})` });
 
           for (const place of places) {
             if (results.sent >= maxLeads) break outer;
@@ -243,10 +255,15 @@ Format : juste le corps de l'email, sans objet, sans "Bonjour [Nom]" générique
 
             await new Promise(r => setTimeout(r, 300));
           }
+          } while (nextPageToken && results.sent < maxLeads);
         }
 
+        const reached = results.sent >= maxLeads;
         send('complete', {
-          message: `✅ Campagne terminée`,
+          message: reached
+            ? `✅ Objectif atteint — ${results.sent} leads générés`
+            : `⚠️ Objectif non atteint — ${results.sent}/${maxLeads} leads (toutes les sources épuisées)`,
+          reached,
           results,
         });
       } catch (err: any) {

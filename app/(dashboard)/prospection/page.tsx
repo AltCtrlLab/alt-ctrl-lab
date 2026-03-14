@@ -132,7 +132,7 @@ export default function ProspectionPage() {
             const event = JSON.parse(line.slice(6));
             if (event.type === 'complete') {
               const d = event.results;
-              setTriggerStatus(`Campagne terminée — ${d.scanned} scannés · ${d.qualified} qualifiés · ${d.sent} emails envoyés`);
+              setTriggerStatus(`${event.message} — ${d.scanned} scannés · ${d.qualified} qualifiés · ${d.sent} lead${d.sent > 1 ? 's' : ''} créé${d.sent > 1 ? 's' : ''}`);
               setLiveLog(prev => [...prev, { type: 'complete', message: event.message }]);
               fetchLeads();
             } else {
@@ -367,8 +367,9 @@ export default function ProspectionPage() {
 
               <div>
                 <p className="text-xs text-zinc-500 mb-2">
-                  Emails par campagne :{' '}
-                  <span className="text-orange-400 font-mono">{maxLeads}</span>
+                  Objectif leads à générer :{' '}
+                  <span className="text-orange-400 font-mono">{maxLeads} lead{maxLeads > 1 ? 's' : ''}</span>
+                  <span className="text-zinc-600 ml-1">(la campagne s'arrête dès cet objectif atteint)</span>
                 </p>
                 <input
                   type="range"
@@ -379,7 +380,7 @@ export default function ProspectionPage() {
                   className="w-64 accent-orange-500"
                 />
                 <p className="text-xs text-zinc-600 mt-1">
-                  {maxLeads <= 5 ? 'Test — idéal pour valider' : maxLeads <= 20 ? 'Standard' : 'Volume élevé'}
+                  {maxLeads <= 3 ? 'Test rapide — valider la config' : maxLeads <= 15 ? 'Standard' : 'Volume élevé'}
                 </p>
               </div>
             </div>
