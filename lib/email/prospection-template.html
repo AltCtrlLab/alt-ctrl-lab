@@ -1,67 +1,91 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0a;padding:32px 16px;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:#050505;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#050505;padding:32px 16px;">
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-        <!-- HEADER -->
-        <tr><td style="background:linear-gradient(135deg,#18181b 0%,#1c1917 100%);border-radius:16px 16px 0 0;padding:32px 40px;border-bottom:1px solid rgba(251,146,60,0.2);">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              <td>
-                <span style="font-size:20px;font-weight:700;color:#fb923c;letter-spacing:-0.5px;">ALT CTRL LAB</span>
-                <span style="font-size:12px;color:#71717a;margin-left:12px;">Performance &amp; Growth Digital</span>
-              </td>
-            </tr>
-          </table>
+        <tr><td style="background-color:#0a0a0c;border-radius:16px 16px 0 0;padding:40px 40px 16px;text-align:center;">
+          <a href="https://alt-ctrl.com" target="_blank" style="text-decoration:none;display:inline-block;">
+            <img src="https://alt-ctrl-lab-production.up.railway.app/email/LogoHeader.png" alt="ALT CTRL LAB - Laboratoire Digital" width="220" style="display:block;margin:0 auto;border:0;max-width:100%;height:auto;">
+          </a>
         </td></tr>
 
-        <!-- INTRO -->
-        <tr><td style="background-color:#18181b;padding:40px 40px 24px;">
-          <p style="margin:0 0 8px;font-size:15px;color:#a1a1aa;">Bonjour,</p>
-          <p style="margin:0 0 20px;font-size:16px;line-height:1.7;color:#e4e4e7;">
+        <tr><td style="background-color:#0a0a0c;padding:24px 40px 40px;text-align:center;border-bottom:1px solid #1f1f22;">
+          <h1 style="margin:0;font-size:40px;font-weight:900;color:#ffffff;letter-spacing:-1.5px;line-height:1.1;">
+            Nous avons analysé<br>
+            <span style="color:#ff00aa;">votre site web.</span>
+          </h1>
+        </td></tr>
+
+        <tr><td style="background-color:#0a0a0c;padding:48px 40px 24px;">
+          <p style="margin:0 0 8px;font-size:15px;color:#d4d4d8;">Bonjour,</p>
+          <p style="margin:0 0 20px;font-size:16px;line-height:1.7;color:#a1a1aa;">
             {{intro}}
           </p>
         </td></tr>
 
-        <!-- DIAGNOSTIC SECTION -->
-        <tr><td style="background-color:#18181b;padding:0 40px 32px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(251,146,60,0.08) 0%,rgba(251,146,60,0.02) 100%);border:1px solid rgba(251,146,60,0.15);border-radius:12px;">
-            <tr><td style="padding:24px;">
-              <p style="margin:0 0 16px;font-size:11px;font-weight:700;color:#fb923c;text-transform:uppercase;letter-spacing:1.5px;">
-                &#128202; Diagnostic rapide — {{domain}}
+        <tr><td style="background-color:#0a0a0c;padding:0 40px 32px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#050505;border:1px solid #1f1f22;border-radius:12px;">
+            <tr><td style="padding:28px;">
+              
+              <p style="margin:0 0 24px;font-size:11px;font-weight:800;color:#ffffff;text-transform:uppercase;letter-spacing:1.5px;">
+                <span style="color:#ff00aa;">&#9679;</span> Diagnostic d'infrastructure — {{domain}}
               </p>
+
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <!-- Score circle -->
-                  <td width="80" valign="top">
-                    <table role="presentation" cellpadding="0" cellspacing="0">
-                      <tr><td style="width:64px;height:64px;border-radius:50%;border:3px solid {{score_color}};text-align:center;vertical-align:middle;">
-                        <span style="font-size:22px;font-weight:800;color:{{score_color}};">{{score_display}}</span>
-                      </td></tr>
-                    </table>
+                  <td width="110" valign="middle" align="center" style="border-right:1px solid #1f1f22;padding-right:24px;">
+                    <div style="width:72px;height:72px;border-radius:50%;border:3px solid #ff00aa;text-align:center;line-height:72px;margin:0 auto 10px;box-shadow: 0 0 20px rgba(255,0,170,0.15);background-color:#0a0a0c;">
+                      <span style="font-size:24px;font-weight:900;color:#ffffff;">{{score_display}}</span>
+                    </div>
+                    <span style="font-size:10px;font-weight:800;color:#71717a;text-transform:uppercase;letter-spacing:1px;">Score Global</span>
                   </td>
-                  <!-- Metrics -->
-                  <td valign="top" style="padding-left:16px;">
-                    <table role="presentation" cellpadding="0" cellspacing="0">
+
+                  <td valign="middle" style="padding-left:24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td style="padding:3px 0;">
-                          <span style="font-size:13px;color:#a1a1aa;">Performance mobile</span>
-                          <span style="font-size:13px;font-weight:600;color:{{score_color}};margin-left:8px;">{{score_label}}</span>
+                        <td style="padding:8px 0;">
+                          <span style="font-size:13px;font-weight:600;color:#a1a1aa;">Vitesse mobile</span>
+                        </td>
+                        <td align="right" style="padding:8px 0;">
+                          <span style="font-size:13px;font-weight:800;color:#ff00aa;">{{score_label}}</span>
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding:3px 0;">
-                          <span style="font-size:13px;color:#a1a1aa;">Temps de chargement</span>
-                          <span style="font-size:13px;font-weight:600;color:#f59e0b;margin-left:8px;">{{load_time}}</span>
+                        <td style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:600;color:#a1a1aa;">Temps de chargement</span>
+                        </td>
+                        <td align="right" style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:800;color:#ffffff;">{{load_time}}</span>
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding:3px 0;">
-                          <span style="font-size:13px;color:#a1a1aa;">SEO local</span>
-                          <span style="font-size:13px;font-weight:600;color:#f59e0b;margin-left:8px;">Optimisable</span>
+                        <td style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:600;color:#a1a1aa;">Structure UX</span>
+                        </td>
+                        <td align="right" style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:800;color:#ffffff;">{{score_ux}}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:600;color:#a1a1aa;">Santé SEO</span>
+                        </td>
+                        <td align="right" style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:800;color:#ffffff;">{{score_seo}}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:600;color:#a1a1aa;">Visibilité locale</span>
+                        </td>
+                        <td align="right" style="padding:8px 0;border-top:1px solid #1f1f22;">
+                          <span style="font-size:13px;font-weight:800;color:#ff00aa;">Optimisable</span>
                         </td>
                       </tr>
                     </table>
@@ -72,40 +96,55 @@
           </table>
         </td></tr>
 
-        <!-- IMPACT -->
-        <tr><td style="background-color:#18181b;padding:0 40px 32px;">
-          <p style="margin:0;font-size:15px;line-height:1.7;color:#d4d4d8;">
+        <tr><td style="background-color:#0a0a0c;padding:0 40px 32px;">
+          <p style="margin:0;font-size:15px;line-height:1.7;color:#a1a1aa;">
             {{impact}}
           </p>
         </td></tr>
 
-        <!-- CTA -->
-        <tr><td style="background-color:#18181b;padding:0 40px 40px;" align="center">
+        <tr><td style="background-color:#0a0a0c;padding:0 40px 48px;" align="center">
           <table role="presentation" cellpadding="0" cellspacing="0">
-            <tr><td style="background:linear-gradient(135deg,#ea580c 0%,#fb923c 100%);border-radius:10px;padding:0;">
-              <a href="{{cal_link}}" target="_blank" style="display:inline-block;padding:16px 40px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">
-                Réserver un audit gratuit →
+            <tr><td style="border-radius:50px;padding:0;">
+              <a href="{{cal_link}}" target="_blank" style="display:inline-block;padding:18px 48px;font-size:14px;font-weight:800;color:#ffffff;background-color:#ff00aa;text-decoration:none;letter-spacing:0.5px;text-transform:uppercase;border-radius:50px;">
+                Réserver mon audit
               </a>
             </td></tr>
           </table>
-          <p style="margin:12px 0 0;font-size:12px;color:#52525b;">
-            15 minutes · Sans engagement · 100% gratuit
+          <p style="margin:20px 0 0;font-size:11px;font-weight:700;color:#71717a;letter-spacing:0.5px;text-transform:uppercase;">
+            <span style="color:#ffffff;">100% GRATUIT</span> &nbsp;&nbsp;&bull;&nbsp;&nbsp; SANS ENGAGEMENT &nbsp;&nbsp;&bull;&nbsp;&nbsp; EN 15 MIN
           </p>
         </td></tr>
 
-        <!-- SEPARATOR -->
-        <tr><td style="background-color:#18181b;padding:0 40px;">
-          <div style="border-top:1px solid rgba(255,255,255,0.06);"></div>
-        </td></tr>
-
-        <!-- FOOTER -->
-        <tr><td style="background-color:#18181b;border-radius:0 0 16px 16px;padding:28px 40px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="background-color:#0a0a0c;padding:0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:32px 32px 0 0;padding:48px 40px;">
             <tr>
-              <td>
-                <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#e4e4e7;">L'équipe Alt Ctrl Lab</p>
-                <p style="margin:0 0 2px;font-size:12px;color:#71717a;">Performance web · SEO local · Croissance digitale</p>
-                <p style="margin:0;font-size:12px;color:#52525b;">hello@altctrllab.com</p>
+              <td align="center">
+                <a href="https://alt-ctrl.com" target="_blank" style="text-decoration:none;display:inline-block;">
+                  <img src="https://alt-ctrl-lab-production.up.railway.app/email/LogoWhiteFooter.png" alt="ALT CTRL LAB" width="180" style="display:block;margin:0 auto 24px;border:0;max-width:100%;height:auto;">
+                </a>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">
+                  <tr>
+                    <td style="padding:0 12px;">
+                      <a href="#" target="_blank" style="text-decoration:none;display:block;">
+                        <img src="https://img.icons8.com/ios/50/000000/instagram-new.png" width="28" height="28" alt="Instagram" style="display:block;border:0;">
+                      </a>
+                    </td>
+                    <td style="padding:0 12px;">
+                      <a href="#" target="_blank" style="text-decoration:none;display:block;">
+                        <img src="https://img.icons8.com/ios/50/000000/linkedin.png" width="28" height="28" alt="LinkedIn" style="display:block;border:0;">
+                      </a>
+                    </td>
+                    <td style="padding:0 12px;">
+                      <a href="#" target="_blank" style="text-decoration:none;display:block;">
+                        <img src="https://img.icons8.com/ios/50/000000/snapchat.png" width="28" height="28" alt="Snapchat" style="display:block;border:0;">
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:0 0 8px;font-size:14px;font-weight:800;color:#ff00aa;">lab@alt-ctrl.com</p>
+                <p style="margin:0;font-size:10px;font-weight:800;color:#a1a1aa;text-transform:uppercase;letter-spacing:1px;">© 2026 Laboratoire Digital</p>
               </td>
             </tr>
           </table>

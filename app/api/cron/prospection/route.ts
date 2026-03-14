@@ -48,6 +48,9 @@ function buildEmailHTML(params: {
   const loadTime = score !== null && score < 50 ? '&gt; 4 secondes' : 'À vérifier';
   const domain = (() => { try { return new URL(website).hostname.replace('www.', ''); } catch { return website; } })();
 
+  const scoreUx = score === null ? 'Non mesuré' : score < 40 ? 'Faible' : score < 65 ? 'Moyen' : 'Bon';
+  const scoreSeo = score === null ? 'Non mesuré' : score < 50 ? 'À revoir' : 'Acceptable';
+
   return loadEmailTemplate()
     .replace(/\{\{intro\}\}/g, intro)
     .replace(/\{\{impact\}\}/g, impact)
@@ -55,6 +58,8 @@ function buildEmailHTML(params: {
     .replace(/\{\{score_display\}\}/g, scoreDisplay)
     .replace(/\{\{score_color\}\}/g, scoreColor)
     .replace(/\{\{score_label\}\}/g, scoreLabel)
+    .replace(/\{\{score_ux\}\}/g, scoreUx)
+    .replace(/\{\{score_seo\}\}/g, scoreSeo)
     .replace(/\{\{load_time\}\}/g, loadTime)
     .replace(/\{\{cal_link\}\}/g, calLink)
     .replace(/\{\{name\}\}/g, name)
