@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { createLead, getDb } from '@/lib/db';
-import Anthropic from '@anthropic-ai/sdk';
+import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
 import fs from 'fs';
 import path from 'path';
 
@@ -26,96 +26,30 @@ const EMAIL_DOMAIN_BLACKLIST = [
   'outlook.com', 'hotmail.com', 'live.com', 'orange.fr', 'free.fr', 'sfr.fr',
 ];
 
-const HUNTER_API_KEY = process.env.HUNTER_API_KEY || '';
-
-// ─── P2: Extraction sémantique intelligente ────────────────────────────────
-async function extractEmailFromWebsite(url: string): Promise<string | null> {
+// ─── Level 1 : Extraction email rapide (regex sur homepage) ─────────────────
+async function extractEmailFast(url: string): Promise<string | null> {
   try {
     const domain = new URL(url).hostname.replace('www.', '');
     if (EMAIL_DOMAIN_BLACKLIST.some(b => domain.includes(b))) return null;
 
-    const fetchPage = async (pageUrl: string): Promise<string | null> => {
-      try {
-        const res = await fetch(pageUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
-          signal: AbortSignal.timeout(6000),
-          redirect: 'follow',
-        });
-        if (!res.ok) return null;
-        return await res.text();
-      } catch { return null; }
-    };
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+      signal: AbortSignal.timeout(6000),
+      redirect: 'follow',
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
 
-    // ── Phase 1 : Fetch homepage ──
-    const homepageHtml = await fetchPage(url);
-    if (!homepageHtml) return null;
+    // Regex emails from page
+    const regexMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
+    const allEmails = regexMatches.map(e => e.toLowerCase());
 
-    const allEmails: string[] = [];
-
-    // ── Phase 2 : Extraction sémantique (mailto + JSON-LD + regex) ──
-    const extractFromHtml = (html: string) => {
-      // 2a — mailto: links (highest confidence)
-      const mailtoMatches = html.match(/href=["']mailto:([^"'?]+)/gi) || [];
-      for (const m of mailtoMatches) {
-        const email = m.replace(/href=["']mailto:/i, '').toLowerCase();
-        if (email.includes('@')) allEmails.push(email);
-      }
-
-      // 2b — JSON-LD ContactPoint / Organization schema
-      const jsonLdBlocks = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
-      for (const block of jsonLdBlocks) {
-        const jsonStr = block.replace(/<\/?script[^>]*>/gi, '');
-        try {
-          const data = JSON.parse(jsonStr);
-          const extractLdEmails = (obj: any) => {
-            if (!obj || typeof obj !== 'object') return;
-            if (obj.email) allEmails.push(String(obj.email).toLowerCase());
-            if (obj.contactPoint) {
-              const points = Array.isArray(obj.contactPoint) ? obj.contactPoint : [obj.contactPoint];
-              points.forEach((cp: any) => { if (cp.email) allEmails.push(String(cp.email).toLowerCase()); });
-            }
-            if (Array.isArray(obj)) obj.forEach(extractLdEmails);
-            if (obj['@graph']) extractLdEmails(obj['@graph']);
-          };
-          extractLdEmails(data);
-        } catch { /* invalid JSON-LD */ }
-      }
-
-      // 2c — Regex fallback (lower confidence)
-      const regexMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
-      allEmails.push(...regexMatches.map(e => e.toLowerCase()));
-    };
-
-    extractFromHtml(homepageHtml);
-
-    // ── Phase 3 : Découverte dynamique des pages contact ──
-    // Scan homepage links for contact-like URLs instead of hardcoding paths
-    const contactLinkPattern = /href=["'](\/[^"']*(?:contact|contacter|nous-contacter|contactez|a-propos|about|equipe|team|impressum|mentions)[^"']*)/gi;
-    const discoveredPaths = new Set<string>();
-    let linkMatch;
-    while ((linkMatch = contactLinkPattern.exec(homepageHtml)) !== null) {
-      discoveredPaths.add(linkMatch[1].split('#')[0].split('?')[0]);
-    }
-    // Add common fallbacks only if nothing was discovered
-    if (discoveredPaths.size === 0) {
-      ['/contact', '/nous-contacter', '/contactez-nous', '/a-propos'].forEach(p => discoveredPaths.add(p));
-    }
-
-    const base = url.replace(/\/$/, '');
-    for (const contactPath of discoveredPaths) {
-      if (allEmails.length > 0) break; // Stop if we already found emails
-      const contactHtml = await fetchPage(base + contactPath);
-      if (contactHtml) extractFromHtml(contactHtml);
-    }
-
-    // ── Phase 4 : Déduplique + filtre blacklist ──
+    // Déduplique + filtre blacklist
     const unique = [...new Set(allEmails)];
     const filtered = unique.filter(email => {
       const emailDomain = email.split('@')[1];
       if (!emailDomain) return false;
-      // Filter blacklisted domains
       if (EMAIL_DOMAIN_BLACKLIST.some(b => emailDomain.includes(b))) return false;
-      // Filter obviously fake emails (css artifacts, image names, etc.)
       if (email.includes('.png') || email.includes('.jpg') || email.includes('.svg')) return false;
       if (email.length < 5 || email.length > 80) return false;
       return true;
@@ -123,8 +57,7 @@ async function extractEmailFromWebsite(url: string): Promise<string | null> {
 
     if (filtered.length === 0) return null;
 
-    // ── Phase 5 : Priorisation ──
-    // mailto: sources are highest confidence (they appear first in allEmails)
+    // Priorisation
     const sameDomain = filtered.find(e => e.endsWith('@' + domain));
     if (sameDomain) return sameDomain;
     const infoEmail = filtered.find(e => e.startsWith('info@'));
@@ -137,31 +70,57 @@ async function extractEmailFromWebsite(url: string): Promise<string | null> {
   }
 }
 
-// ─── P1: Cascade d'enrichissement B2B (Hunter.io) ──────────────────────────
-async function enrichViaHunter(domain: string, companyName: string): Promise<string | null> {
-  if (!HUNTER_API_KEY) return null;
-  try {
-    // Hunter.io domain search — finds the most common email pattern
-    const hunterUrl = `https://api.hunter.io/v2/domain-search?domain=${encodeURIComponent(domain)}&company=${encodeURIComponent(companyName)}&api_key=${HUNTER_API_KEY}&limit=3`;
-    const res = await fetch(hunterUrl, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const emails = data.data?.emails || [];
+// ─── Level 2 : Agent IA chercheur d'email ───────────────────────────────────
+interface AgentEmailResult {
+  email: string | null;
+  confidence: number;
+  source_url: string;
+}
 
-    // Prefer generic emails (info@, contact@) over personal ones
-    const generic = emails.find((e: any) => e.type === 'generic' && e.confidence >= 50);
-    if (generic) return generic.value;
-    // Then any email with high confidence
-    const best = emails.find((e: any) => e.confidence >= 70);
-    if (best) return best.value;
-    // Pattern-based guess from Hunter (they have verified patterns)
-    const pattern = data.data?.pattern;
-    if (pattern && data.data?.organization) {
-      // Hunter can return a pattern like "{first}.{last}@domain" but we need generic
-      // Use the accept_all flag — if the domain accepts all emails, contact@ likely works
-      if (data.data?.accept_all) return `contact@${domain}`;
-    }
-    return null;
+function isValidAgentEmailResult(data: unknown): data is AgentEmailResult {
+  if (!data || typeof data !== 'object') return false;
+  const obj = data as Record<string, unknown>;
+  if (typeof obj.confidence !== 'number' || obj.confidence < 1 || obj.confidence > 100) return false;
+  if (typeof obj.source_url !== 'string') return false;
+  if (obj.email !== null) {
+    if (typeof obj.email !== 'string') return false;
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(obj.email)) return false;
+  }
+  return true;
+}
+
+async function extractEmailAgent(url: string, companyName: string): Promise<AgentEmailResult | null> {
+  try {
+    const prompt = `Tu es un extracteur de données B2B impitoyable. Ta mission : trouver l'adresse email de contact de l'entreprise "${companyName}" dont le site web est ${url}.
+
+MÉTHODE :
+1. Cherche l'email dans le DOM de la homepage (mailto:, texte visible)
+2. Cherche dans les pages /contact, /mentions-légales, /impressum, /a-propos, /equipe
+3. Cherche dans les balises JSON-LD (schema.org)
+
+RÈGLES STRICTES :
+- INTERDICTION de deviner ou inventer un email
+- INTERDICTION de générer contact@domain ou info@domain par défaut
+- Tu dois avoir TROUVÉ l'email sur une page réelle
+- Si tu ne trouves rien, email = null
+
+Réponds UNIQUEMENT avec ce JSON (rien d'autre) :
+{"email": "found@example.com", "confidence": 85, "source_url": "https://example.com/contact"}
+
+Si aucun email trouvé :
+{"email": null, "confidence": 0, "source_url": "${url}"}`;
+
+    const result = await executeOpenClawAgent('data_miner', prompt, 120000);
+    if (!result.success) return null;
+
+    const output = (result.stdout || '').trim();
+    // Extract JSON from output (agent may add extra text)
+    const jsonMatch = output.match(/\{[\s\S]*?"email"[\s\S]*?"confidence"[\s\S]*?"source_url"[\s\S]*?\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!isValidAgentEmailResult(parsed)) return null;
+    return parsed;
   } catch {
     return null;
   }
@@ -338,19 +297,15 @@ function getFallbackParagraphs(name: string, website: string, score: number | nu
   };
 }
 
-// ─── Claude API personalisation ─────────────────────────────────────────────
-async function personalizeWithClaude(params: {
+// ─── Personnalisation IA via Agent ───────────────────────────────────────────
+async function personalizeWithAgent(params: {
   name: string;
   address: string;
   website: string;
   score: number | null;
   niche: string;
 }): Promise<{ claudeIntroDynamique: string; claudeImpactDynamique: string } | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
-
   try {
-    const anthropic = new Anthropic({ apiKey });
     const { name, address, website, score, niche } = params;
 
     const loadTime = score !== null && score < 50 ? `${Math.max(3, Math.round(10 - score / 10))}s` : 'un temps élevé';
@@ -359,12 +314,7 @@ async function personalizeWithClaude(params: {
       ? `Score mobile ${score}/100, temps de chargement ~${loadTime}`
       : 'Score non mesurable (site trop lent ou mal configuré)';
 
-    const msg = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
-      messages: [{
-        role: 'user',
-        content: `Tu es un expert en Growth Marketing B2B et un auditeur technique senior. Ton but est de rédiger deux courtes phrases pour un e-mail de prospection à froid.
+    const prompt = `Tu es un expert en Growth Marketing B2B et un auditeur technique senior. Ton but est de rédiger deux courtes phrases pour un e-mail de prospection à froid.
 Ton ton doit être : direct, lucide, chirurgical, sans aucune complaisance ni flatterie. Pas de blabla, va droit au but.
 
 Règle de formatage stricte : Tu peux mettre en valeur 1 à 2 mots maximum par phrase en utilisant EXACTEMENT cette balise HTML : <span style="color:#ff00aa;font-weight:800;">le mot clé</span>. Ne dépasse jamais 2 mots mis en valeur par phrase.
@@ -387,11 +337,12 @@ Exemple : "Avec un temps de chargement de ${loadTime}, vous perdez mécaniquemen
 
 FORMAT STRICT (respecte EXACTEMENT) :
 CLAUDE_INTRO_DYNAMIQUE: [phrase]
-CLAUDE_IMPACT_DYNAMIQUE: [phrase]`,
-      }],
-    });
+CLAUDE_IMPACT_DYNAMIQUE: [phrase]`;
 
-    const text = (msg.content[0] as any).text || '';
+    const result = await executeOpenClawAgent('khatib', prompt, 60000);
+    if (!result.success) return null;
+
+    const text = (result.stdout || '').trim();
     const introMatch = text.match(/CLAUDE_INTRO_DYNAMIQUE:\s*([\s\S]*?)(?=CLAUDE_IMPACT_DYNAMIQUE:|$)/i);
     const impactMatch = text.match(/CLAUDE_IMPACT_DYNAMIQUE:\s*([\s\S]*?)$/i);
 
@@ -410,17 +361,9 @@ CLAUDE_IMPACT_DYNAMIQUE: [phrase]`,
 async function personalizeForInstagram(params: {
   name: string; address: string; instagramHandle: string; followersCount: string; niche: string;
 }): Promise<{ intro: string; impact: string } | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
   try {
-    const anthropic = new Anthropic({ apiKey });
     const { name, address, instagramHandle, followersCount, niche } = params;
-    const msg = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      messages: [{
-        role: 'user',
-        content: `Tu es le directeur créatif d'une agence digitale premium. Tu écris un DM Instagram / email court et percutant.
+    const prompt = `Tu es le directeur créatif d'une agence digitale premium. Tu écris un DM Instagram / email court et percutant.
 
 CONTEXTE PROSPECT :
 - Entreprise : ${name}
@@ -451,10 +394,11 @@ RÈGLES :
 
 FORMAT STRICT :
 INTRO: [texte]
-IMPACT: [texte]`,
-      }],
-    });
-    const text = (msg.content[0] as any).text || '';
+IMPACT: [texte]`;
+
+    const result = await executeOpenClawAgent('khatib', prompt, 60000);
+    if (!result.success) return null;
+    const text = (result.stdout || '').trim();
     const introMatch = text.match(/INTRO:\s*([\s\S]*?)(?=IMPACT:|$)/i);
     const impactMatch = text.match(/IMPACT:\s*([\s\S]*?)$/i);
     if (introMatch && impactMatch) {
@@ -467,17 +411,9 @@ IMPACT: [texte]`,
 async function personalizeForLinkedin(params: {
   name: string; linkedinHeadline: string; niche: string;
 }): Promise<{ intro: string; impact: string } | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
   try {
-    const anthropic = new Anthropic({ apiKey });
     const { name, linkedinHeadline, niche } = params;
-    const msg = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      messages: [{
-        role: 'user',
-        content: `Tu es le directeur créatif d'une agence digitale premium. Tu écris un cold email pour un professionnel trouvé sur LinkedIn.
+    const prompt = `Tu es le directeur créatif d'une agence digitale premium. Tu écris un cold email pour un professionnel trouvé sur LinkedIn.
 
 CONTEXTE PROSPECT :
 - Nom : ${name}
@@ -506,10 +442,11 @@ RÈGLES :
 
 FORMAT STRICT :
 INTRO: [texte]
-IMPACT: [texte]`,
-      }],
-    });
-    const text = (msg.content[0] as any).text || '';
+IMPACT: [texte]`;
+
+    const result = await executeOpenClawAgent('khatib', prompt, 60000);
+    if (!result.success) return null;
+    const text = (result.stdout || '').trim();
     const introMatch = text.match(/INTRO:\s*([\s\S]*?)(?=IMPACT:|$)/i);
     const impactMatch = text.match(/IMPACT:\s*([\s\S]*?)$/i);
     if (introMatch && impactMatch) {
@@ -659,7 +596,7 @@ export async function POST(request: NextRequest) {
             // 5 — Personnalisation Claude + template HTML
             send('info', { message: `   🤖 Personnalisation IA pour ${name}...` });
 
-            const personalized = await personalizeWithClaude({
+            const personalized = await personalizeWithAgent({
               name, address, website, score: lighthouseScore, niche: queryNiche,
             });
 
@@ -686,21 +623,24 @@ export async function POST(request: NextRequest) {
             let emailSource = '';
             const siteDomain = (() => { try { return new URL(website).hostname.replace('www.', ''); } catch { return ''; } })();
 
-            // 6a — Extraction sémantique du site (mailto, JSON-LD, regex)
-            send('info', { message: `   🔎 Extraction sémantique depuis ${website}...` });
-            contactEmail = await extractEmailFromWebsite(website);
+            // 6a — Level 1 : Extraction rapide (regex homepage)
+            send('info', { message: `   🔎 Level 1 — extraction rapide depuis ${website}...` });
+            contactEmail = await extractEmailFast(website);
             if (contactEmail) {
-              emailSource = 'scraping site';
+              emailSource = 'Level 1 (regex)';
               send('info', { message: `   ✉️ Email trouvé (${emailSource}) : ${contactEmail}` });
             }
 
-            // 6b — Cascade B2B : Hunter.io si scraping échoue
-            if (!contactEmail && siteDomain) {
-              send('info', { message: `   🔍 Enrichissement B2B (Hunter.io)...` });
-              contactEmail = await enrichViaHunter(siteDomain, name);
-              if (contactEmail) {
-                emailSource = 'Hunter.io';
+            // 6b — Level 2 : Agent IA chercheur si Level 1 échoue
+            if (!contactEmail) {
+              send('info', { message: `   🤖 Level 2 — Agent IA chercheur pour ${name}...` });
+              const agentResult = await extractEmailAgent(website, name);
+              if (agentResult?.email && agentResult.confidence >= 50) {
+                contactEmail = agentResult.email;
+                emailSource = `Level 2 (agent, confiance ${agentResult.confidence}%, source: ${agentResult.source_url})`;
                 send('info', { message: `   ✉️ Email trouvé (${emailSource}) : ${contactEmail}` });
+              } else if (agentResult?.email) {
+                send('warn', { message: `   ⚠️ Agent a trouvé ${agentResult.email} mais confiance trop basse (${agentResult.confidence}%)` });
               }
             }
 
@@ -726,7 +666,7 @@ export async function POST(request: NextRequest) {
                     lighthouseScore !== null ? `Score Lighthouse: ${lighthouseScore}/100` : null,
                     `Adresse: ${address}`,
                     `Niche: ${queryNiche}`,
-                    `Méthode: scraping + Hunter.io → aucun résultat`,
+                    `Méthode: Level 1 (regex) + Level 2 (agent IA) → aucun résultat`,
                     `Action requise: recherche manuelle de l'email`,
                   ].filter(x => x !== null).join('\n'),
                 });
@@ -955,13 +895,15 @@ export async function POST(request: NextRequest) {
               // Build DM message (short, conversational)
               const dmMessage = `Bonjour ${name} 👋\n\nNous avons découvert votre compte @${instagramHandle} — votre contenu est vraiment top ! Notre équipe aide les entreprises comme la vôtre à créer un site web pro qui travaille pour vous 24/7.\n\nIntéressé(e) par un audit gratuit de 15 min ? ${CAL_LINK}`;
 
-              // Try to find an email for email outreach too (no fallback — deterministic only)
+              // Try to find an email for email outreach too (cascade Level 1 → Level 2)
               let contactEmail: string | null = null;
               if (website) {
-                contactEmail = await extractEmailFromWebsite(website);
+                contactEmail = await extractEmailFast(website);
                 if (!contactEmail) {
-                  const igDomain = (() => { try { return new URL(website).hostname.replace('www.', ''); } catch { return ''; } })();
-                  if (igDomain) contactEmail = await enrichViaHunter(igDomain, name);
+                  const agentResult = await extractEmailAgent(website, name);
+                  if (agentResult?.email && agentResult.confidence >= 50) {
+                    contactEmail = agentResult.email;
+                  }
                 }
                 // Validate if found
                 if (contactEmail) {
