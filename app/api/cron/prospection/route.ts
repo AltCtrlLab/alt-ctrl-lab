@@ -26,45 +26,105 @@ const EMAIL_DOMAIN_BLACKLIST = [
   'outlook.com', 'hotmail.com', 'live.com', 'orange.fr', 'free.fr', 'sfr.fr',
 ];
 
+const HUNTER_API_KEY = process.env.HUNTER_API_KEY || '';
+
+// ─── P2: Extraction sémantique intelligente ────────────────────────────────
 async function extractEmailFromWebsite(url: string): Promise<string | null> {
   try {
     const domain = new URL(url).hostname.replace('www.', '');
-    // Skip platform domains entirely
     if (EMAIL_DOMAIN_BLACKLIST.some(b => domain.includes(b))) return null;
 
-    const pagesToCheck = [url];
-    // Add common contact pages
-    const base = url.replace(/\/$/, '');
-    for (const p of ['/contact', '/nous-contacter', '/contactez-nous', '/a-propos', '/about']) {
-      pagesToCheck.push(base + p);
-    }
-
-    const allEmails: string[] = [];
-    for (const pageUrl of pagesToCheck) {
+    const fetchPage = async (pageUrl: string): Promise<string | null> => {
       try {
         const res = await fetch(pageUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AltCtrlBot/1.0)' },
-          signal: AbortSignal.timeout(5000),
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+          signal: AbortSignal.timeout(6000),
           redirect: 'follow',
         });
-        if (!res.ok) continue;
-        const html = await res.text();
-        // Extract emails via regex
-        const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
-        allEmails.push(...emailMatches);
-      } catch { /* timeout or network error */ }
+        if (!res.ok) return null;
+        return await res.text();
+      } catch { return null; }
+    };
+
+    // ── Phase 1 : Fetch homepage ──
+    const homepageHtml = await fetchPage(url);
+    if (!homepageHtml) return null;
+
+    const allEmails: string[] = [];
+
+    // ── Phase 2 : Extraction sémantique (mailto + JSON-LD + regex) ──
+    const extractFromHtml = (html: string) => {
+      // 2a — mailto: links (highest confidence)
+      const mailtoMatches = html.match(/href=["']mailto:([^"'?]+)/gi) || [];
+      for (const m of mailtoMatches) {
+        const email = m.replace(/href=["']mailto:/i, '').toLowerCase();
+        if (email.includes('@')) allEmails.push(email);
+      }
+
+      // 2b — JSON-LD ContactPoint / Organization schema
+      const jsonLdBlocks = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+      for (const block of jsonLdBlocks) {
+        const jsonStr = block.replace(/<\/?script[^>]*>/gi, '');
+        try {
+          const data = JSON.parse(jsonStr);
+          const extractLdEmails = (obj: any) => {
+            if (!obj || typeof obj !== 'object') return;
+            if (obj.email) allEmails.push(String(obj.email).toLowerCase());
+            if (obj.contactPoint) {
+              const points = Array.isArray(obj.contactPoint) ? obj.contactPoint : [obj.contactPoint];
+              points.forEach((cp: any) => { if (cp.email) allEmails.push(String(cp.email).toLowerCase()); });
+            }
+            if (Array.isArray(obj)) obj.forEach(extractLdEmails);
+            if (obj['@graph']) extractLdEmails(obj['@graph']);
+          };
+          extractLdEmails(data);
+        } catch { /* invalid JSON-LD */ }
+      }
+
+      // 2c — Regex fallback (lower confidence)
+      const regexMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
+      allEmails.push(...regexMatches.map(e => e.toLowerCase()));
+    };
+
+    extractFromHtml(homepageHtml);
+
+    // ── Phase 3 : Découverte dynamique des pages contact ──
+    // Scan homepage links for contact-like URLs instead of hardcoding paths
+    const contactLinkPattern = /href=["'](\/[^"']*(?:contact|contacter|nous-contacter|contactez|a-propos|about|equipe|team|impressum|mentions)[^"']*)/gi;
+    const discoveredPaths = new Set<string>();
+    let linkMatch;
+    while ((linkMatch = contactLinkPattern.exec(homepageHtml)) !== null) {
+      discoveredPaths.add(linkMatch[1].split('#')[0].split('?')[0]);
+    }
+    // Add common fallbacks only if nothing was discovered
+    if (discoveredPaths.size === 0) {
+      ['/contact', '/nous-contacter', '/contactez-nous', '/a-propos'].forEach(p => discoveredPaths.add(p));
     }
 
-    // Deduplicate and filter
-    const unique = [...new Set(allEmails.map(e => e.toLowerCase()))];
+    const base = url.replace(/\/$/, '');
+    for (const contactPath of discoveredPaths) {
+      if (allEmails.length > 0) break; // Stop if we already found emails
+      const contactHtml = await fetchPage(base + contactPath);
+      if (contactHtml) extractFromHtml(contactHtml);
+    }
+
+    // ── Phase 4 : Déduplique + filtre blacklist ──
+    const unique = [...new Set(allEmails)];
     const filtered = unique.filter(email => {
       const emailDomain = email.split('@')[1];
-      return !EMAIL_DOMAIN_BLACKLIST.some(b => emailDomain?.includes(b));
+      if (!emailDomain) return false;
+      // Filter blacklisted domains
+      if (EMAIL_DOMAIN_BLACKLIST.some(b => emailDomain.includes(b))) return false;
+      // Filter obviously fake emails (css artifacts, image names, etc.)
+      if (email.includes('.png') || email.includes('.jpg') || email.includes('.svg')) return false;
+      if (email.length < 5 || email.length > 80) return false;
+      return true;
     });
 
     if (filtered.length === 0) return null;
 
-    // Priority: same domain > info@ > contact@ > others
+    // ── Phase 5 : Priorisation ──
+    // mailto: sources are highest confidence (they appear first in allEmails)
     const sameDomain = filtered.find(e => e.endsWith('@' + domain));
     if (sameDomain) return sameDomain;
     const infoEmail = filtered.find(e => e.startsWith('info@'));
@@ -74,6 +134,101 @@ async function extractEmailFromWebsite(url: string): Promise<string | null> {
     return filtered[0];
   } catch {
     return null;
+  }
+}
+
+// ─── P1: Cascade d'enrichissement B2B (Hunter.io) ──────────────────────────
+async function enrichViaHunter(domain: string, companyName: string): Promise<string | null> {
+  if (!HUNTER_API_KEY) return null;
+  try {
+    // Hunter.io domain search — finds the most common email pattern
+    const hunterUrl = `https://api.hunter.io/v2/domain-search?domain=${encodeURIComponent(domain)}&company=${encodeURIComponent(companyName)}&api_key=${HUNTER_API_KEY}&limit=3`;
+    const res = await fetch(hunterUrl, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const emails = data.data?.emails || [];
+
+    // Prefer generic emails (info@, contact@) over personal ones
+    const generic = emails.find((e: any) => e.type === 'generic' && e.confidence >= 50);
+    if (generic) return generic.value;
+    // Then any email with high confidence
+    const best = emails.find((e: any) => e.confidence >= 70);
+    if (best) return best.value;
+    // Pattern-based guess from Hunter (they have verified patterns)
+    const pattern = data.data?.pattern;
+    if (pattern && data.data?.organization) {
+      // Hunter can return a pattern like "{first}.{last}@domain" but we need generic
+      // Use the accept_all flag — if the domain accepts all emails, contact@ likely works
+      if (data.data?.accept_all) return `contact@${domain}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// ─── P0: Gatekeeper de délivrabilité (MX + SMTP check) ─────────────────────
+async function verifyEmailDeliverability(email: string): Promise<{ valid: boolean; reason: string }> {
+  const domain = email.split('@')[1];
+  if (!domain) return { valid: false, reason: 'domaine invalide' };
+
+  try {
+    // Step 1 — MX record check via DNS-over-HTTPS (works in serverless)
+    const dnsRes = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!dnsRes.ok) return { valid: false, reason: 'DNS lookup échoué' };
+    const dnsData = await dnsRes.json();
+
+    // Check for MX records
+    const mxRecords = dnsData.Answer?.filter((r: any) => r.type === 15) || [];
+    if (mxRecords.length === 0) {
+      // No MX records — check for A record as fallback (some domains handle mail on A)
+      const aRes = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      if (aRes.ok) {
+        const aData = await aRes.json();
+        const aRecords = aData.Answer?.filter((r: any) => r.type === 1) || [];
+        if (aRecords.length === 0) {
+          return { valid: false, reason: 'aucun MX/A record — domaine ne reçoit pas d\'emails' };
+        }
+        // Has A record but no MX — risky but possible
+        return { valid: true, reason: 'A record uniquement (pas de MX) — délivrabilité incertaine' };
+      }
+      return { valid: false, reason: 'aucun MX record' };
+    }
+
+    // Step 2 — SMTP verification via external API (MailboxLayer / free alternative)
+    // We use a lightweight SMTP check via an external validator API
+    // Note: direct SMTP from serverless is unreliable (firewalled), so we use API
+    const verifyApiKey = process.env.EMAIL_VERIFY_API_KEY || '';
+    if (verifyApiKey) {
+      try {
+        const verifyRes = await fetch(
+          `https://emailvalidation.abstractapi.com/v1/?api_key=${verifyApiKey}&email=${encodeURIComponent(email)}`,
+          { signal: AbortSignal.timeout(8000) }
+        );
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          // AbstractAPI returns deliverability status
+          if (verifyData.deliverability === 'UNDELIVERABLE') {
+            return { valid: false, reason: `SMTP rejeté — boîte mail inexistante (${verifyData.deliverability})` };
+          }
+          if (verifyData.is_disposable_email?.value) {
+            return { valid: false, reason: 'email jetable détecté' };
+          }
+          // DELIVERABLE or RISKY — proceed
+          return { valid: true, reason: `vérifié (${verifyData.deliverability || 'MX OK'})` };
+        }
+      } catch { /* API down — fall through to MX-only validation */ }
+    }
+
+    // MX records exist but no SMTP API available — trust MX
+    return { valid: true, reason: `MX vérifié (${mxRecords.length} record${mxRecords.length > 1 ? 's' : ''})` };
+  } catch {
+    // DNS error — don't block, but flag
+    return { valid: true, reason: 'vérification DNS échouée — MX non confirmé' };
   }
 }
 
@@ -526,33 +681,101 @@ export async function POST(request: NextRequest) {
             const domain = (() => { try { return new URL(website).hostname.replace('www.', ''); } catch { return website; } })();
             const emailText = `Bonjour,\n\nVotre site web n'est pas qu'une simple vitrine, c'est votre moteur d'acquisition principal.\n\nNotre scan d'infrastructure révèle des frictions techniques majeures sur ${domain} qui brident votre croissance actuelle.\n\n${stripHtml(claudeIntroDynamique)}\n\n${stripHtml(claudeImpactDynamique)}\n\nUne interface non-optimisée est un client offert directement à vos concurrents.\n\nRéservez un audit gratuit (15 min, sans engagement) :\n${CAL_LINK}\n\nL'équipe Alt Ctrl Lab\nhello@altctrllab.com`;
 
-            // 6 — Smart email extraction
+            // 6 — Extraction email déterministe (zéro fallback)
             let contactEmail: string | null = null;
-            try {
-              // Try scraping first
-              send('info', { message: `   🔎 Extraction email depuis ${website}...` });
-              contactEmail = await extractEmailFromWebsite(website);
+            let emailSource = '';
+            const siteDomain = (() => { try { return new URL(website).hostname.replace('www.', ''); } catch { return ''; } })();
+
+            // 6a — Extraction sémantique du site (mailto, JSON-LD, regex)
+            send('info', { message: `   🔎 Extraction sémantique depuis ${website}...` });
+            contactEmail = await extractEmailFromWebsite(website);
+            if (contactEmail) {
+              emailSource = 'scraping site';
+              send('info', { message: `   ✉️ Email trouvé (${emailSource}) : ${contactEmail}` });
+            }
+
+            // 6b — Cascade B2B : Hunter.io si scraping échoue
+            if (!contactEmail && siteDomain) {
+              send('info', { message: `   🔍 Enrichissement B2B (Hunter.io)...` });
+              contactEmail = await enrichViaHunter(siteDomain, name);
               if (contactEmail) {
-                send('info', { message: `   ✉️ Email trouvé par scraping : ${contactEmail}` });
-              } else {
-                // Fallback: contact@domain (only if not a platform)
-                const domain = new URL(website).hostname.replace('www.', '');
-                if (!EMAIL_DOMAIN_BLACKLIST.some(b => domain.includes(b))) {
-                  contactEmail = `contact@${domain}`;
-                  send('info', { message: `   ✉️ Fallback email : ${contactEmail}` });
-                } else {
-                  send('warn', { message: `   ⚠️ Domaine plateforme détecté — email ignoré` });
-                  results.skipped++;
-                  continue;
-                }
+                emailSource = 'Hunter.io';
+                send('info', { message: `   ✉️ Email trouvé (${emailSource}) : ${contactEmail}` });
               }
-            } catch {
-              results.skipped++;
+            }
+
+            // 6c — ÉCHEC_ENRICHISSEMENT : aucun email trouvé → on crée le lead mais on n'envoie PAS
+            if (!contactEmail) {
+              send('warn', { message: `   ⚠️ ÉCHEC_ENRICHISSEMENT — aucun email déterministe trouvé` });
+              // Créer le lead sans email pour suivi manuel
+              try {
+                await createLead({
+                  name,
+                  email: null,
+                  company: name,
+                  source: 'GMB',
+                  status: 'Nouveau',
+                  website,
+                  websiteScore: lighthouseScore,
+                  emailSentCount: 0,
+                  lastContactedAt: null,
+                  notes: [
+                    'Source: cold-email (Google Maps)',
+                    '⚠️ ÉCHEC_ENRICHISSEMENT — email non trouvé',
+                    `Site: ${website}`,
+                    lighthouseScore !== null ? `Score Lighthouse: ${lighthouseScore}/100` : null,
+                    `Adresse: ${address}`,
+                    `Niche: ${queryNiche}`,
+                    `Méthode: scraping + Hunter.io → aucun résultat`,
+                    `Action requise: recherche manuelle de l'email`,
+                  ].filter(x => x !== null).join('\n'),
+                });
+                results.sent++;
+                send('done_lead', { message: `   📋 Lead créé SANS email — ${name} (enrichissement manuel requis) (${results.sent}/${maxLeads})`, current: results.sent, total: maxLeads });
+              } catch (e: any) {
+                results.errors.push(`createLead error for ${name}: ${e.message}`);
+              }
               continue;
             }
 
-            // 7 — Mailjet
-            send('send', { message: `   📧 Envoi à ${contactEmail}...` });
+            // 6d — Gatekeeper : validation MX + SMTP avant envoi
+            send('info', { message: `   🛡️ Vérification délivrabilité ${contactEmail}...` });
+            const deliverability = await verifyEmailDeliverability(contactEmail);
+            if (!deliverability.valid) {
+              send('warn', { message: `   ❌ Email rejeté : ${deliverability.reason}` });
+              // Créer le lead avec email invalide flaggé
+              try {
+                await createLead({
+                  name,
+                  email: contactEmail,
+                  company: name,
+                  source: 'GMB',
+                  status: 'Nouveau',
+                  website,
+                  websiteScore: lighthouseScore,
+                  emailSentCount: 0,
+                  lastContactedAt: null,
+                  notes: [
+                    'Source: cold-email (Google Maps)',
+                    `⚠️ EMAIL NON VÉRIFIÉ — ${deliverability.reason}`,
+                    `Email trouvé (${emailSource}): ${contactEmail}`,
+                    `Site: ${website}`,
+                    lighthouseScore !== null ? `Score Lighthouse: ${lighthouseScore}/100` : null,
+                    `Adresse: ${address}`,
+                    `Niche: ${queryNiche}`,
+                  ].filter(x => x !== null).join('\n'),
+                });
+                results.sent++;
+                send('done_lead', { message: `   📋 Lead créé — email non vérifié (${deliverability.reason}) (${results.sent}/${maxLeads})`, current: results.sent, total: maxLeads });
+              } catch (e: any) {
+                results.errors.push(`createLead error for ${name}: ${e.message}`);
+              }
+              continue;
+            }
+            send('info', { message: `   ✅ Délivrabilité confirmée : ${deliverability.reason}` });
+
+            // 7 — Mailjet (email vérifié uniquement)
+            send('send', { message: `   📧 Envoi à ${contactEmail} (${emailSource})...` });
             if (MAILJET_API_KEY && MAILJET_SECRET_KEY) {
               try {
                 const mjRes = await fetch('https://api.mailjet.com/v3.1/send', {
@@ -598,6 +821,8 @@ export async function POST(request: NextRequest) {
                   lighthouseScore !== null ? `Score Lighthouse: ${lighthouseScore}/100` : null,
                   `Adresse: ${address}`,
                   `Niche: ${queryNiche}`,
+                  `Email trouvé via: ${emailSource}`,
+                  `Délivrabilité: ${deliverability.reason}`,
                   `Personnalisé: ${personalized ? 'Claude IA' : 'Template par défaut'}`,
                   ``,
                   `--- EMAIL ENVOYÉ ---`,
@@ -730,17 +955,18 @@ export async function POST(request: NextRequest) {
               // Build DM message (short, conversational)
               const dmMessage = `Bonjour ${name} 👋\n\nNous avons découvert votre compte @${instagramHandle} — votre contenu est vraiment top ! Notre équipe aide les entreprises comme la vôtre à créer un site web pro qui travaille pour vous 24/7.\n\nIntéressé(e) par un audit gratuit de 15 min ? ${CAL_LINK}`;
 
-              // Try to find an email for email outreach too
+              // Try to find an email for email outreach too (no fallback — deterministic only)
               let contactEmail: string | null = null;
               if (website) {
                 contactEmail = await extractEmailFromWebsite(website);
                 if (!contactEmail) {
-                  try {
-                    const domain = new URL(website).hostname.replace('www.', '');
-                    if (!EMAIL_DOMAIN_BLACKLIST.some(b => domain.includes(b))) {
-                      contactEmail = `contact@${domain}`;
-                    }
-                  } catch {}
+                  const igDomain = (() => { try { return new URL(website).hostname.replace('www.', ''); } catch { return ''; } })();
+                  if (igDomain) contactEmail = await enrichViaHunter(igDomain, name);
+                }
+                // Validate if found
+                if (contactEmail) {
+                  const igDeliverability = await verifyEmailDeliverability(contactEmail);
+                  if (!igDeliverability.valid) contactEmail = null;
                 }
               }
 
