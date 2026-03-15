@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Target, Play, RefreshCw, Mail, Users, TrendingUp, MapPin,
   Loader2, ChevronDown, ChevronUp, X, Euro, Calendar,
   AlertTriangle, Clock, ExternalLink, Search, FileText, History,
+  BarChart3, Pen, CheckCircle2, Eye, Sparkles,
+  Hammer, UtensilsCrossed, Briefcase, Car, Building2, Scissors,
+  Wrench, Zap, Ruler, Stethoscope, Scale, Calculator, Hotel,
+  Plane, Heart,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { N8nLivePanel } from '@/components/automations/N8nLivePanel';
 import { LeadDetailModal } from '@/components/leads/LeadDetailModal';
 
@@ -28,13 +33,37 @@ interface Lead {
 
 const GOOGLE_MAPS_WORKFLOW_ID = 'nrRSJkM4xCBrzRau';
 
-const NICHES = [
-  'Artisans', 'Restaurants', 'PME locales', 'Auto-entrepreneurs',
-  'Coiffeurs', 'Plombiers', 'Electriciens', 'Menuisiers', 'Architectes',
-  'Médecins', 'Avocats', 'Comptables', 'Garages auto', 'Hôtels',
+const NICHE_OPTIONS: { label: string; icon: any }[] = [
+  { label: 'Artisans', icon: Hammer },
+  { label: 'Restaurants', icon: UtensilsCrossed },
+  { label: 'PME locales', icon: Briefcase },
+  { label: 'Auto-entrepreneurs', icon: Briefcase },
+  { label: 'Coiffeurs', icon: Scissors },
+  { label: 'Plombiers', icon: Wrench },
+  { label: 'Electriciens', icon: Zap },
+  { label: 'Menuisiers', icon: Ruler },
+  { label: 'Architectes', icon: Building2 },
+  { label: 'Médecins', icon: Stethoscope },
+  { label: 'Avocats', icon: Scale },
+  { label: 'Comptables', icon: Calculator },
+  { label: 'Garages auto', icon: Car },
+  { label: 'Hôtels', icon: Hotel },
+  { label: 'SPA / Bien-être', icon: Sparkles },
+  { label: 'Agences de voyages', icon: Plane },
+  { label: 'Centres de beauté', icon: Heart },
 ];
 
 const VILLES_DEFAULT = ['Genève', 'Lausanne', 'Annecy', 'Lyon', 'Chambéry'];
+
+const VILLES_SUGGESTIONS = ['Paris', 'Marseille', 'Bordeaux', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Lille', 'Zurich', 'Berne'];
+
+// ─── Campaign Stepper Steps ────────────────────────────────
+const CAMPAIGN_STEPS = [
+  { label: 'Recherche', desc: 'Scan des entreprises', icon: Search },
+  { label: 'Analyse', desc: 'Audit des sites web', icon: BarChart3 },
+  { label: 'Rédaction', desc: 'Personnalisation IA', icon: Pen },
+  { label: 'Terminé', desc: 'Campagne terminée', icon: CheckCircle2 },
+];
 
 function ScoreBadge({ score }: { score: number | null }) {
   if (score === null) return <span className="text-xs text-zinc-600">—</span>;
@@ -65,6 +94,129 @@ function FollowupBadge({ lastContactedAt, status }: { lastContactedAt: number | 
   );
 }
 
+function formatTimer(seconds: number) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+// ─── Campaign Stepper Component ────────────────────────────
+function CampaignStepper({
+  step, timer, progress, currentAction, onToggleDetails, detailsOpen, liveLog,
+}: {
+  step: number;
+  timer: number;
+  progress: { scanned: number; qualified: number; target: number };
+  currentAction: string;
+  onToggleDetails: () => void;
+  detailsOpen: boolean;
+  liveLog: { type: string; message: string }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-orange-500/20 bg-gradient-to-br from-zinc-900/80 via-zinc-900/60 to-orange-950/10 backdrop-blur-xl overflow-hidden">
+      <div className="px-5 py-4">
+        {/* Header with timer */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+            <span className="text-xs font-semibold text-zinc-200">Campagne en cours</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-zinc-400">
+              {progress.qualified}/{progress.target} leads
+            </span>
+            <span className="font-mono text-sm font-bold text-orange-400 bg-orange-500/10 px-3 py-1 rounded-lg">
+              {formatTimer(timer)}
+            </span>
+          </div>
+        </div>
+
+        {/* Stepper */}
+        <div className="flex items-center gap-0 mb-4">
+          {CAMPAIGN_STEPS.map((s, i) => {
+            const Icon = s.icon;
+            const isActive = step === i + 1;
+            const isDone = step > i + 1;
+            return (
+              <div key={i} className="flex items-center flex-1">
+                <div className="flex flex-col items-center flex-1">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+                    isDone
+                      ? 'bg-emerald-500/20 border-2 border-emerald-500/40'
+                      : isActive
+                        ? 'bg-orange-500/20 border-2 border-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.2)]'
+                        : 'bg-zinc-800/60 border-2 border-zinc-700/50'
+                  }`}>
+                    {isDone ? (
+                      <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400" />
+                    ) : (
+                      <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-orange-400' : 'text-zinc-600'} ${isActive ? 'animate-pulse' : ''}`} />
+                    )}
+                  </div>
+                  <span className={`text-xs mt-1.5 font-medium ${isDone ? 'text-emerald-400' : isActive ? 'text-orange-300' : 'text-zinc-600'}`}>
+                    {s.label}
+                  </span>
+                </div>
+                {i < CAMPAIGN_STEPS.length - 1 && (
+                  <div className="flex-1 h-0.5 mx-1 -mt-5 rounded-full overflow-hidden bg-zinc-800">
+                    <div
+                      className="h-full bg-gradient-to-r from-orange-500 to-orange-400 transition-all duration-700"
+                      style={{ width: isDone ? '100%' : isActive ? '50%' : '0%' }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Current action text */}
+        <div className="text-center">
+          <p className="text-xs text-zinc-400 truncate max-w-md mx-auto">
+            {currentAction || CAMPAIGN_STEPS[Math.max(0, step - 1)]?.desc || 'Initialisation...'}
+          </p>
+        </div>
+      </div>
+
+      {/* Details toggle */}
+      <div className="border-t border-zinc-800/50">
+        <button
+          onClick={onToggleDetails}
+          className="w-full flex items-center justify-center gap-1.5 px-4 py-2 text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
+        >
+          {detailsOpen ? 'Masquer' : 'Voir'} les détails
+          {detailsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
+        <AnimatePresence>
+          {detailsOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-0.5 border-t border-zinc-800/30">
+                {liveLog.map((entry, i) => (
+                  <div key={i} className={
+                    entry.type === 'qualify' || entry.type === 'done_lead' || entry.type === 'complete' ? 'text-emerald-400' :
+                    entry.type === 'error' || entry.type === 'fatal' ? 'text-rose-400' :
+                    entry.type === 'warn' ? 'text-amber-400' :
+                    entry.type === 'query' ? 'text-orange-300 mt-1.5' :
+                    entry.type === 'skip' ? 'text-zinc-600' :
+                    'text-zinc-500'
+                  }>
+                    {entry.message}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
 export default function ProspectionPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,14 +231,18 @@ export default function ProspectionPage() {
   const [maxLeads, setMaxLeads] = useState(10);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [relancingId, setRelancingId] = useState<string | null>(null);
-  const [setupStatus, setSetupStatus] = useState<string | null>(null);
-  const [settingUp, setSettingUp] = useState(false);
   const [activeTab, setActiveTab] = useState<'campagne' | 'historique'>('campagne');
   const [searchQuery, setSearchQuery] = useState('');
   const [emailPreview, setEmailPreview] = useState<{ name: string; notes: string } | null>(null);
-  // Template n'est plus utilisé côté API (remplacé par HTML + Claude IA)
-  // Gardé ici pour info dans la config
-  const [emailTemplate] = useState('');
+
+  // Campaign stepper state
+  const [campaignStep, setCampaignStep] = useState(0);
+  const [campaignTimer, setCampaignTimer] = useState(0);
+  const [campaignProgress, setCampaignProgress] = useState({ scanned: 0, qualified: 0, target: 10 });
+  const [currentAction, setCurrentAction] = useState('');
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -106,10 +262,34 @@ export default function ProspectionPage() {
     return () => clearInterval(interval);
   }, [fetchLeads]);
 
+  // Timer effect
+  useEffect(() => {
+    if (triggering) {
+      timerRef.current = setInterval(() => setCampaignTimer(t => t + 1), 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [triggering]);
+
+  function mapEventToStep(type: string): number {
+    if (['start', 'query', 'info'].includes(type)) return 1;
+    if (['scan', 'qualify', 'skip'].includes(type)) return 2;
+    if (['send', 'done_lead'].includes(type)) return 3;
+    if (type === 'complete') return 4;
+    return 0;
+  }
+
   async function launchCampaign() {
     setTriggering(true);
     setTriggerStatus(null);
     setLiveLog([]);
+    setCampaignStep(1);
+    setCampaignTimer(0);
+    setCampaignProgress({ scanned: 0, qualified: 0, target: maxLeads });
+    setCurrentAction('Connexion au pipeline...');
+
     try {
       const res = await fetch('/api/cron/prospection', {
         method: 'POST',
@@ -136,8 +316,37 @@ export default function ProspectionPage() {
           if (!line.startsWith('data: ')) continue;
           try {
             const event = JSON.parse(line.slice(6));
+
+            // Update stepper
+            const newStep = mapEventToStep(event.type);
+            if (newStep > 0) setCampaignStep(newStep);
+
+            // Update current action text (short version)
+            if (event.type === 'query') {
+              setCurrentAction(event.message?.replace('🔍 Recherche : ', 'Recherche de ') || '');
+            } else if (event.type === 'scan') {
+              setCurrentAction(event.message?.replace(/.*↳\s*/, 'Analyse de ').replace(/ — .*/, '') || '');
+            } else if (event.type === 'send') {
+              setCurrentAction(event.message?.replace('📧 ', '') || '');
+            } else if (event.type === 'done_lead') {
+              const match = event.message?.match(/\((\d+)\/(\d+)\)/);
+              if (match) {
+                setCampaignProgress(prev => ({ ...prev, qualified: parseInt(match[1]) }));
+              }
+              setCurrentAction(event.message?.replace('🎯 ', '') || '');
+            } else if (event.type !== 'skip') {
+              setCurrentAction(event.message?.replace(/^[^\s]+\s/, '') || '');
+            }
+
+            // Update scanned counter for scan events
+            if (event.type === 'scan' || event.type === 'skip' || event.type === 'qualify') {
+              setCampaignProgress(prev => ({ ...prev, scanned: prev.scanned + 1 }));
+            }
+
             if (event.type === 'complete') {
               const d = event.results;
+              setCampaignStep(4);
+              setCurrentAction(`${d.sent} lead${d.sent > 1 ? 's' : ''} envoyé${d.sent > 1 ? 's' : ''} sur ${d.scanned} scannés`);
               setTriggerStatus(`${event.message} — ${d.scanned} scannés · ${d.qualified} qualifiés · ${d.sent} lead${d.sent > 1 ? 's' : ''} créé${d.sent > 1 ? 's' : ''}`);
               setLiveLog(prev => [...prev, { type: 'complete', message: event.message }]);
               fetchLeads();
@@ -172,35 +381,18 @@ export default function ProspectionPage() {
     }
   }
 
-  async function setupAutomations() {
-    setSettingUp(true);
-    setSetupStatus(null);
-    try {
-      const res = await fetch('/api/n8n/setup-prospection', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        setSetupStatus('Automatisations configurées : scraper activé + relances J+3/J+7/J+14 créées');
-      } else {
-        const failed = (data.results ?? []).filter((r: any) => !r.ok).map((r: any) => r.action).join(', ');
-        setSetupStatus(`Partiel — échec: ${failed || data.error}`);
-      }
-    } catch (err: any) {
-      setSetupStatus(`Erreur: ${err.message}`);
-    } finally {
-      setSettingUp(false);
-    }
-  }
-
   function toggleNiche(n: string) {
     setSelectedNiches(prev =>
       prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n]
     );
   }
 
-  function addVille(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && villeInput.trim()) {
-      setVilles(prev => [...new Set([...prev, villeInput.trim()])]);
+  function addVille(v: string) {
+    const trimmed = v.trim();
+    if (trimmed) {
+      setVilles(prev => [...new Set([...prev, trimmed])]);
       setVilleInput('');
+      setShowSuggestions(false);
     }
   }
 
@@ -219,18 +411,31 @@ export default function ProspectionPage() {
     return Date.now() - l.last_contacted_at >= 3 * 24 * 60 * 60 * 1000;
   }).length;
 
+  const filteredSuggestions = VILLES_SUGGESTIONS.filter(
+    v => !villes.includes(v) && v.toLowerCase().includes(villeInput.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <Target className="w-5 h-5 text-orange-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Prospection</h1>
-          <span className="text-xs text-zinc-600">Cold Outreach Automatique</span>
+          <span className="text-xs text-zinc-600">Cold Outreach</span>
+          <span className="text-xs text-zinc-700 hidden sm:inline">·</span>
+          <span className="text-xs text-zinc-600 hidden sm:inline">{totalLeads} lead{totalLeads > 1 ? 's' : ''}</span>
 
-          {pendingFollowup > 0 && (
+          {triggering && (
+            <span className="flex items-center gap-1.5 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+              Live
+            </span>
+          )}
+
+          {pendingFollowup > 0 && !triggering && (
             <span className="flex items-center gap-1 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
               <AlertTriangle className="w-3 h-3" />
-              {pendingFollowup} relance{pendingFollowup > 1 ? 's' : ''} en attente
+              {pendingFollowup} relance{pendingFollowup > 1 ? 's' : ''}
             </span>
           )}
 
@@ -243,7 +448,11 @@ export default function ProspectionPage() {
             </button>
             <button
               onClick={() => setConfigOpen(o => !o)}
-              className="flex items-center gap-1.5 px-3 py-2 border border-zinc-700 hover:border-zinc-600 text-zinc-300 rounded-lg text-sm transition-colors"
+              className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-sm transition-all ${
+                configOpen
+                  ? 'border-orange-500/30 bg-orange-500/10 text-orange-300'
+                  : 'border-zinc-700 hover:border-zinc-600 text-zinc-300'
+              }`}
             >
               Config
               {configOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -262,172 +471,239 @@ export default function ProspectionPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Trigger status */}
-        {triggerStatus && (
-          <div className={`rounded-lg px-4 py-3 text-sm flex items-center justify-between ${
-            triggerStatus.startsWith('Erreur')
-              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-          }`}>
+        {triggerStatus && !triggering && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`rounded-lg px-4 py-3 text-sm flex items-center justify-between ${
+              triggerStatus.startsWith('Erreur')
+                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            }`}
+          >
             <span>{triggerStatus}</span>
             <button onClick={() => setTriggerStatus(null)}><X className="w-4 h-4" /></button>
-          </div>
+          </motion.div>
         )}
 
-        {/* Live log */}
-        {(triggering || liveLog.length > 0) && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-zinc-800 flex items-center gap-2">
-              {triggering && <Loader2 className="w-3.5 h-3.5 text-orange-400 animate-spin" />}
-              <span className="text-xs font-semibold text-zinc-300">Suivi temps réel</span>
-              {triggering && (
-                <span className="text-xs text-zinc-500">En cours...</span>
-              )}
-              {!triggering && liveLog.length > 0 && (
-                <button onClick={() => setLiveLog([])} className="ml-auto text-zinc-600 hover:text-zinc-400">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-            <div className="p-3 max-h-64 overflow-y-auto font-mono text-xs space-y-0.5">
-              {liveLog.map((entry, i) => (
-                <div key={i} className={
-                  entry.type === 'qualify' || entry.type === 'done_lead' || entry.type === 'complete' ? 'text-emerald-400' :
-                  entry.type === 'error' || entry.type === 'fatal' ? 'text-rose-400' :
-                  entry.type === 'warn' ? 'text-amber-400' :
-                  entry.type === 'query' ? 'text-orange-300 mt-2' :
-                  entry.type === 'skip' ? 'text-zinc-600' :
-                  'text-zinc-400'
-                }>
-                  {entry.message}
-                </div>
-              ))}
-              {triggering && liveLog.length === 0 && (
-                <span className="text-zinc-600">Connexion au pipeline...</span>
-              )}
-            </div>
-          </div>
+        {/* Campaign Stepper (replaces old live log) */}
+        {(triggering || campaignStep > 0) && (
+          <CampaignStepper
+            step={campaignStep}
+            timer={campaignTimer}
+            progress={campaignProgress}
+            currentAction={currentAction}
+            onToggleDetails={() => setDetailsOpen(o => !o)}
+            detailsOpen={detailsOpen}
+            liveLog={liveLog}
+          />
         )}
 
         {/* Config panel */}
-        {configOpen && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-5">
-            <h3 className="text-sm font-semibold text-zinc-100">Configuration campagne</h3>
-
-            <div>
-              <p className="text-xs text-zinc-500 mb-2">Niches cibles</p>
-              <div className="flex flex-wrap gap-2">
-                {NICHES.map(n => (
-                  <button
-                    key={n}
-                    onClick={() => toggleNiche(n)}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                      selectedNiches.includes(n)
-                        ? 'bg-orange-500/20 border-orange-500/40 text-orange-300'
-                        : 'border-zinc-700 text-zinc-500 hover:border-zinc-600 hover:text-zinc-400'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs text-zinc-500 mb-2">Villes cibles</p>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {villes.map(v => (
-                  <span key={v} className="flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-zinc-800 text-zinc-300">
-                    <MapPin className="w-3 h-3 text-zinc-500" />
-                    {v}
-                    <button onClick={() => setVilles(prev => prev.filter(x => x !== v))}>
-                      <X className="w-3 h-3 text-zinc-600 hover:text-zinc-400" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <input
-                value={villeInput}
-                onChange={e => setVilleInput(e.target.value)}
-                onKeyDown={addVille}
-                placeholder="Ajouter une ville (Entrée)"
-                className="text-xs bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 w-56"
-              />
-            </div>
-
-            <div className="flex gap-8 flex-wrap">
-              <div>
-                <p className="text-xs text-zinc-500 mb-2">
-                  Score Lighthouse minimum :{' '}
-                  <span className="text-orange-400 font-mono">{minScore}/100</span>
-                  <span className="text-zinc-600 ml-1">(sites en dessous de ce score sont contactés)</span>
-                </p>
-                <input
-                  type="range"
-                  min={40}
-                  max={90}
-                  value={minScore}
-                  onChange={e => setMinScore(Number(e.target.value))}
-                  className="w-64 accent-orange-500"
-                />
-              </div>
-
-              <div>
-                <p className="text-xs text-zinc-500 mb-2">
-                  Objectif leads à générer :{' '}
-                  <span className="text-orange-400 font-mono">{maxLeads} lead{maxLeads > 1 ? 's' : ''}</span>
-                  <span className="text-zinc-600 ml-1">(la campagne s'arrête dès cet objectif atteint)</span>
-                </p>
-                <input
-                  type="range"
-                  min={1}
-                  max={50}
-                  value={maxLeads}
-                  onChange={e => setMaxLeads(Number(e.target.value))}
-                  className="w-64 accent-orange-500"
-                />
-                <p className="text-xs text-zinc-600 mt-1">
-                  {maxLeads <= 3 ? 'Test rapide — valider la config' : maxLeads <= 15 ? 'Standard' : 'Volume élevé'}
-                </p>
-              </div>
-            </div>
-
-            {/* Email info */}
-            <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Mail className="w-4 h-4 text-orange-400" />
-                <span className="text-xs font-semibold text-zinc-200">Email HTML personnalisé par IA</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="rounded-lg bg-zinc-800/60 p-3">
-                  <p className="text-zinc-500 mb-1">Template</p>
-                  <p className="text-zinc-300">HTML moderne avec CSS inline, sections diagnostic, CTA et signature pro</p>
+        <AnimatePresence>
+          {configOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              <div className="rounded-2xl border border-zinc-800/60 bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-xl p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-zinc-100">Configuration campagne</h3>
+                  <span className="text-xs text-zinc-600">{selectedNiches.length} niche{selectedNiches.length > 1 ? 's' : ''} · {villes.length} ville{villes.length > 1 ? 's' : ''}</span>
                 </div>
-                <div className="rounded-lg bg-zinc-800/60 p-3">
-                  <p className="text-zinc-500 mb-1">Personnalisation</p>
-                  <p className="text-zinc-300">Claude IA rédige 2 paragraphes uniques par prospect (secteur, zone, score)</p>
-                </div>
-                <div className="rounded-lg bg-zinc-800/60 p-3">
-                  <p className="text-zinc-500 mb-1">Fallback</p>
-                  <p className="text-zinc-300">Template par défaut si Claude est indisponible — aucun email vide</p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left column: Niches + Villes */}
+                  <div className="space-y-5">
+                    {/* Niches */}
+                    <div>
+                      <p className="text-xs text-zinc-500 mb-3 font-medium uppercase tracking-wider">Niches cibles</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {NICHE_OPTIONS.map(({ label, icon: Icon }) => {
+                          const active = selectedNiches.includes(label);
+                          return (
+                            <button
+                              key={label}
+                              onClick={() => toggleNiche(label)}
+                              className={`flex items-center gap-2 text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 ${
+                                active
+                                  ? 'bg-orange-500/15 border-orange-500/30 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.08)]'
+                                  : 'border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-400 hover:scale-[1.02]'
+                              }`}
+                            >
+                              <Icon className={`w-3.5 h-3.5 ${active ? 'text-orange-400' : 'text-zinc-600'}`} />
+                              <span className="truncate">{label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Villes */}
+                    <div>
+                      <p className="text-xs text-zinc-500 mb-3 font-medium uppercase tracking-wider">Villes cibles</p>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <AnimatePresence>
+                          {villes.map(v => (
+                            <motion.span
+                              key={v}
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0.8, opacity: 0 }}
+                              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-zinc-800/80 border border-zinc-700/50 text-zinc-300"
+                            >
+                              <MapPin className="w-3 h-3 text-orange-400/60" />
+                              {v}
+                              <button onClick={() => setVilles(prev => prev.filter(x => x !== v))}>
+                                <X className="w-3 h-3 text-zinc-600 hover:text-zinc-300 transition-colors" />
+                              </button>
+                            </motion.span>
+                          ))}
+                        </AnimatePresence>
+                      </div>
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+                        <input
+                          value={villeInput}
+                          onChange={e => { setVilleInput(e.target.value); setShowSuggestions(true); }}
+                          onKeyDown={e => { if (e.key === 'Enter') addVille(villeInput); }}
+                          onFocus={() => setShowSuggestions(true)}
+                          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                          placeholder="Ajouter une ville..."
+                          className="text-xs bg-zinc-800/60 border border-zinc-700/50 rounded-xl pl-9 pr-3 py-2.5 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-orange-500/30 focus:bg-zinc-800 w-full transition-all"
+                        />
+                        {/* Suggestions dropdown */}
+                        {showSuggestions && filteredSuggestions.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden z-10 shadow-xl">
+                            {filteredSuggestions.slice(0, 5).map(v => (
+                              <button
+                                key={v}
+                                onMouseDown={() => addVille(v)}
+                                className="w-full text-left text-xs px-4 py-2 text-zinc-400 hover:bg-zinc-700/50 hover:text-zinc-200 transition-colors flex items-center gap-2"
+                              >
+                                <MapPin className="w-3 h-3 text-zinc-600" />
+                                {v}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right column: Sliders + Email */}
+                  <div className="space-y-5">
+                    {/* Score slider */}
+                    <div className="rounded-xl bg-zinc-800/30 border border-zinc-800/50 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs text-zinc-400 font-medium">Score Lighthouse minimum</p>
+                        <span className="text-sm font-bold text-orange-400 font-mono">{minScore}/100</span>
+                      </div>
+                      <div className="relative">
+                        <div className="h-2 rounded-full bg-zinc-700/50 overflow-hidden mb-1">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500"
+                            style={{ width: `${((minScore - 40) / 50) * 100}%` }}
+                          />
+                        </div>
+                        <input
+                          type="range"
+                          min={40}
+                          max={90}
+                          value={minScore}
+                          onChange={e => setMinScore(Number(e.target.value))}
+                          className="w-full absolute top-0 opacity-0 cursor-pointer h-4"
+                        />
+                      </div>
+                      <p className="text-xs text-zinc-600 mt-2">Sites en dessous de ce score sont contactés</p>
+                    </div>
+
+                    {/* Leads target slider */}
+                    <div className="rounded-xl bg-zinc-800/30 border border-zinc-800/50 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs text-zinc-400 font-medium">Objectif leads</p>
+                        <span className="text-sm font-bold text-orange-400 font-mono">{maxLeads}</span>
+                      </div>
+                      <div className="relative">
+                        <div className="h-2 rounded-full bg-zinc-700/50 overflow-hidden mb-1">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-400"
+                            style={{ width: `${(maxLeads / 50) * 100}%` }}
+                          />
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={50}
+                          value={maxLeads}
+                          onChange={e => setMaxLeads(Number(e.target.value))}
+                          className="w-full absolute top-0 opacity-0 cursor-pointer h-4"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3 mt-2">
+                        {[
+                          { label: 'Test', max: 3, icon: '🧪' },
+                          { label: 'Standard', max: 15, icon: '📊' },
+                          { label: 'Volume', max: 50, icon: '🚀' },
+                        ].map(tier => (
+                          <span
+                            key={tier.label}
+                            className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
+                              maxLeads <= tier.max && (tier.max === 3 || maxLeads > (tier.max === 15 ? 3 : 15))
+                                ? 'bg-orange-500/15 text-orange-300'
+                                : 'text-zinc-600'
+                            }`}
+                          >
+                            {tier.icon} {tier.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Email info card */}
+                    <div className="rounded-xl bg-gradient-to-br from-orange-500/5 to-transparent border border-orange-500/10 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Mail className="w-4 h-4 text-orange-400" />
+                        <span className="text-xs font-semibold text-zinc-200">Email HTML + IA</span>
+                      </div>
+                      <div className="space-y-2 text-xs text-zinc-500">
+                        <div className="flex items-start gap-2">
+                          <span className="text-orange-400 mt-0.5">1.</span>
+                          <span>Template HTML pro avec diagnostic, score et CTA</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-orange-400 mt-0.5">2.</span>
+                          <span>Claude IA personnalise 2 paragraphes par prospect</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-orange-400 mt-0.5">3.</span>
+                          <span>Fallback template si IA indisponible</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
-            { label: 'Contactés', value: totalLeads, icon: Users, color: 'text-orange-400' },
-            { label: 'En attente', value: nouveaux, icon: Clock, color: 'text-blue-400' },
-            { label: 'Taux réponse', value: `${tauxReponse}%`, icon: TrendingUp, color: 'text-emerald-400' },
-            { label: 'RDV pris', value: rdvPris, icon: Calendar, color: 'text-violet-400' },
-            { label: 'Pipeline', value: pipeline > 0 ? `${Math.round(pipeline / 1000)}k€` : '—', icon: Euro, color: 'text-amber-400' },
+            { label: 'Contactés', value: totalLeads, icon: Users, color: 'text-orange-400', bg: 'from-orange-500/5' },
+            { label: 'En attente', value: nouveaux, icon: Clock, color: 'text-blue-400', bg: 'from-blue-500/5' },
+            { label: 'Taux réponse', value: `${tauxReponse}%`, icon: TrendingUp, color: 'text-emerald-400', bg: 'from-emerald-500/5' },
+            { label: 'RDV pris', value: rdvPris, icon: Calendar, color: 'text-violet-400', bg: 'from-violet-500/5' },
+            { label: 'Pipeline', value: pipeline > 0 ? `${Math.round(pipeline / 1000)}k€` : '—', icon: Euro, color: 'text-amber-400', bg: 'from-amber-500/5' },
           ].map((stat, i) => (
-            <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+            <div key={i} className={`rounded-xl border border-zinc-800/60 bg-gradient-to-br ${stat.bg} to-zinc-900/50 p-4 hover:border-zinc-700/60 transition-colors`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-zinc-500">{stat.label}</span>
-                <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                <stat.icon className={`w-4 h-4 ${stat.color} opacity-60`} />
               </div>
               <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
@@ -466,7 +742,7 @@ export default function ProspectionPage() {
           <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-orange-400" />
             <span className="text-sm font-semibold text-zinc-100">Leads cold email</span>
-            <span className="text-xs text-zinc-500 ml-1">Google Maps Scraper</span>
+            <span className="text-xs text-zinc-500 ml-1">Google Maps</span>
             <span className="ml-auto text-xs text-zinc-600">{totalLeads} leads</span>
           </div>
 
@@ -475,10 +751,18 @@ export default function ProspectionPage() {
               <Loader2 className="w-4 h-4 animate-spin" /> Chargement...
             </div>
           ) : leads.length === 0 ? (
-            <div className="p-8 text-center">
-              <Target className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
-              <p className="text-sm text-zinc-500 mb-1">Aucun lead cold email pour l'instant</p>
-              <p className="text-xs text-zinc-600">Configurez vos niches + villes et lancez une campagne.</p>
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 border border-zinc-700/30 flex items-center justify-center mx-auto mb-4">
+                <Target className="w-8 h-8 text-zinc-700" />
+              </div>
+              <p className="text-sm text-zinc-400 mb-1">Aucun lead pour l'instant</p>
+              <p className="text-xs text-zinc-600 mb-4">Configurez vos niches et villes, puis lancez une campagne.</p>
+              <button
+                onClick={() => setConfigOpen(true)}
+                className="text-xs px-4 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-300 hover:bg-orange-500/20 transition-colors"
+              >
+                Ouvrir la configuration
+              </button>
             </div>
           ) : (
             <>
@@ -502,7 +786,7 @@ export default function ProspectionPage() {
                   return (
                     <div
                       key={lead.id}
-                      className="grid grid-cols-[1.5fr_1fr_1fr_1.2fr_0.8fr_auto_auto_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors"
+                      className="grid grid-cols-[1.5fr_1fr_1fr_1.2fr_0.8fr_auto_auto_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/30 transition-colors"
                     >
                       <button className="text-left" onClick={() => setSelectedLead(lead)}>
                         <p className="text-sm font-medium text-zinc-200 truncate">
@@ -513,7 +797,6 @@ export default function ProspectionPage() {
                         </p>
                       </button>
 
-                      {/* URL capsule */}
                       {lead.website ? (
                         <a
                           href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
@@ -550,7 +833,6 @@ export default function ProspectionPage() {
                         <span>{lead.email_sent_count ?? 0}</span>
                       </div>
 
-                      {/* Email preview button */}
                       <button
                         onClick={() => hasEmail ? setEmailPreview({ name: lead.company ?? lead.name, notes: lead.notes! }) : null}
                         disabled={!hasEmail}
@@ -617,7 +899,7 @@ export default function ProspectionPage() {
                   {filtered.map(lead => {
                     const hasEmail = lead.notes?.includes('--- EMAIL ENVOYÉ ---');
                     return (
-                      <div key={lead.id} className="px-4 py-3 hover:bg-zinc-800/20 transition-colors">
+                      <div key={lead.id} className="px-4 py-3 hover:bg-zinc-800/30 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
@@ -701,7 +983,12 @@ export default function ProspectionPage() {
       {/* Email preview modal */}
       {emailPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEmailPreview(null)}>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-800">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-orange-400" />
@@ -721,7 +1008,6 @@ export default function ProspectionPage() {
                 const to = lines.find(l => l.startsWith('À:'))?.replace('À: ', '') ?? '';
                 const date = lines.find(l => l.startsWith('Date:'))?.replace('Date: ', '') ?? '';
 
-                // Extract HTML if present
                 const htmlParts = emailPreview.notes.split('--- EMAIL HTML ---');
                 const htmlContent = htmlParts.length >= 2 ? htmlParts[1].trim() : null;
 
@@ -754,7 +1040,7 @@ export default function ProspectionPage() {
                 );
               })()}
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
