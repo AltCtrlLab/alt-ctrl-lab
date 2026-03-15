@@ -8,7 +8,7 @@ import {
   BarChart3, Pen, CheckCircle2, Eye, Sparkles,
   Hammer, UtensilsCrossed, Briefcase, Car, Building2, Scissors,
   Wrench, Zap, Ruler, Stethoscope, Scale, Calculator, Hotel,
-  Plane, Heart,
+  Plane, Heart, Instagram, Linkedin, MessageCircle, Globe,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { N8nLivePanel } from '@/components/automations/N8nLivePanel';
@@ -32,6 +32,14 @@ interface Lead {
 }
 
 const GOOGLE_MAPS_WORKFLOW_ID = 'nrRSJkM4xCBrzRau';
+
+type ProspectionChannel = 'google-maps' | 'instagram' | 'linkedin';
+
+const CHANNEL_OPTIONS: { id: ProspectionChannel; label: string; pitch: string; badge: string; icon: any; color: string; bg: string; border: string }[] = [
+  { id: 'google-maps', label: 'Google Maps', pitch: 'Refonte site web', badge: 'Email', icon: MapPin, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
+  { id: 'instagram', label: 'Instagram', pitch: 'Création site web', badge: 'DM', icon: Instagram, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/30' },
+  { id: 'linkedin', label: 'LinkedIn', pitch: 'Site web pro', badge: 'Email', icon: Linkedin, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+];
 
 const NICHE_OPTIONS: { label: string; icon: any }[] = [
   { label: 'Artisans', icon: Hammer },
@@ -57,13 +65,27 @@ const VILLES_DEFAULT = ['Genève', 'Lausanne', 'Annecy', 'Lyon', 'Chambéry'];
 
 const VILLES_SUGGESTIONS = ['Paris', 'Marseille', 'Bordeaux', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Lille', 'Zurich', 'Berne'];
 
-// ─── Campaign Stepper Steps ────────────────────────────────
-const CAMPAIGN_STEPS = [
-  { label: 'Recherche', desc: 'Scan des entreprises', icon: Search },
-  { label: 'Analyse', desc: 'Audit des sites web', icon: BarChart3 },
-  { label: 'Rédaction', desc: 'Personnalisation IA', icon: Pen },
-  { label: 'Terminé', desc: 'Campagne terminée', icon: CheckCircle2 },
-];
+// ─── Campaign Stepper Steps (par canal) ────────────────────
+const CAMPAIGN_STEPS_MAP: Record<ProspectionChannel, { label: string; desc: string; icon: any }[]> = {
+  'google-maps': [
+    { label: 'Recherche', desc: 'Scan des entreprises', icon: Search },
+    { label: 'Analyse', desc: 'Audit des sites web', icon: BarChart3 },
+    { label: 'Rédaction', desc: 'Personnalisation IA', icon: Pen },
+    { label: 'Terminé', desc: 'Campagne terminée', icon: CheckCircle2 },
+  ],
+  'instagram': [
+    { label: 'Recherche', desc: 'Scan Google Maps', icon: Search },
+    { label: 'Instagram', desc: 'Recherche de profils', icon: Instagram },
+    { label: 'Message DM', desc: 'Rédaction IA', icon: MessageCircle },
+    { label: 'Terminé', desc: 'Campagne terminée', icon: CheckCircle2 },
+  ],
+  'linkedin': [
+    { label: 'Recherche', desc: 'Recherche LinkedIn', icon: Search },
+    { label: 'Profils', desc: 'Analyse des profils', icon: Linkedin },
+    { label: 'Email IA', desc: 'Personnalisation IA', icon: Pen },
+    { label: 'Terminé', desc: 'Campagne terminée', icon: CheckCircle2 },
+  ],
+};
 
 function ScoreBadge({ score }: { score: number | null }) {
   if (score === null) return <span className="text-xs text-zinc-600">—</span>;
@@ -102,7 +124,7 @@ function formatTimer(seconds: number) {
 
 // ─── Campaign Stepper Component ────────────────────────────
 function CampaignStepper({
-  step, timer, progress, currentAction, onToggleDetails, detailsOpen, liveLog,
+  step, timer, progress, currentAction, onToggleDetails, detailsOpen, liveLog, channel,
 }: {
   step: number;
   timer: number;
@@ -111,7 +133,9 @@ function CampaignStepper({
   onToggleDetails: () => void;
   detailsOpen: boolean;
   liveLog: { type: string; message: string }[];
+  channel: ProspectionChannel;
 }) {
+  const CAMPAIGN_STEPS = CAMPAIGN_STEPS_MAP[channel];
   return (
     <div className="rounded-2xl border border-orange-500/20 bg-gradient-to-br from-zinc-900/80 via-zinc-900/60 to-orange-950/10 backdrop-blur-xl overflow-hidden">
       <div className="px-5 py-4">
@@ -234,6 +258,8 @@ export default function ProspectionPage() {
   const [activeTab, setActiveTab] = useState<'campagne' | 'historique'>('campagne');
   const [searchQuery, setSearchQuery] = useState('');
   const [emailPreview, setEmailPreview] = useState<{ name: string; notes: string } | null>(null);
+  const [channel, setChannel] = useState<ProspectionChannel>('google-maps');
+  const [sourceFilter, setSourceFilter] = useState<string | null>(null);
 
   // Campaign stepper state
   const [campaignStep, setCampaignStep] = useState(0);
@@ -246,9 +272,21 @@ export default function ProspectionPage() {
 
   const fetchLeads = useCallback(async () => {
     try {
-      const res = await fetch('/api/leads?source=GMB');
-      const data = await res.json();
-      if (data.success) setLeads(data.data.leads);
+      // Fetch all prospection sources (GMB, Instagram, LinkedIn)
+      const [gmbRes, igRes, liRes] = await Promise.all([
+        fetch('/api/leads?source=GMB'),
+        fetch('/api/leads?source=Instagram'),
+        fetch('/api/leads?source=LinkedIn'),
+      ]);
+      const [gmbData, igData, liData] = await Promise.all([gmbRes.json(), igRes.json(), liRes.json()]);
+      const all = [
+        ...(gmbData.success ? gmbData.data.leads : []),
+        ...(igData.success ? igData.data.leads : []),
+        ...(liData.success ? liData.data.leads : []),
+      ];
+      // Sort by created_at desc
+      all.sort((a: Lead, b: Lead) => b.created_at - a.created_at);
+      setLeads(all);
     } catch (err) {
       console.error('Prospection fetch error:', err);
     } finally {
@@ -297,7 +335,7 @@ export default function ProspectionPage() {
           'Content-Type': 'application/json',
           'x-dashboard-key': 'altctrl-cron-secret',
         },
-        body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads }),
+        body: JSON.stringify({ niches: selectedNiches, villes, minScore, maxLeads, channel }),
       });
 
       if (!res.body) throw new Error('Pas de stream');
@@ -396,17 +434,25 @@ export default function ProspectionPage() {
     }
   }
 
+  // Source filter
+  const displayLeads = sourceFilter ? leads.filter(l => l.source === sourceFilter) : leads;
+
   // Stats
-  const totalLeads = leads.length;
-  const nouveaux = leads.filter(l => l.status === 'Nouveau').length;
-  const qualifies = leads.filter(l =>
+  const totalLeads = displayLeads.length;
+  const nouveaux = displayLeads.filter(l => l.status === 'Nouveau').length;
+  const qualifies = displayLeads.filter(l =>
     ['Qualifié', 'Discovery fait', 'Proposition envoyée', 'Signé'].includes(l.status)
   ).length;
-  const rdvPris = leads.filter(l => ['Discovery fait', 'Signé'].includes(l.status)).length;
-  const pipeline = leads.reduce((s, l) => s + (l.proposition_amount ?? 0), 0);
+  const rdvPris = displayLeads.filter(l => ['Discovery fait', 'Signé'].includes(l.status)).length;
+  const pipeline = displayLeads.reduce((s, l) => s + (l.proposition_amount ?? 0), 0);
   const tauxReponse = totalLeads > 0 ? +((qualifies / totalLeads) * 100).toFixed(1) : 0;
 
-  const pendingFollowup = leads.filter(l => {
+  // Source counts for filter badges
+  const sourceCountGMB = leads.filter(l => l.source === 'GMB').length;
+  const sourceCountIG = leads.filter(l => l.source === 'Instagram').length;
+  const sourceCountLI = leads.filter(l => l.source === 'LinkedIn').length;
+
+  const pendingFollowup = displayLeads.filter(l => {
     if (l.status !== 'Nouveau' || !l.last_contacted_at) return false;
     return Date.now() - l.last_contacted_at >= 3 * 24 * 60 * 60 * 1000;
   }).length;
@@ -421,7 +467,7 @@ export default function ProspectionPage() {
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <Target className="w-5 h-5 text-orange-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Prospection</h1>
-          <span className="text-xs text-zinc-600">Cold Outreach</span>
+          <span className="text-xs text-zinc-600">Multi-canal</span>
           <span className="text-xs text-zinc-700 hidden sm:inline">·</span>
           <span className="text-xs text-zinc-600 hidden sm:inline">{totalLeads} lead{totalLeads > 1 ? 's' : ''}</span>
 
@@ -486,6 +532,41 @@ export default function ProspectionPage() {
           </motion.div>
         )}
 
+        {/* Channel selector — always visible */}
+        <div className="grid grid-cols-3 gap-3">
+          {CHANNEL_OPTIONS.map(ch => {
+            const Icon = ch.icon;
+            const active = channel === ch.id;
+            return (
+              <button
+                key={ch.id}
+                onClick={() => setChannel(ch.id)}
+                className={`relative flex items-center gap-3 p-4 rounded-2xl border transition-all duration-200 ${
+                  active
+                    ? `${ch.bg} ${ch.border} shadow-[0_0_24px_rgba(0,0,0,0.3)]`
+                    : 'border-zinc-800/60 bg-zinc-900/30 hover:border-zinc-700'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  active ? ch.bg + ' border ' + ch.border : 'bg-zinc-800/50 border border-zinc-700/30'
+                }`}>
+                  <Icon className={`w-5 h-5 ${active ? ch.color : 'text-zinc-600'}`} />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-semibold ${active ? 'text-zinc-100' : 'text-zinc-400'}`}>{ch.label}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${active ? ch.bg + ' ' + ch.color : 'bg-zinc-800 text-zinc-600'}`}>{ch.badge}</span>
+                  </div>
+                  <span className={`text-xs ${active ? 'text-zinc-400' : 'text-zinc-600'}`}>{ch.pitch}</span>
+                </div>
+                {active && (
+                  <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${ch.color.replace('text-', 'bg-')} animate-pulse`} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Campaign Stepper (replaces old live log) */}
         {(triggering || campaignStep > 0) && (
           <CampaignStepper
@@ -496,6 +577,7 @@ export default function ProspectionPage() {
             onToggleDetails={() => setDetailsOpen(o => !o)}
             detailsOpen={detailsOpen}
             liveLog={liveLog}
+            channel={channel}
           />
         )}
 
@@ -596,30 +678,50 @@ export default function ProspectionPage() {
 
                   {/* Right column: Sliders + Email */}
                   <div className="space-y-5">
-                    {/* Score slider */}
-                    <div className="rounded-xl bg-zinc-800/30 border border-zinc-800/50 p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-xs text-zinc-400 font-medium">Score Lighthouse minimum</p>
-                        <span className="text-sm font-bold text-orange-400 font-mono">{minScore}/100</span>
-                      </div>
-                      <div className="relative">
-                        <div className="h-2 rounded-full bg-zinc-700/50 overflow-hidden mb-1">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500"
-                            style={{ width: `${((minScore - 40) / 50) * 100}%` }}
+                    {/* Score slider (Google Maps only) / Channel info */}
+                    {channel === 'google-maps' ? (
+                      <div className="rounded-xl bg-zinc-800/30 border border-zinc-800/50 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs text-zinc-400 font-medium">Score Lighthouse minimum</p>
+                          <span className="text-sm font-bold text-orange-400 font-mono">{minScore}/100</span>
+                        </div>
+                        <div className="relative">
+                          <div className="h-2 rounded-full bg-zinc-700/50 overflow-hidden mb-1">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500"
+                              style={{ width: `${((minScore - 40) / 50) * 100}%` }}
+                            />
+                          </div>
+                          <input
+                            type="range"
+                            min={40}
+                            max={90}
+                            value={minScore}
+                            onChange={e => setMinScore(Number(e.target.value))}
+                            className="w-full absolute top-0 opacity-0 cursor-pointer h-4"
                           />
                         </div>
-                        <input
-                          type="range"
-                          min={40}
-                          max={90}
-                          value={minScore}
-                          onChange={e => setMinScore(Number(e.target.value))}
-                          className="w-full absolute top-0 opacity-0 cursor-pointer h-4"
-                        />
+                        <p className="text-xs text-zinc-600 mt-2">Sites en dessous de ce score sont contactés</p>
                       </div>
-                      <p className="text-xs text-zinc-600 mt-2">Sites en dessous de ce score sont contactés</p>
-                    </div>
+                    ) : (
+                      <div className={`rounded-xl border p-4 ${
+                        channel === 'instagram' ? 'bg-pink-500/5 border-pink-500/15' : 'bg-blue-500/5 border-blue-500/15'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          {channel === 'instagram'
+                            ? <Instagram className="w-4 h-4 text-pink-400" />
+                            : <Linkedin className="w-4 h-4 text-blue-400" />}
+                          <p className={`text-xs font-semibold ${channel === 'instagram' ? 'text-pink-300' : 'text-blue-300'}`}>
+                            {channel === 'instagram' ? 'Ciblage Instagram' : 'Ciblage LinkedIn'}
+                          </p>
+                        </div>
+                        <p className="text-xs text-zinc-400 leading-relaxed">
+                          {channel === 'instagram'
+                            ? 'Cible les entreprises SANS site web ou avec un score Lighthouse < 30. Recherche automatique du profil Instagram via Google.'
+                            : 'Recherche de profils LinkedIn par niche et ville via Google. Extraction du nom et de la headline professionnelle.'}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Leads target slider */}
                     <div className="rounded-xl bg-zinc-800/30 border border-zinc-800/50 p-4">
@@ -663,25 +765,39 @@ export default function ProspectionPage() {
                       </div>
                     </div>
 
-                    {/* Email info card */}
-                    <div className="rounded-xl bg-gradient-to-br from-orange-500/5 to-transparent border border-orange-500/10 p-4">
+                    {/* Channel info card */}
+                    <div className={`rounded-xl bg-gradient-to-br ${
+                      channel === 'instagram' ? 'from-pink-500/5 border-pink-500/10' :
+                      channel === 'linkedin' ? 'from-blue-500/5 border-blue-500/10' :
+                      'from-orange-500/5 border-orange-500/10'
+                    } to-transparent border p-4`}>
                       <div className="flex items-center gap-2 mb-3">
-                        <Mail className="w-4 h-4 text-orange-400" />
-                        <span className="text-xs font-semibold text-zinc-200">Email HTML + IA</span>
+                        {channel === 'instagram' ? <MessageCircle className="w-4 h-4 text-pink-400" /> :
+                         channel === 'linkedin' ? <Mail className="w-4 h-4 text-blue-400" /> :
+                         <Mail className="w-4 h-4 text-orange-400" />}
+                        <span className="text-xs font-semibold text-zinc-200">
+                          {channel === 'instagram' ? 'DM Instagram + IA' :
+                           channel === 'linkedin' ? 'Email LinkedIn + IA' :
+                           'Email HTML + IA'}
+                        </span>
                       </div>
                       <div className="space-y-2 text-xs text-zinc-500">
-                        <div className="flex items-start gap-2">
-                          <span className="text-orange-400 mt-0.5">1.</span>
-                          <span>Template HTML pro avec diagnostic, score et CTA</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <span className="text-orange-400 mt-0.5">2.</span>
-                          <span>Claude IA personnalise 2 paragraphes par prospect</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <span className="text-orange-400 mt-0.5">3.</span>
-                          <span>Fallback template si IA indisponible</span>
-                        </div>
+                        {channel === 'google-maps' && <>
+                          <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">1.</span><span>Smart extraction email depuis le site web</span></div>
+                          <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">2.</span><span>Template HTML pro avec diagnostic et CTA</span></div>
+                          <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">3.</span><span>Claude IA personnalise chaque email</span></div>
+                        </>}
+                        {channel === 'instagram' && <>
+                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">1.</span><span>Recherche entreprises SANS site web</span></div>
+                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">2.</span><span>Recherche profil Instagram automatique</span></div>
+                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">3.</span><span>Message DM personnalisé par Claude IA</span></div>
+                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">4.</span><span>Envoi manuel des DMs (pas d'API)</span></div>
+                        </>}
+                        {channel === 'linkedin' && <>
+                          <div className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">1.</span><span>Recherche profils LinkedIn par niche/ville</span></div>
+                          <div className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">2.</span><span>Email personnalisé par Claude IA</span></div>
+                          <div className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">3.</span><span>Template orienté crédibilité professionnelle</span></div>
+                        </>}
                       </div>
                     </div>
                   </div>
@@ -710,8 +826,8 @@ export default function ProspectionPage() {
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 border-b border-zinc-800">
+        {/* Tabs + Source filters */}
+        <div className="flex items-center gap-1 border-b border-zinc-800">
           <button
             onClick={() => setActiveTab('campagne')}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -734,15 +850,53 @@ export default function ProspectionPage() {
             <History className="w-3.5 h-3.5" />
             Historique complet
           </button>
+
+          {/* Source filter badges */}
+          <div className="ml-auto flex items-center gap-1.5">
+            <button
+              onClick={() => setSourceFilter(null)}
+              className={`text-xs px-2.5 py-1 rounded-full transition-colors ${!sourceFilter ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              Tous ({leads.length})
+            </button>
+            {sourceCountGMB > 0 && (
+              <button
+                onClick={() => setSourceFilter(sourceFilter === 'GMB' ? null : 'GMB')}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'GMB' ? 'bg-orange-500/20 text-orange-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <MapPin className="w-3 h-3" /> GMB ({sourceCountGMB})
+              </button>
+            )}
+            {sourceCountIG > 0 && (
+              <button
+                onClick={() => setSourceFilter(sourceFilter === 'Instagram' ? null : 'Instagram')}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'Instagram' ? 'bg-pink-500/20 text-pink-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <Instagram className="w-3 h-3" /> IG ({sourceCountIG})
+              </button>
+            )}
+            {sourceCountLI > 0 && (
+              <button
+                onClick={() => setSourceFilter(sourceFilter === 'LinkedIn' ? null : 'LinkedIn')}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'LinkedIn' ? 'bg-blue-500/20 text-blue-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <Linkedin className="w-3 h-3" /> LI ({sourceCountLI})
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Leads table */}
         {activeTab === 'campagne' && (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
           <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-orange-400" />
-            <span className="text-sm font-semibold text-zinc-100">Leads cold email</span>
-            <span className="text-xs text-zinc-500 ml-1">Google Maps</span>
+            <Target className="w-4 h-4 text-orange-400" />
+            <span className="text-sm font-semibold text-zinc-100">Leads prospection</span>
+            {sourceFilter && <span className={`text-xs px-2 py-0.5 rounded-full ${
+              sourceFilter === 'GMB' ? 'bg-orange-500/10 text-orange-400' :
+              sourceFilter === 'Instagram' ? 'bg-pink-500/10 text-pink-400' :
+              'bg-blue-500/10 text-blue-400'
+            }`}>{sourceFilter}</span>}
             <span className="ml-auto text-xs text-zinc-600">{totalLeads} leads</span>
           </div>
 
@@ -750,13 +904,28 @@ export default function ProspectionPage() {
             <div className="p-8 text-center text-zinc-500 text-sm flex items-center justify-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" /> Chargement...
             </div>
-          ) : leads.length === 0 ? (
+          ) : displayLeads.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 border border-zinc-700/30 flex items-center justify-center mx-auto mb-4">
-                <Target className="w-8 h-8 text-zinc-700" />
+              <div className={`w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-4 ${
+                sourceFilter === 'Instagram' ? 'bg-pink-500/5 border-pink-500/15' :
+                sourceFilter === 'LinkedIn' ? 'bg-blue-500/5 border-blue-500/15' :
+                'bg-zinc-800/50 border-zinc-700/30'
+              }`}>
+                {sourceFilter === 'Instagram' ? <Instagram className="w-8 h-8 text-pink-500/40" /> :
+                 sourceFilter === 'LinkedIn' ? <Linkedin className="w-8 h-8 text-blue-500/40" /> :
+                 <Target className="w-8 h-8 text-zinc-700" />}
               </div>
-              <p className="text-sm text-zinc-400 mb-1">Aucun lead pour l'instant</p>
-              <p className="text-xs text-zinc-600 mb-4">Configurez vos niches et villes, puis lancez une campagne.</p>
+              <p className="text-sm text-zinc-400 mb-1">
+                {sourceFilter === 'GMB' ? 'Aucun lead Google Maps' :
+                 sourceFilter === 'Instagram' ? 'Aucun lead Instagram' :
+                 sourceFilter === 'LinkedIn' ? 'Aucun lead LinkedIn' :
+                 'Aucun lead pour l\'instant'}
+              </p>
+              <p className="text-xs text-zinc-600 mb-4">
+                {sourceFilter
+                  ? `Lancez une campagne ${sourceFilter === 'GMB' ? 'Google Maps' : sourceFilter} pour générer vos premiers leads.`
+                  : 'Configurez vos niches et villes, puis lancez une campagne.'}
+              </p>
               <button
                 onClick={() => setConfigOpen(true)}
                 className="text-xs px-4 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-300 hover:bg-orange-500/20 transition-colors"
@@ -766,8 +935,9 @@ export default function ProspectionPage() {
             </div>
           ) : (
             <>
-              <div className="hidden sm:grid grid-cols-[1.5fr_1fr_1fr_1.2fr_0.8fr_auto_auto_auto] gap-3 px-4 py-2 border-b border-zinc-800/50 text-xs text-zinc-600 font-medium">
+              <div className="hidden sm:grid grid-cols-[1.5fr_0.6fr_1fr_0.8fr_1.2fr_0.8fr_auto_auto_auto] gap-3 px-4 py-2 border-b border-zinc-800/50 text-xs text-zinc-600 font-medium">
                 <span>Entreprise</span>
+                <span>Source</span>
                 <span>Site web</span>
                 <span>Score</span>
                 <span>Email</span>
@@ -778,15 +948,16 @@ export default function ProspectionPage() {
               </div>
 
               <div className="divide-y divide-zinc-800/30">
-                {leads.map(lead => {
+                {displayLeads.map(lead => {
                   const daysSince = lead.last_contacted_at
                     ? Math.floor((Date.now() - lead.last_contacted_at) / 86400000)
                     : null;
                   const hasEmail = lead.notes?.includes('--- EMAIL ENVOYÉ ---');
+                  const hasDM = lead.notes?.includes('--- MESSAGE DM ---');
                   return (
                     <div
                       key={lead.id}
-                      className="grid grid-cols-[1.5fr_1fr_1fr_1.2fr_0.8fr_auto_auto_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/30 transition-colors"
+                      className="grid grid-cols-[1.5fr_0.6fr_1fr_0.8fr_1.2fr_0.8fr_auto_auto_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/30 transition-colors"
                     >
                       <button className="text-left" onClick={() => setSelectedLead(lead)}>
                         <p className="text-sm font-medium text-zinc-200 truncate">
@@ -796,6 +967,15 @@ export default function ProspectionPage() {
                           {daysSince !== null ? `J+${daysSince}` : new Date(lead.created_at).toLocaleDateString('fr-FR')}
                         </p>
                       </button>
+
+                      {/* Source badge */}
+                      <span className={`text-xs px-2 py-0.5 rounded-full text-center ${
+                        lead.source === 'Instagram' ? 'bg-pink-500/10 text-pink-400' :
+                        lead.source === 'LinkedIn' ? 'bg-blue-500/10 text-blue-400' :
+                        'bg-orange-500/10 text-orange-400'
+                      }`}>
+                        {lead.source === 'GMB' ? 'Maps' : lead.source}
+                      </span>
 
                       {lead.website ? (
                         <a
@@ -834,12 +1014,12 @@ export default function ProspectionPage() {
                       </div>
 
                       <button
-                        onClick={() => hasEmail ? setEmailPreview({ name: lead.company ?? lead.name, notes: lead.notes! }) : null}
-                        disabled={!hasEmail}
-                        title={hasEmail ? 'Voir l\'email envoyé' : 'Aucun email enregistré'}
+                        onClick={() => (hasEmail || hasDM) ? setEmailPreview({ name: lead.company ?? lead.name, notes: lead.notes! }) : null}
+                        disabled={!hasEmail && !hasDM}
+                        title={hasEmail ? 'Voir l\'email envoyé' : hasDM ? 'Voir le message DM' : 'Aucun message'}
                         className="p-1.5 text-zinc-600 hover:text-blue-400 disabled:opacity-20 transition-colors"
                       >
-                        <FileText className="w-3.5 h-3.5" />
+                        {hasDM && !hasEmail ? <MessageCircle className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
                       </button>
 
                       <button
@@ -881,7 +1061,7 @@ export default function ProspectionPage() {
             </div>
 
             {(() => {
-              const filtered = leads.filter(l => {
+              const filtered = displayLeads.filter(l => {
                 if (!searchQuery) return true;
                 const q = searchQuery.toLowerCase();
                 return (l.name?.toLowerCase().includes(q)) ||
@@ -915,6 +1095,13 @@ export default function ProspectionPage() {
                                 {lead.status}
                               </span>
                               <ScoreBadge score={lead.website_score} />
+                              <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                                lead.source === 'Instagram' ? 'bg-pink-500/10 text-pink-400' :
+                                lead.source === 'LinkedIn' ? 'bg-blue-500/10 text-blue-400' :
+                                'bg-orange-500/10 text-orange-400'
+                              }`}>
+                                {lead.source === 'GMB' ? 'Maps' : lead.source}
+                              </span>
                             </div>
                             <div className="flex items-center gap-3 mt-1">
                               {lead.website && (
@@ -967,8 +1154,8 @@ export default function ProspectionPage() {
               );
             })()}
             <div className="px-4 py-2 border-t border-zinc-800 text-xs text-zinc-600">
-              {leads.length} entreprise{leads.length > 1 ? 's' : ''} dans la base
-              {searchQuery && ` · ${leads.filter(l => {
+              {displayLeads.length} entreprise{displayLeads.length > 1 ? 's' : ''} dans la base
+              {searchQuery && ` · ${displayLeads.filter(l => {
                 const q = searchQuery.toLowerCase();
                 return (l.name?.toLowerCase().includes(q)) || (l.company?.toLowerCase().includes(q)) || (l.email?.toLowerCase().includes(q)) || (l.website?.toLowerCase().includes(q));
               }).length} résultat(s)`}
@@ -1000,8 +1187,26 @@ export default function ProspectionPage() {
             </div>
             <div className="p-5 overflow-y-auto">
               {(() => {
+                // Handle DM messages
+                const dmSection = emailPreview.notes.split('--- MESSAGE DM ---');
+                if (dmSection.length >= 2 && !emailPreview.notes.includes('--- EMAIL ENVOYÉ ---')) {
+                  const dmText = dmSection[1].trim();
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-xs text-pink-400 mb-2">
+                        <MessageCircle className="w-4 h-4" />
+                        <span className="font-semibold">Message DM Instagram</span>
+                      </div>
+                      <div className="rounded-xl bg-gradient-to-br from-pink-500/5 to-purple-500/5 border border-pink-500/20 p-4 text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">
+                        {dmText.split('---')[0].trim()}
+                      </div>
+                      <p className="text-xs text-zinc-500">Copiez ce message et envoyez-le manuellement via Instagram DM.</p>
+                    </div>
+                  );
+                }
+
                 const emailSection = emailPreview.notes.split('--- EMAIL ENVOYÉ ---');
-                if (emailSection.length < 2) return <p className="text-xs text-zinc-500">Aucun email enregistré</p>;
+                if (emailSection.length < 2) return <p className="text-xs text-zinc-500">Aucun message enregistré</p>;
                 const emailMeta = emailSection[1].trim();
                 const lines = emailMeta.split('\n');
                 const subject = lines.find(l => l.startsWith('Objet:'))?.replace('Objet: ', '') ?? '';
