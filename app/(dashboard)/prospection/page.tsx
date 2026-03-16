@@ -331,7 +331,10 @@ export default function ProspectionPage() {
     try {
       const res = await fetch('/api/instagram/agent-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-dashboard-key': 'altctrl-cron-secret',
+        },
         body: JSON.stringify({ message: msg }),
       });
       if (!res.body) throw new Error('No stream');
@@ -348,13 +351,18 @@ export default function ProspectionPage() {
           if (!line.startsWith('data: ')) continue;
           try {
             const event = JSON.parse(line.slice(6));
-            if (event.type === 'plan') {
-              setIgMessages(prev => [...prev, { role: 'agent', text: `📋 Plan: ${event.niche} @ ${event.ville} — ${event.targetLeads} leads`, type: 'plan' }]);
+            if (event.type === 'thinking' || event.type === 'start_campaign') {
+              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'info' }]);
+            } else if (event.type === 'plan') {
+              const planText = `📋 **Plan établi**\n• Niche : ${event.niche}\n• Ville : ${event.ville}\n• Objectif : ${event.targetLeads} leads\n• Stratégie : ${event.strategy}`;
+              setIgMessages(prev => [...prev, { role: 'agent', text: planText, type: 'plan' }]);
             } else if (event.type === 'report') {
               setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'report' }]);
               fetchLeads();
-            } else if (['done_lead', 'complete', 'error', 'fatal'].includes(event.type)) {
-              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: event.type }]);
+            } else if (['done_lead', 'complete', 'qualify'].includes(event.type)) {
+              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'done_lead' }]);
+            } else if (['error', 'fatal'].includes(event.type)) {
+              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'error' }]);
             }
           } catch { /* ignore */ }
         }
