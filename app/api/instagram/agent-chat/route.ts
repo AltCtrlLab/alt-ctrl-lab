@@ -76,7 +76,7 @@ Réponds UNIQUEMENT avec le JSON sur une ligne.`
               niche = parsed.niche || niche;
               ville = parsed.ville || ville;
               targetLeads = parseInt(parsed.targetLeads) || targetLeads;
-              strategy = parsed.strategy || strategy;
+              strategy = (parsed.strategy && parsed.strategy !== 'undefined') ? parsed.strategy : `Prospection Instagram ${parsed.niche || niche} à ${parsed.ville || ville}, qualification bio-link + DM Visual Icebreaker`;
             } catch { /* garder les défauts */ }
           }
         } else {

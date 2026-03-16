@@ -354,7 +354,7 @@ export default function ProspectionPage() {
             if (event.type === 'thinking' || event.type === 'start_campaign') {
               setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'info' }]);
             } else if (event.type === 'plan') {
-              const planText = `📋 **Plan établi**\n• Niche : ${event.niche}\n• Ville : ${event.ville}\n• Objectif : ${event.targetLeads} leads\n• Stratégie : ${event.strategy}`;
+              const planText = `📋 Plan établi\n• Niche : ${event.niche}\n• Ville : ${event.ville}\n• Objectif : ${event.targetLeads} leads${event.strategy && event.strategy !== 'undefined' ? `\n• Stratégie : ${event.strategy}` : ''}`;
               setIgMessages(prev => [...prev, { role: 'agent', text: planText, type: 'plan' }]);
             } else if (event.type === 'report') {
               setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'report' }]);
