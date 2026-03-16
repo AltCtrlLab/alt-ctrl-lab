@@ -366,37 +366,75 @@ export async function runIGCampaignAuto(
     niche, ville, targetLeads,
   });
 
-  // Recherche des profils IG
-  emit('info', { message: `🔍 Recherche Instagram en cours : "${niche} ${ville}"...` });
-  let handles: string[] = [];
-  try {
-    const searchResult = await searchInstagramProfiles(
-      niche, ville, targetLeads * 5, // large marge pour avoir assez après filtrage
-      (type, message) => emit(type, { message }),
-    );
-    handles = searchResult.handles;
-  } catch (err: any) {
-    emit('fatal', { message: `❌ Erreur recherche Instagram : ${err.message}` });
-    return { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
+  // Variantes de recherche pour élargir si pas assez de profils qualifiés
+  const searchVariants: Array<[string, string]> = [
+    [niche, ville],
+    [niche, ''],
+    [`${niche} indépendant`, ville],
+    [`${niche} artisan`, ''],
+    [niche, 'local'],
+  ];
+
+  const seenHandles = new Set<string>();
+  const campaignResult: IGCampaignResult = { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
+  const campaignStart = new Date().toISOString();
+
+  for (const [searchNiche, searchVille] of searchVariants) {
+    if (campaignResult.sent >= targetLeads) break;
+
+    const query = searchVille ? `${searchNiche} ${searchVille}` : searchNiche;
+    emit('info', { message: `🔍 Recherche Instagram : "${query}"...` });
+
+    let handles: string[] = [];
+    try {
+      const searchResult = await searchInstagramProfiles(
+        searchNiche,
+        searchVille,
+        30,
+        (type, message) => emit(type, { message }),
+      );
+      handles = searchResult.handles.filter(h => !seenHandles.has(h));
+      handles.forEach(h => seenHandles.add(h));
+    } catch (err: any) {
+      emit('warn', { message: `⚠️ Recherche "${query}" échouée : ${err.message}` });
+      continue;
+    }
+
+    if (handles.length === 0) {
+      emit('info', { message: `   Aucun nouveau profil pour "${query}"` });
+      continue;
+    }
+
+    emit('info', { message: `   ${handles.length} nouveaux profils → qualification...` });
+
+    const leads: IGLead[] = handles.map(handle => ({
+      profileUrl: `https://www.instagram.com/${handle}/`,
+      name: handle,
+      niche,
+      instagramHandle: handle,
+    }));
+
+    // Lancer le pipeline sur ce batch, en passant le nombre restant à atteindre
+    const remaining = targetLeads - campaignResult.sent;
+    const batchResult = await runIGCampaign(leads, campaignStart, onEvent, remaining);
+
+    // Fusionner les résultats
+    campaignResult.sent += batchResult.sent;
+    campaignResult.failed += batchResult.failed;
+    campaignResult.skipped += batchResult.skipped;
+    campaignResult.filtered += batchResult.filtered;
+    campaignResult.details.push(...batchResult.details);
+
+    if (campaignResult.sent >= targetLeads) break;
+
+    emit('info', { message: `📊 ${campaignResult.sent}/${targetLeads} DMs envoyés — recherche d'autres profils...` });
   }
 
-  if (handles.length === 0) {
-    emit('warn', { message: `⚠️ Aucun profil trouvé pour "${niche} ${ville}" — réessayez avec des termes différents` });
-    return { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
+  if (campaignResult.sent < targetLeads) {
+    emit('warn', { message: `⚠️ Objectif non atteint : ${campaignResult.sent}/${targetLeads} DMs envoyés (${campaignResult.filtered} profils filtrés au total — tous avaient un site web ou bio-link)` });
   }
 
-  emit('info', { message: `📋 ${handles.length} profils récupérés → lancement du pipeline de qualification...` });
-
-  // Convertir les handles en leads pour le pipeline
-  const leads: IGLead[] = handles.map(handle => ({
-    profileUrl: `https://www.instagram.com/${handle}/`,
-    name: handle,
-    niche,
-    instagramHandle: handle,
-  }));
-
-  // Lancer le pipeline complet (filtre + icebreaker + DM)
-  return runIGCampaign(leads, new Date().toISOString(), onEvent, targetLeads);
+  return campaignResult;
 }
 
 // ─── Relance automatique (Shadow Pipeline) ──────────────────────────────────
