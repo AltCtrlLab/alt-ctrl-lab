@@ -26,10 +26,11 @@ async function getPuppeteer(): Promise<any> {
 /**
  * Connexion au Chrome déjà lancé via CDP (port 9222 sur le VPS).
  * Le navigateur est partagé — NE JAMAIS l'appeler .close() dessus.
+ * Utilise puppeteer natif (pas puppeteer-extra) pour la connexion CDP.
  */
 export async function connectToDebugChrome(): Promise<Browser> {
-  const puppeteer = await getPuppeteer();
-  return puppeteer.connect({ browserURL: CHROME_DEBUG_URL }) as unknown as Browser;
+  const { connect } = await import('puppeteer');
+  return connect({ browserURL: CHROME_DEBUG_URL }) as unknown as Browser;
 }
 
 // ─── Singleton ──────────────────────────────────────────────────────────────
