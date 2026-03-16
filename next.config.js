@@ -8,7 +8,23 @@ const nextConfig = {
   },
   experimental: {
     typedRoutes: true,
+    serverComponentsExternalPackages: [
+      'puppeteer',
+      'puppeteer-extra',
+      'puppeteer-extra-plugin-stealth',
+      'puppeteer-extra-plugin',
+      'clone-deep',
+      'merge-deep',
+    ],
   },
+  serverExternalPackages: [
+    'puppeteer',
+    'puppeteer-extra',
+    'puppeteer-extra-plugin-stealth',
+    'puppeteer-extra-plugin',
+    'clone-deep',
+    'merge-deep',
+  ],
   images: {
     unoptimized: true,
   },
