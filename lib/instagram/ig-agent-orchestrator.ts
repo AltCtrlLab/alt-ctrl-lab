@@ -366,31 +366,40 @@ export async function runIGCampaignAuto(
     niche, ville, targetLeads,
   });
 
-  // Variantes de recherche pour élargir si pas assez de profils qualifiés
+  // Variantes de recherche — du plus ciblé au plus large
   const searchVariants: Array<[string, string]> = [
     [niche, ville],
+    [`${niche} artisan`, ville],
+    [`${niche} maison`, ville],
     [niche, ''],
-    [`${niche} indépendant`, ville],
-    [`${niche} artisan`, ''],
-    [niche, 'local'],
+    [`artisan ${niche}`, ''],
+    [`petit ${niche}`, ''],
+    [niche, 'france'],
+    [niche, 'suisse'],
   ];
 
   const seenHandles = new Set<string>();
   const campaignResult: IGCampaignResult = { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
   const campaignStart = new Date().toISOString();
 
+  // Emetteur filtré pour les batchs internes — supprime les 'complete' parasites
+  const batchEmit: CampaignEventCallback = (type, payload) => {
+    if (type === 'complete') return; // le complete global est géré par runIGCampaignAuto
+    emit(type, payload);
+  };
+
   for (const [searchNiche, searchVille] of searchVariants) {
     if (campaignResult.sent >= targetLeads) break;
 
     const query = searchVille ? `${searchNiche} ${searchVille}` : searchNiche;
-    emit('info', { message: `🔍 Recherche Instagram : "${query}"...` });
+    emit('info', { message: `🔍 Nouvelle recherche : "${query}"...` });
 
     let handles: string[] = [];
     try {
       const searchResult = await searchInstagramProfiles(
         searchNiche,
         searchVille,
-        30,
+        40,
         (type, message) => emit(type, { message }),
       );
       handles = searchResult.handles.filter(h => !seenHandles.has(h));
@@ -401,11 +410,11 @@ export async function runIGCampaignAuto(
     }
 
     if (handles.length === 0) {
-      emit('info', { message: `   Aucun nouveau profil pour "${query}"` });
+      emit('info', { message: `   Aucun nouveau profil pour "${query}" — variante suivante...` });
       continue;
     }
 
-    emit('info', { message: `   ${handles.length} nouveaux profils → qualification...` });
+    emit('info', { message: `   ${handles.length} nouveaux profils à qualifier (${campaignResult.sent}/${targetLeads} DMs envoyés)` });
 
     const leads: IGLead[] = handles.map(handle => ({
       profileUrl: `https://www.instagram.com/${handle}/`,
@@ -414,11 +423,9 @@ export async function runIGCampaignAuto(
       instagramHandle: handle,
     }));
 
-    // Lancer le pipeline sur ce batch, en passant le nombre restant à atteindre
     const remaining = targetLeads - campaignResult.sent;
-    const batchResult = await runIGCampaign(leads, campaignStart, onEvent, remaining);
+    const batchResult = await runIGCampaign(leads, campaignStart, batchEmit, remaining);
 
-    // Fusionner les résultats
     campaignResult.sent += batchResult.sent;
     campaignResult.failed += batchResult.failed;
     campaignResult.skipped += batchResult.skipped;
@@ -427,12 +434,15 @@ export async function runIGCampaignAuto(
 
     if (campaignResult.sent >= targetLeads) break;
 
-    emit('info', { message: `📊 ${campaignResult.sent}/${targetLeads} DMs envoyés — recherche d'autres profils...` });
+    emit('info', { message: `📊 ${campaignResult.sent}/${targetLeads} DMs — recherche de profils supplémentaires...` });
   }
 
-  if (campaignResult.sent < targetLeads) {
-    emit('warn', { message: `⚠️ Objectif non atteint : ${campaignResult.sent}/${targetLeads} DMs envoyés (${campaignResult.filtered} profils filtrés au total — tous avaient un site web ou bio-link)` });
-  }
+  emit('complete', {
+    message: campaignResult.sent >= targetLeads
+      ? `✅ Objectif atteint — ${campaignResult.sent} DMs envoyés`
+      : `⚠️ ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered} profils filtrés (tous avec site web ou bio-link). Essayez une autre niche.`,
+    results: campaignResult,
+  });
 
   return campaignResult;
 }
