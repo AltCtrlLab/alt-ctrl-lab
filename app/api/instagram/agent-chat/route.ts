@@ -6,6 +6,10 @@ import { buildPromptWithSkill } from '@/lib/agents/load-skill';
 
 const DASH_KEY = process.env.CRON_SECRET || 'altctrl-cron-secret';
 
+// Si VPS_BASE_URL est défini (ex: http://24.199.104.202), on proxy la requête
+// vers le VPS qui a Chrome CDP. Sinon on exécute localement.
+const VPS_BASE_URL = process.env.VPS_BASE_URL || '';
+
 /**
  * POST /api/instagram/agent-chat
  *
@@ -30,6 +34,26 @@ export async function POST(request: NextRequest) {
   const userMessage = body.message?.trim();
   if (!userMessage) {
     return new Response(JSON.stringify({ error: 'message requis' }), { status: 400 });
+  }
+
+  // ── Proxy vers le VPS si VPS_BASE_URL est configuré ──────────────────────
+  if (VPS_BASE_URL) {
+    const vpsRes = await fetch(`${VPS_BASE_URL}/api/instagram/agent-chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-dashboard-key': DASH_KEY,
+      },
+      body: JSON.stringify({ message: userMessage }),
+    });
+    return new Response(vpsRes.body, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      },
+    });
   }
 
   const encoder = new TextEncoder();
