@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
-import { runIGCampaignAuto } from '@/lib/instagram/ig-agent-orchestrator';
 import { buildPromptWithSkill } from '@/lib/agents/load-skill';
+// runIGCampaignAuto importé dynamiquement pour éviter que Railway compile puppeteer
 
 const DASH_KEY = process.env.CRON_SECRET || 'altctrl-cron-secret';
 
@@ -136,6 +136,7 @@ Réponds UNIQUEMENT avec le JSON sur une ligne.`
         // ── ÉTAPE 3 : Lancement de la campagne ──
         send('start_campaign', { message: `🚀 Lancement de la campagne Instagram...` });
 
+        const { runIGCampaignAuto } = await import('@/lib/instagram/ig-agent-orchestrator');
         const result = await runIGCampaignAuto(
           niche,
           ville,
