@@ -367,15 +367,14 @@ export async function runIGCampaignAuto(
   });
 
   // Variantes de recherche — du plus ciblé au plus large
+  // On cherche BEAUCOUP de profils par requête (150) pour maximiser les chances de trouver des qualifiés
   const searchVariants: Array<[string, string]> = [
     [niche, ville],
     [`${niche} artisan`, ville],
-    [`${niche} maison`, ville],
     [niche, ''],
+    [`${niche} independant`, ''],
     [`artisan ${niche}`, ''],
-    [`petit ${niche}`, ''],
-    [niche, 'france'],
-    [niche, 'suisse'],
+    [niche, 'local'],
   ];
 
   const seenHandles = new Set<string>();
@@ -399,7 +398,7 @@ export async function runIGCampaignAuto(
       const searchResult = await searchInstagramProfiles(
         searchNiche,
         searchVille,
-        40,
+        150, // max profils par recherche — on scrolle pour en avoir un maximum
         (type, message) => emit(type, { message }),
       );
       handles = searchResult.handles.filter(h => !seenHandles.has(h));
