@@ -382,7 +382,15 @@ export async function runIGCampaignAuto(
     [niche, 'marseille'],
   ];
 
-  const seenHandles = new Set<string>();
+  // Charger les handles déjà DM'd depuis la DB (éviter les doublons cross-campagnes)
+  const { getDb } = await import('@/lib/db');
+  const rawDb = (getDb() as any).$client;
+  const alreadyDmd = new Set<string>(
+    (rawDb.prepare(`SELECT ig_handle FROM leads WHERE ig_handle IS NOT NULL AND ig_dm_state IS NOT NULL`).all() as Array<{ ig_handle: string }>)
+      .map(r => r.ig_handle.toLowerCase())
+  );
+
+  const seenHandles = new Set<string>(alreadyDmd);
   const campaignResult: IGCampaignResult = { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
   const campaignStart = new Date().toISOString();
 

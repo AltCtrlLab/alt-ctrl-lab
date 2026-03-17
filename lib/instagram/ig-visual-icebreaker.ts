@@ -22,7 +22,7 @@ async function captureInstagramGrid(handle: string): Promise<string | null> {
   try {
     page = await newStealthPage();
     await page.goto(`https://www.instagram.com/${handle}/`, {
-      waitUntil: 'networkidle2',
+      waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
 
@@ -56,7 +56,7 @@ async function scrapeProfileContext(handle: string): Promise<string> {
   try {
     page = await newStealthPage();
     await page.goto(`https://www.instagram.com/${handle}/`, {
-      waitUntil: 'networkidle2',
+      waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
 

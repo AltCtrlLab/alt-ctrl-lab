@@ -43,7 +43,12 @@ async function humanType(page: Page, selector: string, text: string): Promise<vo
     } else if (char === ' ') {
       await humanDelay(50, 150); // Petite pause après espace
     } else if (char === '\n') {
-      await humanDelay(300, 700); // Pause après retour à la ligne
+      // Shift+Enter = saut de ligne SANS envoyer (Enter seul envoie sur Instagram)
+      await page.keyboard.down('Shift');
+      await page.keyboard.press('Enter');
+      await page.keyboard.up('Shift');
+      await humanDelay(300, 700);
+      continue;
     } else {
       await humanDelay(40, 180); // Frappe normale
     }
