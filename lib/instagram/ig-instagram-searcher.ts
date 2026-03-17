@@ -87,92 +87,98 @@ export async function searchInstagramProfiles(
 
     emit('info', `🔍 Recherche "${query}" (interception API)...`);
 
-    // Stratégie 1 : appel direct à l'API de recherche via fetch dans la page
+    // Stratégie 1 : appels directs à l'API de recherche via fetch dans la page
     // (utilise les cookies de session déjà présents)
-    const apiHandles = await page.evaluate(async (q: string) => {
-      try {
-        const res = await fetch(
-          `/api/v1/web/search/topsearch/?context=blended&query=${encodeURIComponent(q)}&rank_token=0.1&count=50`,
-          {
-            headers: {
-              'x-ig-app-id': '936619743392459',
-              'x-requested-with': 'XMLHttpRequest',
-              'accept': '*/*',
-            },
-            credentials: 'include',
+    // Plusieurs contextes pour maximiser les résultats
+    const contexts = ['blended', 'user'];
+    for (const ctx of contexts) {
+      const rankToken = (Math.random()).toFixed(6);
+      const apiHandles = await page.evaluate(async (q: string, context: string, token: string) => {
+        try {
+          const res = await fetch(
+            `/api/v1/web/search/topsearch/?context=${context}&query=${encodeURIComponent(q)}&rank_token=${token}&count=50`,
+            {
+              headers: {
+                'x-ig-app-id': '936619743392459',
+                'x-requested-with': 'XMLHttpRequest',
+                'accept': '*/*',
+              },
+              credentials: 'include',
+            }
+          );
+          if (!res.ok) return [];
+          const json = await res.json();
+          const users: string[] = [];
+          if (json.users) {
+            for (const item of json.users) {
+              const u = item?.user?.username || item?.username;
+              if (u) users.push(u);
+            }
           }
-        );
-        if (!res.ok) return [];
-        const json = await res.json();
-        const users: string[] = [];
-        if (json.users) {
-          for (const item of json.users) {
-            const u = item?.user?.username || item?.username;
-            if (u) users.push(u);
-          }
+          return users;
+        } catch {
+          return [];
         }
-        return users;
-      } catch {
-        return [];
-      }
-    }, query);
+      }, query, ctx, rankToken);
 
-    for (const h of apiHandles) {
-      if (!IGNORED_HANDLES.has(h.toLowerCase()) && h.length >= 3) {
-        allHandles.add(h);
-      }
-    }
-
-    emit('info', `   📊 ${allHandles.size} profils après appel API direct`);
-
-    // Stratégie 2 : si peu de résultats, utiliser la barre de recherche pour déclencher d'autres appels API
-    if (allHandles.size < 10) {
-      emit('info', `   ↳ Peu de résultats, activation via barre de recherche...`);
-
-      // Trouver la barre de recherche via CDP en évaluant le DOM
-      const searchActivated = await page.evaluate(() => {
-        // Chercher un input de recherche ou un bouton avec "/" raccourci
-        const inputs = document.querySelectorAll('input[type="text"], input[placeholder]');
-        for (const el of inputs as NodeListOf<HTMLInputElement>) {
-          if (
-            el.placeholder?.toLowerCase().includes('search') ||
-            el.placeholder?.toLowerCase().includes('recherch') ||
-            el.getAttribute('aria-label')?.toLowerCase().includes('search')
-          ) {
-            el.focus();
-            el.click();
-            return true;
-          }
-        }
-        // Chercher via aria-label sur les buttons/links
-        const btns = document.querySelectorAll('[aria-label]');
-        for (const el of btns as NodeListOf<HTMLElement>) {
-          const label = el.getAttribute('aria-label')?.toLowerCase() || '';
-          if (label.includes('search') || label.includes('recherch')) {
-            (el as HTMLElement).click();
-            return true;
-          }
-        }
-        return false;
-      });
-
-      if (!searchActivated) {
-        // Fallback : appuyer sur "/" pour ouvrir la recherche (raccourci Instagram)
-        await page.keyboard.press('/');
-      }
-
-      await sleep(1000);
-      await page.keyboard.type(query, { delay: 100 });
-      await sleep(3000); // Attendre les réponses API
-
-      // Récupérer les handles capturés via l'event listener
-      for (const h of capturedHandles) {
+      for (const h of apiHandles) {
         if (!IGNORED_HANDLES.has(h.toLowerCase()) && h.length >= 3) {
           allHandles.add(h);
         }
       }
+    }
 
-      emit('info', `   📊 ${allHandles.size} profils après activation barre de recherche`);
+    emit('info', `   📊 ${allHandles.size} profils après appels API directs`);
+
+    // Stratégie 2 : si peu de résultats, activer la barre de recherche pour déclencher d'autres appels API
+    if (allHandles.size < 10) {
+      emit('info', `   ↳ Peu de résultats, activation via barre de recherche...`);
+
+      try {
+        // Trouver la barre de recherche via CDP en évaluant le DOM (tout dans try-catch)
+        const searchActivated = await page.evaluate(() => {
+          try {
+            const inputs = document.querySelectorAll('input[type="text"], input[placeholder]');
+            for (const el of inputs as NodeListOf<HTMLInputElement>) {
+              if (
+                el.placeholder?.toLowerCase().includes('search') ||
+                el.placeholder?.toLowerCase().includes('recherch') ||
+                el.getAttribute('aria-label')?.toLowerCase().includes('search')
+              ) {
+                el.focus();
+                return true;
+              }
+            }
+            const btns = document.querySelectorAll('[aria-label]');
+            for (const el of btns as NodeListOf<HTMLElement>) {
+              const label = el.getAttribute('aria-label')?.toLowerCase() || '';
+              if (label.includes('search') || label.includes('recherch')) {
+                if (typeof (el as any).click === 'function') (el as any).click();
+                return true;
+              }
+            }
+            return false;
+          } catch { return false; }
+        }).catch(() => false);
+
+        if (!searchActivated) {
+          await page.keyboard.press('/');
+        }
+
+        await sleep(1000);
+        await page.keyboard.type(query, { delay: 100 });
+        await sleep(3000);
+
+        for (const h of capturedHandles) {
+          if (!IGNORED_HANDLES.has(h.toLowerCase()) && h.length >= 3) {
+            allHandles.add(h);
+          }
+        }
+
+        emit('info', `   📊 ${allHandles.size} profils après activation barre de recherche`);
+      } catch {
+        emit('info', `   ↳ Activation barre de recherche échouée — on continue avec les résultats API`);
+      }
     }
 
     // Stratégie 3 : si toujours peu de résultats, essayer avec des variantes de query
