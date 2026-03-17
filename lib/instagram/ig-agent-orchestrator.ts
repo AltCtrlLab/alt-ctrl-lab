@@ -374,10 +374,13 @@ export async function runIGCampaignAuto(
   // Charger les handles déjà DM'd depuis la DB (éviter les doublons cross-campagnes)
   const { getDb } = await import('@/lib/db');
   const rawDb = (getDb() as any).$client;
-  const alreadyDmd = new Set<string>(
-    (rawDb.prepare(`SELECT ig_handle FROM leads WHERE ig_handle IS NOT NULL AND ig_dm_state IS NOT NULL`).all() as Array<{ ig_handle: string }>)
-      .map(r => r.ig_handle.toLowerCase())
-  );
+  let alreadyDmd = new Set<string>();
+  try {
+    alreadyDmd = new Set<string>(
+      (rawDb.prepare(`SELECT ig_handle FROM leads WHERE ig_handle IS NOT NULL AND ig_dm_state IS NOT NULL`).all() as Array<{ ig_handle: string }>)
+        .map((r: { ig_handle: string }) => r.ig_handle.toLowerCase())
+    );
+  } catch { /* colonne pas encore migrée — ignorer */ }
 
   const seenHandles = new Set<string>(alreadyDmd);
   const campaignResult: IGCampaignResult = { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
