@@ -81,14 +81,19 @@ export function classifyBioLink(bioLink: string | null): { verdict: BioLinkVerdi
 /**
  * Scrape les stats d'un profil Instagram via Puppeteer stealth (session active).
  */
+function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
+
 async function fetchProfileViaPage(handle: string): Promise<IGLightProfile | null> {
   let page: Page | null = null;
   try {
     page = await newStealthPage();
     await page.goto(`https://www.instagram.com/${handle}/`, {
-      waitUntil: 'networkidle2',
-      timeout: 20000,
+      waitUntil: 'domcontentloaded',
+      timeout: 25000,
     });
+    // Attendre que les stats se chargent (Instagram est une SPA)
+    await sleep(3000);
+    await page.waitForSelector('header', { timeout: 5000 }).catch(() => {});
 
     // Vérifier que le profil existe (pas de page 404 / "Sorry, this page isn't available")
     const notFound = await page.evaluate(() => {
@@ -99,73 +104,91 @@ async function fetchProfileViaPage(handle: string): Promise<IGLightProfile | nul
     if (notFound) return null;
 
     const data = await page.evaluate(() => {
-      const getText = (el: Element | null): string => el?.textContent?.trim() || '';
+      const parseNum = (raw: string): number => {
+        const s = (raw || '').replace(/,/g, '').trim();
+        if (/[Kk]$/.test(s)) return Math.round(parseFloat(s) * 1000);
+        if (/[Mm]$/.test(s)) return Math.round(parseFloat(s) * 1000000);
+        return parseInt(s, 10) || 0;
+      };
 
-      // Stats : Instagram met les stats dans des <span> ou <li> dans le header
-      // Format : "123 posts", "1,234 followers", "567 following"
-      const statElements = document.querySelectorAll('header section ul li, header section li');
+      // Stratégie 1 : JSON embarqué dans les scripts (le plus fiable)
       let followers = 0, following = 0, postCount = 0;
+      let bio = '', fullName = '', bioLink: string | null = null;
+      let isPrivate = false, isBusinessAccount = false;
 
-      for (const el of statElements) {
-        const text = getText(el).toLowerCase();
-        const numMatch = text.match(/([\d,.]+[km]?)/i);
-        if (!numMatch) continue;
+      try {
+        const scripts = document.querySelectorAll('script[type="application/json"], script:not([src])');
+        for (const script of scripts) {
+          const text = script.textContent || '';
+          if (!text.includes('"edge_followed_by"') && !text.includes('"follower_count"')) continue;
+          try {
+            const json = JSON.parse(text);
+            // Chercher récursivement les champs clés
+            const find = (obj: any): any => {
+              if (!obj || typeof obj !== 'object') return null;
+              if ('edge_followed_by' in obj) return obj;
+              if ('follower_count' in obj) return obj;
+              for (const v of Object.values(obj)) {
+                const r = find(v);
+                if (r) return r;
+              }
+              return null;
+            };
+            const node = find(json);
+            if (node) {
+              followers = node.edge_followed_by?.count ?? node.follower_count ?? 0;
+              following = node.edge_follow?.count ?? node.following_count ?? 0;
+              postCount = node.edge_owner_to_timeline_media?.count ?? node.media_count ?? 0;
+              bio = node.biography || '';
+              fullName = node.full_name || '';
+              isPrivate = node.is_private ?? false;
+              isBusinessAccount = node.is_business_account ?? node.is_professional_account ?? false;
+              const extUrl = node.external_url || node.bio_links?.[0]?.url || '';
+              if (extUrl) bioLink = extUrl;
+              break;
+            }
+          } catch { /* continue */ }
+        }
+      } catch { /* continuer vers stratégie 2 */ }
 
-        const raw = numMatch[1].replace(/,/g, '');
-        let num = 0;
-        if (raw.match(/k$/i)) num = Math.round(parseFloat(raw) * 1000);
-        else if (raw.match(/m$/i)) num = Math.round(parseFloat(raw) * 1000000);
-        else num = parseInt(raw, 10) || 0;
-
-        if (text.includes('follower') || text.includes('abonné')) followers = num;
-        else if (text.includes('following') || text.includes('abonnement')) following = num;
-        else if (text.includes('post') || text.includes('publication')) postCount = num;
-      }
-
-      // Fallback : chercher dans le texte brut du header
+      // Stratégie 2 : DOM header (fallback si JSON non trouvé)
       if (followers === 0) {
+        const getText = (el: Element | null): string => el?.textContent?.trim() || '';
         const headerText = document.querySelector('header')?.textContent || '';
-        const fMatch = headerText.match(/([\d,.]+[KkMm]?)\s*(?:followers|abonnés)/);
-        if (fMatch) {
-          const raw = fMatch[1].replace(/,/g, '');
-          if (raw.match(/[Kk]$/)) followers = Math.round(parseFloat(raw) * 1000);
-          else if (raw.match(/[Mm]$/)) followers = Math.round(parseFloat(raw) * 1000000);
-          else followers = parseInt(raw, 10) || 0;
+
+        const fMatch = headerText.match(/([\d,.]+[KkMm]?)\s*(?:followers|abonnés)/i);
+        if (fMatch) followers = parseNum(fMatch[1]);
+
+        const pMatch = headerText.match(/([\d,.]+[KkMm]?)\s*(?:posts?|publications?)/i);
+        if (pMatch) postCount = parseNum(pMatch[1]);
+
+        if (!bio) {
+          const bioEl = document.querySelector('header section > div > span');
+          bio = getText(bioEl);
+        }
+        if (!fullName) {
+          const nameEl = document.querySelector('header section h1, header section h2, header h1, header h2');
+          fullName = getText(nameEl);
+        }
+        if (!isPrivate) {
+          isPrivate = document.body.innerText.includes('This account is private') ||
+            document.body.innerText.includes('Ce compte est privé');
         }
       }
 
-      // Bio
-      const bioEl = document.querySelector('header section > div > span, header section div[class] > span');
-      const bio = getText(bioEl);
-
-      // Nom complet
-      const nameEl = document.querySelector('header section h1, header section h2');
-      const fullName = getText(nameEl);
-
-      // Compte privé
-      const isPrivate = document.body.innerText.includes('This account is private') ||
-        document.body.innerText.includes('Ce compte est privé');
-
-      // Compte business (catégorie visible sous le nom)
-      const categoryEl = document.querySelector('header section div[class*="category"], header a[href*="category"]');
-      const isBusinessAccount = !!categoryEl?.textContent?.trim();
-
-      // Bio Link : lien externe dans le header du profil
-      const bioLinkEl = document.querySelector('header a[href*="l.instagram.com"], header a[rel="me nofollow noopener noreferrer"], header a[target="_blank"]');
-      let bioLink: string | null = null;
-      if (bioLinkEl) {
-        const href = bioLinkEl.getAttribute('href') || '';
-        // Instagram wrappe les liens via l.instagram.com/... ou affiche le texte directement
-        if (href.includes('l.instagram.com')) {
-          const urlMatch = href.match(/u=([^&]+)/);
-          if (urlMatch) bioLink = decodeURIComponent(urlMatch[1]);
-        } else if (href.startsWith('http')) {
-          bioLink = href;
-        }
-        // Fallback : le texte du lien peut être l'URL directe
-        if (!bioLink) {
-          const linkText = bioLinkEl.textContent?.trim() || '';
-          if (linkText.includes('.') && !linkText.includes(' ')) bioLink = linkText;
+      // Bio Link depuis le DOM (si pas trouvé dans JSON)
+      if (!bioLink) {
+        const bioLinkEl = document.querySelector(
+          'header a[href*="l.instagram.com"], header a[rel*="nofollow"], header a[target="_blank"]'
+        );
+        if (bioLinkEl) {
+          const href = bioLinkEl.getAttribute('href') || '';
+          if (href.includes('l.instagram.com')) {
+            const urlMatch = href.match(/u=([^&]+)/);
+            if (urlMatch) bioLink = decodeURIComponent(urlMatch[1]);
+          } else if (href.startsWith('http')) {
+            bioLink = href;
+          }
         }
       }
 
