@@ -39,7 +39,8 @@ export async function searchInstagramProfiles(
     // Aller directement sur la recherche filtrée par comptes
     const searchUrl = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}&type=account`;
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 25000 });
-    await sleep(3000);
+    await sleep(2000);
+    await page.waitForSelector('a[href^="/"]', { timeout: 8000 }).catch(() => {});
 
     // Vérifier la session
     const loggedIn = await page.evaluate(() => {
@@ -86,42 +87,16 @@ export async function searchInstagramProfiles(
     await extractHandles();
 
     // Scroller pour charger plus de profils
-    // Instagram charge les résultats dans un div scrollable — on essaie plusieurs approches
+    // Instagram est une SPA React — utiliser page.mouse.wheel() pour déclencher les vrais WheelEvents
+    await page.mouse.move(683, 400); // positionner au centre de l'écran une seule fois
     for (let i = 0; i < 20 && allHandles.size < maxResults; i++) {
-      // Approche 1 : scroller le container de résultats
-      const scrolled = await page.evaluate(() => {
-        // Chercher le container scrollable des résultats
-        const selectors = [
-          'div[style*="overflow"]',
-          '[role="main"] div',
-          'main div',
-          'div[class*="search"]',
-        ];
-        for (const sel of selectors) {
-          const els = document.querySelectorAll(sel);
-          for (const el of els) {
-            if (el.scrollHeight > el.clientHeight + 100) {
-              el.scrollTop += 800;
-              return true;
-            }
-          }
-        }
-        // Fallback : scroller la page entière
-        window.scrollTo(0, document.body.scrollHeight);
-        return false;
-      });
-
-      await sleep(1500);
+      await page.mouse.wheel({ deltaY: 800 });
+      await sleep(2000);
       const added = await extractHandles();
 
       if (i > 3 && added === 0) {
-        // Essayer de scroller différemment
-        await page.evaluate(() => {
-          document.querySelector('main')?.scrollBy(0, 800);
-          document.body.scrollTop += 800;
-          window.scrollBy(0, 800);
-        });
-        await sleep(1000);
+        await page.mouse.wheel({ deltaY: 1200 });
+        await sleep(1500);
         const added2 = await extractHandles();
         if (added2 === 0) break; // Plus rien à charger
       }
@@ -134,12 +109,14 @@ export async function searchInstagramProfiles(
         `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}`,
         { waitUntil: 'networkidle2', timeout: 20000 },
       );
-      await sleep(3000);
+      await sleep(2000);
+      await page.waitForSelector('a[href^="/"]', { timeout: 8000 }).catch(() => {});
       await extractHandles();
 
+      await page.mouse.move(683, 400);
       for (let i = 0; i < 10 && allHandles.size < maxResults; i++) {
-        await page.evaluate(() => { window.scrollBy(0, 1000); });
-        await sleep(1200);
+        await page.mouse.wheel({ deltaY: 800 });
+        await sleep(2000);
         const added = await extractHandles();
         if (added === 0) break;
       }
