@@ -1,7 +1,7 @@
 /**
- * Instagram Searcher — utilise le Chrome CDP (port 9222) déjà connecté à Instagram.
- * Ouvre un nouvel onglet, tape la recherche dans la barre IG,
- * clique sur l'onglet "Comptes", scrolle pour charger un maximum de profils.
+ * Instagram Searcher — Chrome CDP (port 9222).
+ * Utilise l'URL de recherche avec type=account pour avoir uniquement des profils.
+ * Scrolle le container de résultats pour charger un maximum de profils.
  */
 
 import { connectToDebugChrome } from './stealth-browser';
@@ -9,15 +9,11 @@ import { connectToDebugChrome } from './stealth-browser';
 const IGNORED_HANDLES = new Set([
   'explore', 'reels', 'direct', 'accounts', 'p', 'stories', 'about',
   'instagram', 'help', 'legal', 'privacy', 'safety', 'press', 'null',
-  'undefined', 'www', 'shop', 'api', 'graphql',
+  'undefined', 'www', 'shop', 'api', 'graphql', '_n', 'shareddata',
 ]);
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function rand(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export interface IGSearchResult {
@@ -25,10 +21,6 @@ export interface IGSearchResult {
   query: string;
 }
 
-/**
- * Recherche des profils Instagram et scrolle pour charger un maximum de résultats.
- * Clique sur l'onglet "Comptes" pour avoir uniquement des profils.
- */
 export async function searchInstagramProfiles(
   niche: string,
   ville: string,
@@ -36,71 +28,43 @@ export async function searchInstagramProfiles(
   onEvent?: (type: string, message: string) => void,
 ): Promise<IGSearchResult> {
   const emit = onEvent || (() => {});
-  const query = ville ? `${niche} ${ville}` : niche;
+  const query = ville ? `${niche} ${ville}`.trim() : niche.trim();
 
   const browser = await connectToDebugChrome();
   const page = await browser.newPage();
 
   try {
-    emit('info', `🌐 Ouverture Instagram (Chrome CDP)...`);
-    await page.goto('https://www.instagram.com/', { waitUntil: 'networkidle2', timeout: 20000 });
-    await sleep(2000);
+    emit('info', `🌐 Connexion Instagram (Chrome CDP)...`);
 
+    // Aller directement sur la recherche filtrée par comptes
+    const searchUrl = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}&type=account`;
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 25000 });
+    await sleep(3000);
+
+    // Vérifier la session
     const loggedIn = await page.evaluate(() => {
       const text = document.body.innerText;
       return !text.includes('Log in') && !text.includes('Se connecter') && !text.includes('Connexion');
     });
     if (!loggedIn) throw new Error('Session Instagram expirée — reconnexion manuelle requise sur le VPS');
 
-    emit('info', `🔍 Recherche "${query}"...`);
+    emit('info', `🔍 Recherche "${query}" (type=account)...`);
 
-    // ── Naviguer directement vers la recherche par URL (plus fiable) ──
-    await page.goto(
-      `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}`,
-      { waitUntil: 'networkidle2', timeout: 20000 },
-    );
-    await sleep(3000);
-
-    // ── Cliquer sur l'onglet "Comptes" / "Accounts" ──
-    const accountsTabClicked = await page.evaluate(() => {
-      const tabs = document.querySelectorAll('[role="tab"], a[role="tab"], button[role="tab"]');
-      for (const tab of tabs) {
-        const text = (tab.textContent || '').toLowerCase().trim();
-        if (text === 'accounts' || text === 'comptes' || text.includes('account') || text.includes('compte')) {
-          (tab as HTMLElement).click();
-          return true;
-        }
-      }
-      // Fallback: chercher un lien avec "accounts" dans l'URL
-      const links = document.querySelectorAll('a[href*="accounts"]');
-      for (const link of links) {
-        (link as HTMLElement).click();
-        return true;
-      }
-      return false;
-    });
-
-    if (accountsTabClicked) {
-      await sleep(2000);
-      emit('info', `   ↳ Onglet "Comptes" activé`);
-    }
-
-    // ── Collecter les handles en scrollant ──
+    // Extraire les handles initiaux
     const allHandles = new Set<string>();
-    let scrollAttempts = 0;
-    const maxScrolls = Math.ceil(maxResults / 8); // ~8 profils par scroll
 
-    while (allHandles.size < maxResults && scrollAttempts < maxScrolls) {
-      // Extraire les handles visibles
-      const newHandles = await page.evaluate((ignored: string[]) => {
+    // Fonction d'extraction des handles depuis la page
+    const extractHandles = async (): Promise<number> => {
+      const handles = await page.evaluate((ignored: string[]) => {
         const found: string[] = [];
+        // Chercher tous les liens qui ressemblent à des profils IG
         const links = document.querySelectorAll('a[href]');
         for (const link of links) {
-          const href = link.getAttribute('href') || '';
+          const href = (link.getAttribute('href') || '').replace(/^https?:\/\/(?:www\.)?instagram\.com/, '');
           const match = href.match(/^\/([a-zA-Z0-9_.]{2,30})\/?$/);
           if (match) {
             const h = match[1];
-            if (!ignored.includes(h) && !found.includes(h) && h.length >= 3) {
+            if (!ignored.includes(h) && h.length >= 3 && !h.startsWith('_')) {
               found.push(h);
             }
           }
@@ -108,32 +72,85 @@ export async function searchInstagramProfiles(
         return found;
       }, Array.from(IGNORED_HANDLES));
 
-      let addedCount = 0;
-      for (const h of newHandles) {
+      let added = 0;
+      for (const h of handles) {
         if (!allHandles.has(h)) {
           allHandles.add(h);
-          addedCount++;
+          added++;
         }
       }
+      return added;
+    };
 
-      if (scrollAttempts > 0 && addedCount === 0) {
-        // Plus de nouveaux profils, on s'arrête
-        break;
+    // Première extraction
+    await extractHandles();
+
+    // Scroller pour charger plus de profils
+    // Instagram charge les résultats dans un div scrollable — on essaie plusieurs approches
+    for (let i = 0; i < 20 && allHandles.size < maxResults; i++) {
+      // Approche 1 : scroller le container de résultats
+      const scrolled = await page.evaluate(() => {
+        // Chercher le container scrollable des résultats
+        const selectors = [
+          'div[style*="overflow"]',
+          '[role="main"] div',
+          'main div',
+          'div[class*="search"]',
+        ];
+        for (const sel of selectors) {
+          const els = document.querySelectorAll(sel);
+          for (const el of els) {
+            if (el.scrollHeight > el.clientHeight + 100) {
+              el.scrollTop += 800;
+              return true;
+            }
+          }
+        }
+        // Fallback : scroller la page entière
+        window.scrollTo(0, document.body.scrollHeight);
+        return false;
+      });
+
+      await sleep(1500);
+      const added = await extractHandles();
+
+      if (i > 3 && added === 0) {
+        // Essayer de scroller différemment
+        await page.evaluate(() => {
+          document.querySelector('main')?.scrollBy(0, 800);
+          document.body.scrollTop += 800;
+          window.scrollBy(0, 800);
+        });
+        await sleep(1000);
+        const added2 = await extractHandles();
+        if (added2 === 0) break; // Plus rien à charger
       }
-
-      // Scroller vers le bas
-      await page.evaluate(() => window.scrollBy(0, 1200));
-      await sleep(rand(1200, 2000));
-      scrollAttempts++;
     }
 
-    emit('info', `   ✅ ${allHandles.size} profils collectés pour "${query}" (${scrollAttempts} scrolls)`);
+    // Si on a peu de résultats, essayer aussi la recherche sans le filtre type=account
+    if (allHandles.size < 10) {
+      emit('info', `   ↳ Peu de résultats (${allHandles.size}), tentative sans filtre type...`);
+      await page.goto(
+        `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}`,
+        { waitUntil: 'networkidle2', timeout: 20000 },
+      );
+      await sleep(3000);
+      await extractHandles();
+
+      for (let i = 0; i < 10 && allHandles.size < maxResults; i++) {
+        await page.evaluate(() => { window.scrollBy(0, 1000); });
+        await sleep(1200);
+        const added = await extractHandles();
+        if (added === 0) break;
+      }
+    }
 
     const handles = Array.from(allHandles).slice(0, maxResults);
+    emit('info', `   ✅ ${handles.length} profils collectés pour "${query}"`);
+
     return { handles, query };
 
   } finally {
     await page.close().catch(() => {});
-    // Ne PAS fermer le browser (partagé via CDP)
   }
 }

@@ -367,23 +367,28 @@ export async function runIGCampaignAuto(
   });
 
   // Variantes de recherche — du plus ciblé au plus large
-  // On cherche BEAUCOUP de profils par requête (150) pour maximiser les chances de trouver des qualifiés
+  // La mission ne s'arrête QUE quand targetLeads DMs sont envoyés
   const searchVariants: Array<[string, string]> = [
     [niche, ville],
-    [`${niche} artisan`, ville],
     [niche, ''],
+    [`${niche} artisan`, ville],
+    [`${niche} maison`, ''],
     [`${niche} independant`, ''],
-    [`artisan ${niche}`, ''],
-    [niche, 'local'],
+    [niche, 'france'],
+    [niche, 'suisse'],
+    ['artisan', ville],
+    ['coiffeur', ville],
+    ['salon', ville],
+    ['boutique', ville],
   ];
 
   const seenHandles = new Set<string>();
   const campaignResult: IGCampaignResult = { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
   const campaignStart = new Date().toISOString();
 
-  // Emetteur filtré pour les batchs internes — supprime les 'complete' parasites
+  // Emetteur filtré : supprime les 'complete' des batchs internes
   const batchEmit: CampaignEventCallback = (type, payload) => {
-    if (type === 'complete') return; // le complete global est géré par runIGCampaignAuto
+    if (type === 'complete') return;
     emit(type, payload);
   };
 
@@ -391,14 +396,14 @@ export async function runIGCampaignAuto(
     if (campaignResult.sent >= targetLeads) break;
 
     const query = searchVille ? `${searchNiche} ${searchVille}` : searchNiche;
-    emit('info', { message: `🔍 Nouvelle recherche : "${query}"...` });
+    emit('info', { message: `🔍 Recherche : "${query}" (objectif : ${campaignResult.sent}/${targetLeads} atteint)` });
 
     let handles: string[] = [];
     try {
       const searchResult = await searchInstagramProfiles(
         searchNiche,
         searchVille,
-        150, // max profils par recherche — on scrolle pour en avoir un maximum
+        200, // cherche le plus de profils possible
         (type, message) => emit(type, { message }),
       );
       handles = searchResult.handles.filter(h => !seenHandles.has(h));
@@ -409,11 +414,11 @@ export async function runIGCampaignAuto(
     }
 
     if (handles.length === 0) {
-      emit('info', { message: `   Aucun nouveau profil pour "${query}" — variante suivante...` });
+      emit('info', { message: `   Aucun nouveau profil — variante suivante` });
       continue;
     }
 
-    emit('info', { message: `   ${handles.length} nouveaux profils à qualifier (${campaignResult.sent}/${targetLeads} DMs envoyés)` });
+    emit('info', { message: `   ${handles.length} nouveaux profils → qualification en cours...` });
 
     const leads: IGLead[] = handles.map(handle => ({
       profileUrl: `https://www.instagram.com/${handle}/`,
@@ -431,15 +436,13 @@ export async function runIGCampaignAuto(
     campaignResult.filtered += batchResult.filtered;
     campaignResult.details.push(...batchResult.details);
 
-    if (campaignResult.sent >= targetLeads) break;
-
-    emit('info', { message: `📊 ${campaignResult.sent}/${targetLeads} DMs — recherche de profils supplémentaires...` });
+    emit('info', { message: `📊 Avancement : ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered} profils filtrés jusqu'ici` });
   }
 
   emit('complete', {
     message: campaignResult.sent >= targetLeads
-      ? `✅ Objectif atteint — ${campaignResult.sent} DMs envoyés`
-      : `⚠️ ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered} profils filtrés (tous avec site web ou bio-link). Essayez une autre niche.`,
+      ? `✅ Mission accomplie — ${campaignResult.sent}/${targetLeads} DMs envoyés`
+      : `⚠️ Mission incomplète : ${campaignResult.sent}/${targetLeads} DMs — ${campaignResult.filtered} profils analysés, tous filtrés (site web/bio-link). Marché très digitalisé sur cette niche/ville.`,
     results: campaignResult,
   });
 
