@@ -38,7 +38,7 @@ const MIN_POSTS = 5;
 const PLATFORM_DOMAINS = [
   'doctolib', 'planity', 'calendly', 'cal.com', 'tiktok', 'snapchat',
   'fresha', 'treatwell', 'facebook.com', 'youtube.com', 'twitter.com',
-  'x.com', 'wa.me', 'whatsapp.com',
+  'x.com', 'wa.me', 'whatsapp.com', 'threads.com', 'threads.net',
 ];
 
 /** Agrégateurs de liens : trop complexe à parser → REJETÉ */

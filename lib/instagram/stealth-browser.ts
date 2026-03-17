@@ -128,7 +128,8 @@ export async function isSessionValid(): Promise<boolean> {
   let page: Page | null = null;
   try {
     page = await newStealthPage();
-    await page.goto('https://www.instagram.com/', { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto('https://www.instagram.com/', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await new Promise(r => setTimeout(r, 2000));
     // Si connecté, on trouve le svg du profil ou le lien "profile" dans la nav
     const loggedIn = await page.evaluate(() => {
       const loginText = document.body.innerText;
