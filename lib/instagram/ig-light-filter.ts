@@ -195,21 +195,9 @@ async function fetchProfileViaPage(handle: string): Promise<IGLightProfile | nul
       return { followers, following, postCount, bio, bioLink, fullName, isPrivate, isBusinessAccount };
     });
 
-    // Activité récente : vérifier si le premier post a une date récente
-    const lastPostRecent = await page.evaluate(() => {
-      const timeEl = document.querySelector('article time');
-      if (timeEl) {
-        const datetime = timeEl.getAttribute('datetime');
-        if (datetime) {
-          const postDate = new Date(datetime);
-          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-          return postDate > thirtyDaysAgo;
-        }
-      }
-      // Fallback : si on voit des posts, on assume actif
-      const posts = document.querySelectorAll('article img');
-      return posts.length > 0;
-    });
+    // Activité : si postCount > 0 dans le JSON, on considère le compte actif
+    // (article time ne charge pas assez vite avec domcontentloaded)
+    const lastPostRecent = data.postCount > 0;
 
     return {
       handle,
