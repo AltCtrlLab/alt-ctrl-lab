@@ -1,7 +1,7 @@
 /**
  * Instagram Searcher — Chrome CDP (port 9222).
- * Utilise l'URL de recherche avec type=account pour avoir uniquement des profils.
- * Scrolle le container de résultats pour charger un maximum de profils.
+ * Utilise l'URL de recherche standard (sans type=account — trop restrictif).
+ * Scrolle via page.mouse.wheel() pour déclencher les WheelEvents React.
  */
 
 import { connectToDebugChrome } from './stealth-browser';
@@ -36,10 +36,10 @@ export async function searchInstagramProfiles(
   try {
     emit('info', `🌐 Connexion Instagram (Chrome CDP)...`);
 
-    // Aller directement sur la recherche filtrée par comptes
-    const searchUrl = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}&type=account`;
-    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 25000 });
-    await sleep(2000);
+    // Recherche standard (sans type=account — retourne trop peu de résultats)
+    const searchUrl = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}`;
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    await sleep(3000);
     await page.waitForSelector('a[href^="/"]', { timeout: 8000 }).catch(() => {});
 
     // Vérifier la session
@@ -49,16 +49,13 @@ export async function searchInstagramProfiles(
     });
     if (!loggedIn) throw new Error('Session Instagram expirée — reconnexion manuelle requise sur le VPS');
 
-    emit('info', `🔍 Recherche "${query}" (type=account)...`);
+    emit('info', `🔍 Recherche "${query}"...`);
 
-    // Extraire les handles initiaux
     const allHandles = new Set<string>();
 
-    // Fonction d'extraction des handles depuis la page
     const extractHandles = async (): Promise<number> => {
       const handles = await page.evaluate((ignored: string[]) => {
         const found: string[] = [];
-        // Chercher tous les liens qui ressemblent à des profils IG
         const links = document.querySelectorAll('a[href]');
         for (const link of links) {
           const href = (link.getAttribute('href') || '').replace(/^https?:\/\/(?:www\.)?instagram\.com/, '');
@@ -86,39 +83,19 @@ export async function searchInstagramProfiles(
     // Première extraction
     await extractHandles();
 
-    // Scroller pour charger plus de profils
-    // Instagram est une SPA React — utiliser page.mouse.wheel() pour déclencher les vrais WheelEvents
-    await page.mouse.move(683, 400); // positionner au centre de l'écran une seule fois
-    for (let i = 0; i < 20 && allHandles.size < maxResults; i++) {
+    // Scroll via page.mouse.wheel() — génère de vrais WheelEvents que React intercepte
+    await page.mouse.move(683, 400);
+    let consecutiveEmpty = 0;
+    for (let i = 0; i < 25 && allHandles.size < maxResults; i++) {
       await page.mouse.wheel({ deltaY: 800 });
       await sleep(2000);
       const added = await extractHandles();
 
-      if (i > 3 && added === 0) {
-        await page.mouse.wheel({ deltaY: 1200 });
-        await sleep(1500);
-        const added2 = await extractHandles();
-        if (added2 === 0) break; // Plus rien à charger
-      }
-    }
-
-    // Si on a peu de résultats, essayer aussi la recherche sans le filtre type=account
-    if (allHandles.size < 10) {
-      emit('info', `   ↳ Peu de résultats (${allHandles.size}), tentative sans filtre type...`);
-      await page.goto(
-        `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(query)}`,
-        { waitUntil: 'networkidle2', timeout: 20000 },
-      );
-      await sleep(2000);
-      await page.waitForSelector('a[href^="/"]', { timeout: 8000 }).catch(() => {});
-      await extractHandles();
-
-      await page.mouse.move(683, 400);
-      for (let i = 0; i < 10 && allHandles.size < maxResults; i++) {
-        await page.mouse.wheel({ deltaY: 800 });
-        await sleep(2000);
-        const added = await extractHandles();
-        if (added === 0) break;
+      if (added === 0) {
+        consecutiveEmpty++;
+        if (consecutiveEmpty >= 3) break; // 3 scrolls sans nouveau résultat → on arrête
+      } else {
+        consecutiveEmpty = 0;
       }
     }
 
