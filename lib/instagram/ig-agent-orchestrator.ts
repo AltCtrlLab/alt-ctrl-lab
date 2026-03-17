@@ -371,15 +371,15 @@ export async function runIGCampaignAuto(
   const searchVariants: Array<[string, string]> = [
     [niche, ville],
     [niche, ''],
-    [`${niche} artisan`, ville],
-    [`${niche} maison`, ''],
-    [`${niche} independant`, ''],
+    [`${niche} indépendant`, ville],
+    [`${niche} local`, ville],
+    [`${niche} artisan`, ''],
     [niche, 'france'],
     [niche, 'suisse'],
-    ['artisan', ville],
-    ['coiffeur', ville],
-    ['salon', ville],
-    ['boutique', ville],
+    [niche, 'paris'],
+    [niche, 'lyon'],
+    [niche, 'bordeaux'],
+    [niche, 'marseille'],
   ];
 
   const seenHandles = new Set<string>();
@@ -442,7 +442,7 @@ export async function runIGCampaignAuto(
   emit('complete', {
     message: campaignResult.sent >= targetLeads
       ? `✅ Mission accomplie — ${campaignResult.sent}/${targetLeads} DMs envoyés`
-      : `⚠️ Mission incomplète : ${campaignResult.sent}/${targetLeads} DMs — ${campaignResult.filtered} profils analysés, tous filtrés (site web/bio-link). Marché très digitalisé sur cette niche/ville.`,
+      : `⚠️ Mission incomplète : ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered + campaignResult.details.length} profils examinés, ${campaignResult.filtered} filtrés (bio-link/site web déjà présent). Essaie une niche moins digitalisée ou une autre ville.`,
     results: campaignResult,
   });
 
