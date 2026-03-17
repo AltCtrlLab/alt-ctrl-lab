@@ -270,12 +270,14 @@ export default function ProspectionPage() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Instagram Agent Chat drawer
-  const [igChatOpen, setIgChatOpen] = useState(false);
-  const [igMessages, setIgMessages] = useState<{ role: 'user' | 'agent'; text: string; type?: string }[]>([]);
-  const [igInput, setIgInput] = useState('');
-  const [igLoading, setIgLoading] = useState(false);
-  const igChatEndRef = useRef<HTMLDivElement | null>(null);
+  // Instagram Agent Panel
+  const [igPanelOpen, setIgPanelOpen] = useState(false);
+  const [igNiche, setIgNiche] = useState('');
+  const [igVille, setIgVille] = useState('');
+  const [igCount, setIgCount] = useState(5);
+  const [igLogs, setIgLogs] = useState<{ text: string; type: string }[]>([]);
+  const [igRunning, setIgRunning] = useState(false);
+  const igLogsEndRef = useRef<HTMLDivElement | null>(null);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -319,22 +321,18 @@ export default function ProspectionPage() {
   }, [triggering]);
 
   useEffect(() => {
-    igChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [igMessages]);
+    igLogsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [igLogs]);
 
-  async function sendIgMessage() {
-    const msg = igInput.trim();
-    if (!msg || igLoading) return;
-    setIgMessages(prev => [...prev, { role: 'user', text: msg }]);
-    setIgInput('');
-    setIgLoading(true);
+  async function launchIgCampaign() {
+    if (!igNiche.trim() || igRunning) return;
+    const msg = `Démarche ${igCount} ${igNiche.trim()}${igVille.trim() ? ` à ${igVille.trim()}` : ' en France'}`;
+    setIgLogs([]);
+    setIgRunning(true);
     try {
       const res = await fetch('/api/instagram/agent-chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-dashboard-key': 'altctrl-cron-secret',
-        },
+        headers: { 'Content-Type': 'application/json', 'x-dashboard-key': 'altctrl-cron-secret' },
         body: JSON.stringify({ message: msg }),
       });
       if (!res.body) throw new Error('No stream');
@@ -351,26 +349,24 @@ export default function ProspectionPage() {
           if (!line.startsWith('data: ')) continue;
           try {
             const event = JSON.parse(line.slice(6));
-            if (event.type === 'thinking' || event.type === 'start_campaign') {
-              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'info' }]);
-            } else if (event.type === 'plan') {
-              const planText = `📋 Plan établi\n• Niche : ${event.niche}\n• Ville : ${event.ville}\n• Objectif : ${event.targetLeads} leads${event.strategy && event.strategy !== 'undefined' ? `\n• Stratégie : ${event.strategy}` : ''}`;
-              setIgMessages(prev => [...prev, { role: 'agent', text: planText, type: 'plan' }]);
-            } else if (event.type === 'report') {
-              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'report' }]);
-              fetchLeads();
-            } else if (['done_lead', 'complete', 'qualify'].includes(event.type)) {
-              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'done_lead' }]);
-            } else if (['error', 'fatal'].includes(event.type)) {
-              setIgMessages(prev => [...prev, { role: 'agent', text: event.message, type: 'error' }]);
-            }
+            const t = event.type;
+            if (t === 'thinking') setIgLogs(p => [...p, { text: '🧠 Analyse de la mission...', type: 'info' }]);
+            else if (t === 'start_campaign') setIgLogs(p => [...p, { text: '🚀 Campagne lancée', type: 'info' }]);
+            else if (t === 'plan' && event.niche) setIgLogs(p => [...p, { text: `📋 ${event.niche}${event.ville ? ` · ${event.ville}` : ''} · objectif ${event.targetLeads} DMs`, type: 'plan' }]);
+            else if (t === 'info') setIgLogs(p => [...p, { text: event.message, type: 'info' }]);
+            else if (t === 'qualify') setIgLogs(p => [...p, { text: event.message, type: 'qualify' }]);
+            else if (t === 'skip') setIgLogs(p => [...p, { text: event.message, type: 'skip' }]);
+            else if (t === 'done_lead') { setIgLogs(p => [...p, { text: event.message, type: 'done' }]); fetchLeads(); }
+            else if (t === 'complete') { setIgLogs(p => [...p, { text: event.message, type: event.message?.includes('✅') ? 'done' : 'warn' }]); fetchLeads(); }
+            else if (t === 'warn') setIgLogs(p => [...p, { text: event.message, type: 'warn' }]);
+            else if (['error', 'fatal'].includes(t)) setIgLogs(p => [...p, { text: event.message, type: 'error' }]);
           } catch { /* ignore */ }
         }
       }
     } catch (err: any) {
-      setIgMessages(prev => [...prev, { role: 'agent', text: `❌ Erreur: ${err.message}`, type: 'error' }]);
+      setIgLogs(p => [...p, { text: `❌ Erreur: ${err.message}`, type: 'error' }]);
     } finally {
-      setIgLoading(false);
+      setIgRunning(false);
     }
   }
 
@@ -1322,18 +1318,18 @@ export default function ProspectionPage() {
         />
       )}
 
-      {/* Instagram Agent Chat — FAB */}
+      {/* Instagram Agent — FAB */}
       <button
-        onClick={() => setIgChatOpen(o => !o)}
+        onClick={() => setIgPanelOpen(o => !o)}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 shadow-lg shadow-pink-500/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-        title="Agent Instagram IA"
+        title="Campagne Instagram IA"
       >
-        {igChatOpen ? <X className="w-6 h-6 text-white" /> : <Instagram className="w-6 h-6 text-white" />}
+        {igPanelOpen ? <X className="w-6 h-6 text-white" /> : <Instagram className="w-6 h-6 text-white" />}
       </button>
 
-      {/* Instagram Agent Chat — Drawer */}
+      {/* Instagram Agent — Panneau structuré */}
       <AnimatePresence>
-        {igChatOpen && (
+        {igPanelOpen && (
           <motion.div
             initial={{ x: '100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -1347,90 +1343,112 @@ export default function ProspectionPage() {
                 <Instagram className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-zinc-100">Directeur Marketing Digital</p>
-                <p className="text-xs text-pink-400">Agent fatah · Instagram IA</p>
+                <p className="text-sm font-semibold text-zinc-100">Campagne Instagram DM</p>
+                <p className="text-xs text-pink-400">Agent fatah · Bio-Link Gatekeeper · DM IA</p>
               </div>
-              <button onClick={() => setIgChatOpen(false)} className="ml-auto text-zinc-500 hover:text-zinc-300 transition-colors">
+              <button onClick={() => setIgPanelOpen(false)} className="ml-auto text-zinc-500 hover:text-zinc-300 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-              {igMessages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/20 flex items-center justify-center">
-                    <Instagram className="w-8 h-8 text-pink-400/60" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-zinc-300 mb-1">Directeur Marketing Digital</p>
-                    <p className="text-xs text-zinc-500 leading-relaxed">Décrivez votre mission de prospection Instagram et je m'occupe du reste.</p>
-                  </div>
-                  <div className="space-y-2 w-full">
-                    {[
-                      'Démarche 15 restaurants à Genève',
-                      'Trouve 10 artisans à Lyon sans site web',
-                      'Prospecte 20 coiffeurs à Paris',
-                    ].map(suggestion => (
-                      <button
-                        key={suggestion}
-                        onClick={() => setIgInput(suggestion)}
-                        className="w-full text-left text-xs px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 text-zinc-400 hover:text-zinc-200 hover:border-pink-500/30 transition-colors"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
+            {/* Formulaire de configuration */}
+            <div className="px-5 py-4 border-b border-zinc-800 space-y-4 shrink-0">
+              {/* Niche */}
+              <div>
+                <label className="text-xs font-medium text-zinc-400 mb-2 block">Niche cible</label>
+                <input
+                  type="text"
+                  value={igNiche}
+                  onChange={e => setIgNiche(e.target.value)}
+                  placeholder="ex: coiffeur, restaurant, artisan..."
+                  className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                  disabled={igRunning}
+                />
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {['Coiffeurs', 'Restaurants', 'Artisans', 'Centres de beauté', 'Boutiques'].map(n => (
+                    <button key={n} onClick={() => setIgNiche(n.toLowerCase())} disabled={igRunning}
+                      className={`text-xs px-2 py-1 rounded-md border transition-colors ${igNiche.toLowerCase() === n.toLowerCase() ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                      {n}
+                    </button>
+                  ))}
                 </div>
-              )}
-              {igMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-pink-500/20 border border-pink-500/30 text-pink-100 rounded-br-sm'
-                      : msg.type === 'error' || msg.type === 'fatal'
-                      ? 'bg-rose-500/10 border border-rose-500/20 text-rose-300 rounded-bl-sm'
-                      : msg.type === 'plan'
-                      ? 'bg-purple-500/10 border border-purple-500/20 text-purple-200 rounded-bl-sm'
-                      : msg.type === 'report'
-                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 rounded-bl-sm'
-                      : 'bg-zinc-800/70 border border-zinc-700/50 text-zinc-200 rounded-bl-sm'
-                  }`}>
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                  </div>
+              </div>
+
+              {/* Ville */}
+              <div>
+                <label className="text-xs font-medium text-zinc-400 mb-2 block">Ville <span className="text-zinc-600">(optionnel — laisse vide pour toute la France)</span></label>
+                <input
+                  type="text"
+                  value={igVille}
+                  onChange={e => setIgVille(e.target.value)}
+                  placeholder="ex: Paris, Lyon, Genève..."
+                  className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                  disabled={igRunning}
+                />
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {['Paris', 'Lyon', 'Genève', 'Bordeaux', 'Marseille'].map(v => (
+                    <button key={v} onClick={() => setIgVille(v)} disabled={igRunning}
+                      className={`text-xs px-2 py-1 rounded-md border transition-colors ${igVille === v ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                      {v}
+                    </button>
+                  ))}
                 </div>
-              ))}
-              {igLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-zinc-800/70 border border-zinc-700/50 rounded-2xl rounded-bl-sm px-3.5 py-2.5 flex items-center gap-2">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-pink-400" />
-                    <span className="text-xs text-zinc-400">Fatah en mission...</span>
-                  </div>
+              </div>
+
+              {/* Nombre de DMs */}
+              <div>
+                <label className="text-xs font-medium text-zinc-400 mb-2 block">
+                  Nombre de DMs qualifiés à envoyer : <span className="text-pink-400 font-semibold">{igCount}</span>
+                </label>
+                <input
+                  type="range" min={1} max={20} value={igCount}
+                  onChange={e => setIgCount(Number(e.target.value))}
+                  disabled={igRunning}
+                  className="w-full accent-pink-500"
+                />
+                <div className="flex justify-between text-xs text-zinc-600 mt-1">
+                  <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span>
                 </div>
-              )}
-              <div ref={igChatEndRef} />
+              </div>
+
+              {/* Bouton lancer */}
+              <button
+                onClick={launchIgCampaign}
+                disabled={!igNiche.trim() || igRunning}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              >
+                {igRunning ? <><Loader2 className="w-4 h-4 animate-spin" /> Campagne en cours...</> : <><Play className="w-4 h-4" /> Lancer la campagne</>}
+              </button>
             </div>
 
-            {/* Input */}
-            <div className="px-4 py-3 border-t border-zinc-800 shrink-0">
-              <div className="flex items-end gap-2 bg-zinc-900 border border-zinc-700/50 rounded-xl px-3 py-2 focus-within:border-pink-500/50 transition-colors">
-                <textarea
-                  value={igInput}
-                  onChange={e => setIgInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendIgMessage(); } }}
-                  placeholder="Décrivez votre mission Instagram..."
-                  rows={2}
-                  className="flex-1 bg-transparent text-sm text-zinc-200 placeholder-zinc-600 resize-none focus:outline-none"
-                />
-                <button
-                  onClick={sendIgMessage}
-                  disabled={!igInput.trim() || igLoading}
-                  className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity"
-                >
-                  <Play className="w-3.5 h-3.5 text-white" />
-                </button>
-              </div>
-              <p className="text-xs text-zinc-600 mt-1.5 text-center">Shift+Enter pour nouvelle ligne</p>
+            {/* Live log */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1.5">
+              {igLogs.length === 0 && !igRunning && (
+                <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
+                  <MessageCircle className="w-8 h-8 text-zinc-700" />
+                  <p className="text-xs text-zinc-600">Configure ta campagne ci-dessus et lance.</p>
+                </div>
+              )}
+              {igLogs.map((log, i) => (
+                <div key={i} className={`text-xs px-3 py-1.5 rounded-lg font-mono ${
+                  log.type === 'error' ? 'bg-rose-500/10 text-rose-400' :
+                  log.type === 'done' ? 'bg-emerald-500/10 text-emerald-400' :
+                  log.type === 'qualify' ? 'bg-green-500/10 text-green-400' :
+                  log.type === 'skip' ? 'bg-zinc-800/50 text-zinc-500' :
+                  log.type === 'warn' ? 'bg-amber-500/10 text-amber-400' :
+                  log.type === 'plan' ? 'bg-purple-500/10 text-purple-300' :
+                  'text-zinc-400'
+                }`}>
+                  {log.text}
+                </div>
+              ))}
+              {igRunning && (
+                <div className="flex items-center gap-2 px-3 py-1.5">
+                  <Loader2 className="w-3 h-3 animate-spin text-pink-400" />
+                  <span className="text-xs text-zinc-500">En cours...</span>
+                </div>
+              )}
+              <div ref={igLogsEndRef} />
             </div>
           </motion.div>
         )}
