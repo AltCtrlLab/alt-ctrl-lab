@@ -64,51 +64,40 @@ async function generateDMWithIcebreaker(
   lead: IGLead,
   icebreaker: string,
 ): Promise<string | null> {
-  const prompt = `Tu rédiges un DM Instagram de prospection. Structure EXACTE en 5 lignes.
+  const prompt = `Tu es un Directeur Artistique et Stratège Digital de haut niveau. Ton but est de rédiger un DM Instagram hyper-fluide, sans que l'on sente une structure pré-établie.
 
-STRUCTURE OBLIGATOIRE :
+Tu dois rédiger un seul paragraphe fluide de 3 phrases maximum, entouré des salutations, en respectant cette logique psychologique :
 
-LIGNE 1 — SALUTATION :
-"Bonjour," (simple, élégant)
+Salutation : "Bonjour." (Sobre, point final).
 
-LIGNE 2 — ICEBREAKER VISUEL (utilise cette observation comme base, reformule-la avec fluidité) :
-"${icebreaker}"
+Le Lien Visuel-Diagnostic (Phrases 1 & 2 fusionnées) : Utilise cette observation visuelle sur leur profil pour faire un compliment très technique sur leur direction artistique : "${icebreaker}". Ensuite, lie IMMÉDIATEMENT cette qualité au fait qu'Instagram est trop "bruyant" ou "limité" pour un travail de ce calibre, et qu'il mériterait un espace digital dédié (écrin, galerie propre, expérience prolongée). NE POINTE PAS un manque, souligne un potentiel inexploité.
 
-LIGNE 3 — LE DIAGNOSTIC :
-Fais remarquer avec élégance le décalage entre la qualité de leur travail visible sur Instagram et l'absence d'un écrin digital à la hauteur. Ne jamais utiliser les mots "site web" — parler d'"empreinte digitale", "expérience web", "vitrine en ligne", "écrin digital", "prolongement digital".
+La Question Stratégique (Phrase 3) : Termine par une question ouverte sur leur vision à long terme concernant leur indépendance digitale.
 
-LIGNE 4 — LA QUESTION DE CURIOSITÉ :
-Une question stratégique à faible friction. Le prospect doit se sentir amené à réfléchir, pas à acheter.
-Exemples : "C'est un choix stratégique de concentrer toute votre visibilité sur Instagram ?" / "Vous avez prévu de prolonger cette identité dans une expérience web ?"
+Signature OBLIGATOIRE (exactement ceci, sans variation) :
+Au plaisir de vous lire,
+L'équipe AltCtrl.Lab
 
-LIGNE 5 — FORMULE DE POLITESSE PREMIUM :
-Originale, élégante, non générique. TOUJOURS suivie d'un retour à la ligne puis "L'équipe AltCtrl.Lab".
-Exemples :
-"Au plaisir d'avoir votre regard là-dessus,
-L'équipe AltCtrl.Lab"
-ou
-"Hâte d'échanger,
-L'équipe AltCtrl.Lab"
-ou
-"Au plaisir de vous lire,
-L'équipe AltCtrl.Lab"
-
-CONTEXTE :
+CONTEXTE DU PROFIL :
 - Entreprise : ${lead.name}
 - Instagram : @${lead.instagramHandle} (${lead.followersCount || '—'} followers)
 - Secteur : ${lead.niche}
 
-INTERDITS ABSOLUS :
-- ZÉRO lien (aucun URL)
-- ZÉRO mention d'agence ou de nom de société
-- ZÉRO emoji
-- ZÉRO point d'exclamation excessif
-- Jamais le mot "site web"
-- Vouvoiement strict
-- Ton : Directeur Artistique / Stratège, observation de pair à pair, fluide et élégant
-- Pas d'approche commerciale agressive
+EXEMPLE DU NIVEAU DE FLUIDITÉ ATTENDU (secteur gastronomie) :
+"Bonjour. Le travail sur les textures et le dressage de vos derniers plats est remarquable, c'est une direction artistique qui mériterait d'être isolée du bruit d'Instagram dans un écrin digital qui vous est propre. Avez-vous prévu de créer une expérience web dédiée pour prolonger ce que vous faites ici, ou est-ce un choix stratégique de rester exclusivement sur les réseaux ?
 
-FORMAT : Réponds UNIQUEMENT avec les 5 lignes du DM. Pas de guillemets, pas de labels, pas de numéros. Juste le texte prêt à envoyer.`;
+Au plaisir de vous lire,
+L'équipe AltCtrl.Lab"
+
+CONTRAINTES STRICTES :
+- Zéro emoji
+- Vouvoiement strict
+- Vocabulaire élégant : sublimer, écrin, indépendance, prolonger l'expérience
+- Jamais le mot "site web"
+- Zéro lien, zéro URL
+- Zéro point d'exclamation
+
+FORMAT : Réponds UNIQUEMENT avec le DM prêt à envoyer. Pas de guillemets, pas de labels. Juste le texte.`;
 
   try {
     const result = await executeOpenClawAgent('khatib', prompt, 60000);
