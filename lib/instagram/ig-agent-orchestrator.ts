@@ -64,40 +64,46 @@ async function generateDMWithIcebreaker(
   lead: IGLead,
   icebreaker: string,
 ): Promise<string | null> {
-  const prompt = `Tu es un Directeur Artistique et Stratège Digital de haut niveau. Ton but est de rédiger un DM Instagram hyper-fluide, sans que l'on sente une structure pré-établie.
+  // Icebreakers sectoriels de fallback — plausibles et techniques sans nécessiter de voir le profil
+  const FALLBACK_ICEBREAKERS: Record<string, string> = {
+    coiffeur: 'La cohérence éditoriale de vos contenus — jeux de lumière, textures de coupe — révèle une vraie signature visuelle',
+    restaurant: 'Le travail sur les textures et la mise en scène de vos plats traduit une direction artistique aboutie',
+    artisan: 'La précision du grain et des finitions visibles sur vos réalisations parle d\'un vrai savoir-faire',
+    boutique: 'La cohérence de vos mises en scène produit est rare à ce niveau sur Instagram',
+    beauté: 'La maîtrise de la lumière et du cadrage sur vos before/after révèle une signature visuelle forte',
+    default: 'La qualité et la cohérence de votre direction artistique se distinguent nettement sur Instagram',
+  };
 
-Tu dois rédiger un seul paragraphe fluide de 3 phrases maximum, entouré des salutations, en respectant cette logique psychologique :
+  const isGenericFallback = icebreaker.includes('👏') || icebreaker.includes('vraiment qualitatif') || icebreaker.length < 20;
+  const effectiveIcebreaker = isGenericFallback
+    ? (FALLBACK_ICEBREAKERS[lead.niche.toLowerCase()] || FALLBACK_ICEBREAKERS['default'])
+    : icebreaker;
 
-Salutation : "Bonjour." (Sobre, point final).
+  const prompt = `Tu es un Directeur Artistique et Stratège Digital de haut niveau. Tu rédiges des DMs Instagram qui convertissent.
 
-Le Lien Visuel-Diagnostic (Phrases 1 & 2 fusionnées) : Utilise cette observation visuelle sur leur profil pour faire un compliment très technique sur leur direction artistique : "${icebreaker}". Ensuite, lie IMMÉDIATEMENT cette qualité au fait qu'Instagram est trop "bruyant" ou "limité" pour un travail de ce calibre, et qu'il mériterait un espace digital dédié (écrin, galerie propre, expérience prolongée). NE POINTE PAS un manque, souligne un potentiel inexploité.
+RÈGLE ABSOLUE : Tu génères TOUJOURS le DM. Tu ne poses JAMAIS de questions. Tu ne demandes JAMAIS plus d'informations. Tu travailles avec ce que tu as.
 
-La Question Stratégique (Phrase 3) : Termine par une question ouverte sur leur vision à long terme concernant leur indépendance digitale.
+Structure du message — un seul paragraphe fluide, 3 phrases max :
 
-Signature OBLIGATOIRE (exactement ceci, sans variation) :
+1. "Bonjour." (point final, sobre)
+2. Phrases 1+2 fusionnées : pars de cette observation sur leur profil — "${effectiveIcebreaker}" — et lie immédiatement cette qualité au fait qu'Instagram est trop limité pour un travail de ce calibre. Souligne le potentiel inexploité, pas le manque.
+3. Une question ouverte sur leur vision digitale à long terme.
+4. Signature exacte (aucune variation) :
 Au plaisir de vous lire,
 L'équipe AltCtrl.Lab
 
-CONTEXTE DU PROFIL :
-- Entreprise : ${lead.name}
-- Instagram : @${lead.instagramHandle} (${lead.followersCount || '—'} followers)
-- Secteur : ${lead.niche}
+PROFIL :
+- @${lead.instagramHandle} · ${lead.followersCount || '—'} followers · secteur : ${lead.niche}
 
-EXEMPLE DU NIVEAU DE FLUIDITÉ ATTENDU (secteur gastronomie) :
-"Bonjour. Le travail sur les textures et le dressage de vos derniers plats est remarquable, c'est une direction artistique qui mériterait d'être isolée du bruit d'Instagram dans un écrin digital qui vous est propre. Avez-vous prévu de créer une expérience web dédiée pour prolonger ce que vous faites ici, ou est-ce un choix stratégique de rester exclusivement sur les réseaux ?
+EXEMPLE (secteur coiffure) :
+Bonjour. La maîtrise des reflets sur vos balayages révèle une signature visuelle aboutie qui mériterait d'exister dans un espace qui vous est propre, loin du bruit des réseaux. Avez-vous prévu de créer une expérience web dédiée pour prolonger ce que vous construisez ici, ou est-ce un choix stratégique de rester exclusivement sur Instagram ?
 
 Au plaisir de vous lire,
-L'équipe AltCtrl.Lab"
+L'équipe AltCtrl.Lab
 
-CONTRAINTES STRICTES :
-- Zéro emoji
-- Vouvoiement strict
-- Vocabulaire élégant : sublimer, écrin, indépendance, prolonger l'expérience
-- Jamais le mot "site web"
-- Zéro lien, zéro URL
-- Zéro point d'exclamation
+CONTRAINTES : zéro emoji · vouvoiement · jamais "site web" · zéro lien · zéro point d'exclamation · vocabulaire : écrin, sublimer, prolonger, indépendance digitale
 
-FORMAT : Réponds UNIQUEMENT avec le DM prêt à envoyer. Pas de guillemets, pas de labels. Juste le texte.`;
+Réponds UNIQUEMENT avec le texte du DM, prêt à coller. Rien d'autre.`;
 
   try {
     const result = await executeOpenClawAgent('khatib', prompt, 60000);
