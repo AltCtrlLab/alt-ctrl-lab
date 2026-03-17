@@ -64,20 +64,11 @@ async function generateDMWithIcebreaker(
   lead: IGLead,
   icebreaker: string,
 ): Promise<string | null> {
-  // Icebreakers sectoriels de fallback — plausibles et techniques sans nécessiter de voir le profil
-  const FALLBACK_ICEBREAKERS: Record<string, string> = {
-    coiffeur: 'La cohérence éditoriale de vos contenus — jeux de lumière, textures de coupe — révèle une vraie signature visuelle',
-    restaurant: 'Le travail sur les textures et la mise en scène de vos plats traduit une direction artistique aboutie',
-    artisan: 'La précision du grain et des finitions visibles sur vos réalisations parle d\'un vrai savoir-faire',
-    boutique: 'La cohérence de vos mises en scène produit est rare à ce niveau sur Instagram',
-    beauté: 'La maîtrise de la lumière et du cadrage sur vos before/after révèle une signature visuelle forte',
-    default: 'La qualité et la cohérence de votre direction artistique se distinguent nettement sur Instagram',
-  };
+  const FALLBACK_DM = (niche: string) =>
+    `Bonjour,\n\nLa cohérence de votre travail de ${niche} se distingue nettement du bruit d'Instagram, et ce type de direction artistique mérite un écrin digital à la hauteur. Avez-vous prévu de prolonger l'expérience de votre marque en dehors des réseaux, ou est-ce un choix stratégique d'y concentrer toute votre visibilité ?\n\nAu plaisir de vous lire,\nL'équipe AltCtrl.Lab`;
 
   const isGenericFallback = icebreaker.includes('👏') || icebreaker.includes('vraiment qualitatif') || icebreaker.length < 20;
-  const effectiveIcebreaker = isGenericFallback
-    ? (FALLBACK_ICEBREAKERS[lead.niche.toLowerCase()] || FALLBACK_ICEBREAKERS['default'])
-    : icebreaker;
+  const effectiveIcebreaker = isGenericFallback ? '' : icebreaker;
 
   const prompt = `Tu es un Directeur Artistique et Stratège Digital de haut niveau. Tu rédiges des DMs Instagram qui convertissent.
 
@@ -105,16 +96,22 @@ CONTRAINTES : zéro emoji · vouvoiement · jamais "site web" · zéro lien · z
 
 Réponds UNIQUEMENT avec le texte du DM, prêt à coller. Rien d'autre.`;
 
+  // Icebreaker générique → fallback directement, pas besoin de l'agent
+  if (isGenericFallback) return FALLBACK_DM(lead.niche);
+
   try {
     const result = await executeOpenClawAgent('khatib', prompt, 60000);
-    if (!result.success || !result.stdout.trim()) return null;
+    if (!result.success || !result.stdout.trim()) return FALLBACK_DM(lead.niche);
 
     let dm = result.stdout.trim();
     if (dm.startsWith('"') && dm.endsWith('"')) dm = dm.slice(1, -1);
     if (dm.startsWith('«') && dm.endsWith('»')) dm = dm.slice(1, -1).trim();
+    // Vérifier que l'agent n'a pas demandé des infos au lieu de générer
+    const asksForInfo = dm.includes('fournissez') || dm.includes('avez-vous des') || dm.includes('pourriez-vous') || dm.includes('capture d\'écran') || dm.includes('j\'ai besoin');
+    if (asksForInfo) return FALLBACK_DM(lead.niche);
     return dm;
   } catch {
-    return null;
+    return FALLBACK_DM(lead.niche);
   }
 }
 
