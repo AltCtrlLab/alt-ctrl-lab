@@ -465,6 +465,13 @@ export function getDb() {
       `ALTER TABLE leads ADD COLUMN website_score INTEGER;`,
       `ALTER TABLE leads ADD COLUMN email_sent_count INTEGER DEFAULT 0;`,
       `ALTER TABLE leads ADD COLUMN last_contacted_at INTEGER;`,
+      `ALTER TABLE leads ADD COLUMN ig_handle TEXT;`,
+      `ALTER TABLE leads ADD COLUMN ig_followers INTEGER;`,
+      `ALTER TABLE leads ADD COLUMN ig_dm_state TEXT DEFAULT NULL;`,
+      `ALTER TABLE leads ADD COLUMN ig_dm_sent_at INTEGER;`,
+      `ALTER TABLE leads ADD COLUMN ig_dm_content TEXT;`,
+      `ALTER TABLE leads ADD COLUMN ig_next_action_at INTEGER;`,
+      `ALTER TABLE leads ADD COLUMN ig_prospect_score INTEGER;`,
     ];
     for (const sql of leadMigrations) {
       try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
