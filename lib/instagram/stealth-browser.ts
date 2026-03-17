@@ -128,17 +128,19 @@ export async function isSessionValid(): Promise<boolean> {
   let page: Page | null = null;
   try {
     page = await newStealthPage();
+    // Naviguer sur instagram.com pour avoir les cookies de session dans le contexte fetch
     await page.goto('https://www.instagram.com/', { waitUntil: 'domcontentloaded', timeout: 20000 });
-    await new Promise(r => setTimeout(r, 2000));
-    // Si connecté, on trouve le svg du profil ou le lien "profile" dans la nav
-    const loggedIn = await page.evaluate(() => {
-      const loginText = document.body.innerText;
-      if (loginText.includes('Log in') || loginText.includes('Connexion')) return false;
-      // Si on voit la nav avec les icônes → connecté
-      const nav = document.querySelector('nav');
-      return !!nav;
+    // Vérifier la session via l'API topsearch — si 200 OK, la session est valide
+    const ok = await page.evaluate(async () => {
+      try {
+        const res = await fetch(
+          '/api/v1/web/search/topsearch/?context=blended&query=test&rank_token=0.5',
+          { headers: { 'x-ig-app-id': '936619743392459', 'x-requested-with': 'XMLHttpRequest' }, credentials: 'include' }
+        );
+        return res.ok;
+      } catch { return false; }
     });
-    return loggedIn;
+    return ok;
   } catch {
     return false;
   } finally {
