@@ -1,5 +1,6 @@
 [build]
 builder = "nixpacks"
+installCommand = "PUPPETEER_SKIP_DOWNLOAD=true PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true npm ci"
 buildCommand = "npm run build"
 
 [deploy]

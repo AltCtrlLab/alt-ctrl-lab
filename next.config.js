@@ -17,14 +17,6 @@ const nextConfig = {
       'merge-deep',
     ],
   },
-  serverExternalPackages: [
-    'puppeteer',
-    'puppeteer-extra',
-    'puppeteer-extra-plugin-stealth',
-    'puppeteer-extra-plugin',
-    'clone-deep',
-    'merge-deep',
-  ],
   images: {
     unoptimized: true,
   },
