@@ -6,6 +6,7 @@
 
 import type { Page } from 'puppeteer';
 import { newStealthPage } from './stealth-browser';
+import { getCachedProfile, upsertProfileCache } from '@/lib/db';
 
 export interface IGLightProfile {
   handle: string;
@@ -254,26 +255,70 @@ function calculateProspectScore(profile: IGLightProfile): number {
 /**
  * Filtre léger : qualifie un profil Instagram en ~3-5 secondes.
  */
-export async function filterInstagramProfile(handle: string): Promise<IGLightFilterResult> {
+export async function filterInstagramProfile(handle: string, niche?: string): Promise<IGLightFilterResult> {
+  // ── Cache check ───────────────────────────────────────────
+  const cached = getCachedProfile(handle);
+  if (cached) {
+    const cachedProfile: IGLightProfile | null = cached.status === 'qualified' ? {
+      handle,
+      profileUrl: `https://www.instagram.com/${handle}/`,
+      exists: true,
+      isPrivate: false,
+      followers: cached.followers ?? 0,
+      following: 0,
+      postCount: 0,
+      bio: cached.bio ?? '',
+      bioLink: null,
+      fullName: cached.fullName ?? handle,
+      isBusinessAccount: false,
+      lastPostRecent: true,
+    } : null;
+    return {
+      passed: cached.status === 'qualified',
+      reason: `[Cache] ${cached.reason || cached.status}`,
+      profile: cachedProfile,
+      score: cached.score ?? 0,
+    };
+  }
+
   const profile = await fetchProfileViaPage(handle);
 
   if (!profile) {
+    upsertProfileCache({ handle: handle.toLowerCase(), status: 'rejected', reason: 'Profil inexistant ou inaccessible', niche, analyzedAt: Date.now() });
     return { passed: false, reason: 'Profil inexistant ou inaccessible', profile: null, score: 0 };
   }
 
+  const saveCache = (status: 'qualified' | 'rejected', reason: string, score = 0) => {
+    upsertProfileCache({
+      handle: handle.toLowerCase(),
+      status,
+      reason,
+      score,
+      followers: profile?.followers,
+      fullName: profile?.fullName,
+      bio: profile?.bio,
+      niche,
+      analyzedAt: Date.now(),
+    });
+  };
+
   if (profile.isPrivate) {
+    saveCache('rejected', 'Compte privé — DM impossible');
     return { passed: false, reason: 'Compte privé — DM impossible', profile, score: 0 };
   }
 
   if (profile.followers < MIN_FOLLOWERS) {
+    saveCache('rejected', `${profile.followers} followers < ${MIN_FOLLOWERS} minimum`);
     return { passed: false, reason: `${profile.followers} followers < ${MIN_FOLLOWERS} minimum`, profile, score: 0 };
   }
 
   if (profile.postCount < MIN_POSTS) {
+    saveCache('rejected', `${profile.postCount} posts < ${MIN_POSTS} minimum`);
     return { passed: false, reason: `${profile.postCount} posts < ${MIN_POSTS} minimum`, profile, score: 0 };
   }
 
   if (!profile.lastPostRecent) {
+    saveCache('rejected', 'Compte inactif — dernier post > 30 jours');
     return { passed: false, reason: 'Compte inactif — dernier post > 30 jours', profile, score: 0 };
   }
 
@@ -295,10 +340,12 @@ export async function filterInstagramProfile(handle: string): Promise<IGLightFil
 
   const aggHandle = AGGREGATOR_HANDLE.find(p => handleLow.includes(p));
   if (aggHandle) {
+    saveCache('rejected', `Page agrégateur/fan ("${aggHandle}" dans @${profile.handle}) — pas un établissement`);
     return { passed: false, reason: `Page agrégateur/fan ("${aggHandle}" dans @${profile.handle}) — pas un établissement`, profile, score: 0 };
   }
   const aggName = AGGREGATOR_NAME.find(p => nameLow.includes(p));
   if (aggName) {
+    saveCache('rejected', `Page agrégateur/fan ("${profile.fullName}") — pas un établissement local`);
     return { passed: false, reason: `Page agrégateur/fan ("${profile.fullName}") — pas un établissement local`, profile, score: 0 };
   }
 
@@ -314,6 +361,7 @@ export async function filterInstagramProfile(handle: string): Promise<IGLightFil
   const bioAndName = `${bioLow} ${nameLow}`;
   const influencerMatch = INFLUENCER_KEYWORDS.find(kw => bioAndName.includes(kw));
   if (influencerMatch) {
+    saveCache('rejected', `Influenceur/blogger ("${influencerMatch}") — pas un business`);
     return { passed: false, reason: `Influenceur/blogger ("${influencerMatch}") — pas un business`, profile, score: 0 };
   }
 
@@ -333,21 +381,26 @@ export async function filterInstagramProfile(handle: string): Promise<IGLightFil
     /\b(réservation|réserver|résa|booking|commande|livraison|menu|carte|takeaway|à emporter|sur place)\b/i.test(profile.bio),
     // Instagram l'a identifié comme compte professionnel
     profile.isBusinessAccount,
-    // Nom ressemble à un établissement (contient ville ou type de lieu)
-    /\b(restaurant|salon|boutique|studio|atelier|boulangerie|épicerie|bar|café|spa|institut|clinique|cabinet)\b/i.test(profile.fullName),
+    // Nom OU handle contient un mot-clé business-type (ex: @restaurantlasourcechambery → restaurant)
+    /\b(restaurant|salon|boutique|studio|atelier|boulangerie|épicerie|bar|café|spa|institut|clinique|cabinet|coiffeur|plombier|électricien|electricien|garage|pharmacie|fleuriste|bijouterie|opticien|dentiste|kiné|ostéo)\b/i.test(
+      `${profile.fullName} ${profile.handle.replace(/_/g, ' ')}`
+    ),
   ];
 
   const signalCount = businessSignals.filter(Boolean).length;
   if (signalCount === 0) {
+    saveCache('rejected', `Aucun signal business (pas d'adresse, horaires, contact, réservation, ni compte pro Instagram)`);
     return { passed: false, reason: `Aucun signal business (pas d'adresse, horaires, contact, réservation, ni compte pro Instagram)`, profile, score: 0 };
   }
 
   // ── Bio-Link Gatekeeper ──
   const bioLinkVerdict = classifyBioLink(profile.bioLink);
   if (bioLinkVerdict.verdict === 'AGGREGATOR') {
+    saveCache('rejected', `REJETÉ — ${bioLinkVerdict.reason}`);
     return { passed: false, reason: `REJETÉ — ${bioLinkVerdict.reason}`, profile, score: 0 };
   }
   if (bioLinkVerdict.verdict === 'CUSTOM_SITE') {
+    saveCache('rejected', `REJETÉ — ${bioLinkVerdict.reason}`);
     return { passed: false, reason: `REJETÉ — ${bioLinkVerdict.reason}`, profile, score: 0 };
   }
   // NO_LINK ou PLATFORM → on continue
@@ -355,8 +408,10 @@ export async function filterInstagramProfile(handle: string): Promise<IGLightFil
   const score = calculateProspectScore(profile);
 
   if (score < 40) {
+    saveCache('rejected', `Score prospect ${score}/100 — trop bas`, score);
     return { passed: false, reason: `Score prospect ${score}/100 — trop bas`, profile, score };
   }
 
+  saveCache('qualified', `Score prospect ${score}/100 — qualifié`, score);
   return { passed: true, reason: `Score prospect ${score}/100 — qualifié`, profile, score };
 }

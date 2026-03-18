@@ -226,11 +226,30 @@ export async function sendInstagramDM(profileUrl: string, message: string): Prom
       return { success: false, profileUrl, error: 'Zone de saisie du message non trouvée', durationMs: Date.now() - startTime };
     }
 
-    // 5 — Taper le message (human-like, caractère par caractère)
-    // Les \n envoient le message sur Lexical — on normalise en une ligne plate
+    // 5 — Coller le message via clipboard (évite les problèmes Lexical + \n)
+    // On normalise \n → espace ET on utilise clipboard pour éviter tout envoi prématuré
     const flatMessage = message.replace(/\n+/g, ' ').trim();
     await humanDelay(500, 1500);
-    await humanType(page, textareaSelector, flatMessage);
+
+    // Copier dans le clipboard via textarea temporaire
+    await page.evaluate((text: string) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }, flatMessage);
+
+    // Focus + Ctrl+V pour coller d'un bloc
+    await page.focus(textareaSelector);
+    await humanDelay(200, 500);
+    await page.keyboard.down('Control');
+    await page.keyboard.press('KeyV');
+    await page.keyboard.up('Control');
+    await humanDelay(400, 800);
 
     // 6 — Pause avant envoi (comme un humain qui relit)
     await humanDelay(800, 2500);

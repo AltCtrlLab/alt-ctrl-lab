@@ -118,7 +118,7 @@ export async function runIGCampaign(
   for (const lead of leads) {
     emit('scan', { message: `   📋 @${lead.instagramHandle} — vérification...` });
 
-    const filterResult = await filterInstagramProfile(lead.instagramHandle);
+    const filterResult = await filterInstagramProfile(lead.instagramHandle, lead.niche);
 
     if (!filterResult.passed || !filterResult.profile) {
       result.filtered++;
@@ -333,21 +333,43 @@ export async function runIGCampaignAuto(
     niche, ville, targetLeads,
   });
 
-  // Variantes de recherche — du plus ciblé au plus large
-  // La mission ne s'arrête QUE quand targetLeads DMs sont envoyés
-  const searchVariants: Array<[string, string]> = [
-    [niche, ville],
-    [niche, ''],
-    [`${niche} indépendant`, ville],
-    [`${niche} local`, ville],
-    [`${niche} artisan`, ''],
-    [niche, 'france'],
-    [niche, 'suisse'],
-    [niche, 'paris'],
-    [niche, 'lyon'],
-    [niche, 'bordeaux'],
-    [niche, 'marseille'],
-  ];
+  // ─── Variantes de recherche par round ───────────────────────────────────────
+  function getSearchVariants(round: number): Array<[string, string]> {
+    if (round === 0) {
+      return ville ? [
+        [niche, ville],
+        [`${niche} pro`, ville],
+      ] : [
+        [niche, ''],
+        [`${niche} pro`, ''],
+      ];
+    }
+    if (round === 1) {
+      return ville ? [
+        [`${niche} indépendant`, ville],
+        [`${niche} local`, ville],
+        [`${niche}s`, ville],
+      ] : [
+        [`${niche} artisan`, ''],
+        [`${niche} indépendant`, ''],
+      ];
+    }
+    if (round === 2) {
+      return [
+        [niche, ''],
+        [`${niche} artisan`, ''],
+        [`${niche} france`, ''],
+      ];
+    }
+    // Round 3+ : fallback grandes villes
+    return [
+      [niche, 'paris'],
+      [niche, 'lyon'],
+      [niche, 'bordeaux'],
+      [niche, 'marseille'],
+      [niche, 'toulouse'],
+    ];
+  }
 
   // Charger les handles déjà DM'd depuis la DB (éviter les doublons cross-campagnes)
   const { getDb } = await import('@/lib/db');
@@ -370,57 +392,79 @@ export async function runIGCampaignAuto(
     emit(type, payload);
   };
 
-  for (const [searchNiche, searchVille] of searchVariants) {
-    if (campaignResult.sent >= targetLeads) break;
+  let round = 0;
+  let emptyRoundsInRow = 0;
+  const MAX_EMPTY_ROUNDS = 2; // Arrêter après 2 rounds consécutifs sans profils
 
-    const query = searchVille ? `${searchNiche} ${searchVille}` : searchNiche;
-    emit('search', { message: `🔍 Recherche : "${query}"`, query, phase: 'searching' });
+  while (campaignResult.sent < targetLeads) {
+    const variants = getSearchVariants(round);
+    let foundNewInRound = false;
 
-    let handles: string[] = [];
-    try {
-      const searchResult = await searchInstagramProfiles(
-        searchNiche,
-        searchVille,
-        200, // cherche le plus de profils possible
-        (type, message) => emit(type, { message }),
-      );
-      handles = searchResult.handles.filter(h => !seenHandles.has(h));
-      handles.forEach(h => seenHandles.add(h));
-    } catch (err: any) {
-      emit('warn', { message: `⚠️ Recherche "${query}" échouée : ${err.message}` });
-      continue;
+    for (const [searchNiche, searchVille] of variants) {
+      if (campaignResult.sent >= targetLeads) break;
+
+      const query = searchVille ? `${searchNiche} ${searchVille}` : searchNiche;
+      emit('search', { message: `🔍 Recherche : "${query}"`, query, phase: 'searching' });
+
+      let handles: string[] = [];
+      try {
+        const searchResult = await searchInstagramProfiles(
+          searchNiche,
+          searchVille,
+          200,
+          (type, message) => emit(type, { message }),
+        );
+        handles = searchResult.handles.filter(h => !seenHandles.has(h.toLowerCase()));
+        handles.forEach(h => seenHandles.add(h.toLowerCase()));
+      } catch (err: any) {
+        emit('warn', { message: `⚠️ Recherche "${query}" échouée : ${err.message}` });
+        continue;
+      }
+
+      if (handles.length === 0) {
+        emit('info', { message: `   Aucun nouveau profil — variante suivante` });
+        continue;
+      }
+
+      foundNewInRound = true;
+      emit('search_result', { message: `${handles.length} profils trouvés`, query, count: handles.length });
+
+      const leads: IGLead[] = handles.map(handle => ({
+        profileUrl: `https://www.instagram.com/${handle}/`,
+        name: handle,
+        niche,
+        instagramHandle: handle,
+      }));
+
+      const remaining = targetLeads - campaignResult.sent;
+      const batchResult = await runIGCampaign(leads, campaignStart, batchEmit, remaining, dryRun);
+
+      campaignResult.sent += batchResult.sent;
+      campaignResult.failed += batchResult.failed;
+      campaignResult.skipped += batchResult.skipped;
+      campaignResult.filtered += batchResult.filtered;
+      campaignResult.details.push(...batchResult.details);
+
+      emit('info', { message: `📊 Avancement : ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered} profils filtrés jusqu'ici` });
     }
 
-    if (handles.length === 0) {
-      emit('info', { message: `   Aucun nouveau profil — variante suivante` });
-      continue;
+    if (!foundNewInRound) {
+      emptyRoundsInRow++;
+      if (emptyRoundsInRow >= MAX_EMPTY_ROUNDS || round >= 3) {
+        emit('warn', { message: `⚠️ Plus aucun nouveau profil après ${round + 1} rounds — arrêt de la recherche` });
+        break;
+      }
+    } else {
+      emptyRoundsInRow = 0;
     }
 
-    emit('search_result', { message: `${handles.length} profils trouvés`, query, count: handles.length });
-
-    const leads: IGLead[] = handles.map(handle => ({
-      profileUrl: `https://www.instagram.com/${handle}/`,
-      name: handle,
-      niche,
-      instagramHandle: handle,
-    }));
-
-    const remaining = targetLeads - campaignResult.sent;
-    const batchResult = await runIGCampaign(leads, campaignStart, batchEmit, remaining, dryRun);
-
-    campaignResult.sent += batchResult.sent;
-    campaignResult.failed += batchResult.failed;
-    campaignResult.skipped += batchResult.skipped;
-    campaignResult.filtered += batchResult.filtered;
-    campaignResult.details.push(...batchResult.details);
-
-    emit('info', { message: `📊 Avancement : ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered} profils filtrés jusqu'ici` });
+    round++;
   }
 
   emit('complete', {
     message: campaignResult.sent >= targetLeads
       ? `✅ Mission accomplie — ${campaignResult.sent}/${targetLeads} DMs envoyés`
-      : `⚠️ Mission incomplète : ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered + campaignResult.details.length} profils examinés, ${campaignResult.filtered} filtrés (bio-link/site web déjà présent). Essaie une niche moins digitalisée ou une autre ville.`,
+      : `⚠️ Mission incomplète : ${campaignResult.sent}/${targetLeads} DMs envoyés — ${campaignResult.filtered + campaignResult.details.length} profils examinés, ${campaignResult.filtered} filtrés.`,
     results: campaignResult,
   });
 

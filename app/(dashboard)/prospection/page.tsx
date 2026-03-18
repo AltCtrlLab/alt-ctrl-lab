@@ -671,9 +671,100 @@ export default function ProspectionPage() {
               <div className="rounded-2xl border border-zinc-800/60 bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-xl p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-zinc-100">Configuration campagne</h3>
-                  <span className="text-xs text-zinc-600">{selectedNiches.length} niche{selectedNiches.length > 1 ? 's' : ''} · {villes.length} ville{villes.length > 1 ? 's' : ''}</span>
+                  <span className="text-xs text-zinc-600">
+                    {channel === 'instagram'
+                      ? `${igNiche || '—'} · ${igVille || 'France'} · ${igCount} DMs`
+                      : `${selectedNiches.length} niche${selectedNiches.length > 1 ? 's' : ''} · ${villes.length} ville${villes.length > 1 ? 's' : ''}`}
+                  </span>
                 </div>
 
+                {channel === 'instagram' ? (
+                <div className="space-y-4">
+                  {/* Niche */}
+                  <div>
+                    <label className="text-xs font-medium text-zinc-400 mb-2 block">Niche cible</label>
+                    <input
+                      type="text"
+                      value={igNiche}
+                      onChange={e => setIgNiche(e.target.value)}
+                      placeholder="ex: coiffeur, restaurant, artisan..."
+                      className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                      disabled={igRunning}
+                    />
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {['Coiffeurs', 'Restaurants', 'Artisans', 'Centres de beauté', 'Boutiques'].map(n => (
+                        <button key={n} onClick={() => setIgNiche(n.toLowerCase())} disabled={igRunning}
+                          className={`text-xs px-2 py-1 rounded-md border transition-colors ${igNiche.toLowerCase() === n.toLowerCase() ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Ville */}
+                  <div>
+                    <label className="text-xs font-medium text-zinc-400 mb-2 block">Ville <span className="text-zinc-600">(optionnel)</span></label>
+                    <input
+                      type="text"
+                      value={igVille}
+                      onChange={e => setIgVille(e.target.value)}
+                      placeholder="ex: Paris, Lyon, Genève..."
+                      className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                      disabled={igRunning}
+                    />
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {['Paris', 'Lyon', 'Genève', 'Bordeaux', 'Marseille', 'Annecy', 'Chambéry'].map(v => (
+                        <button key={v} onClick={() => setIgVille(v)} disabled={igRunning}
+                          className={`text-xs px-2 py-1 rounded-md border transition-colors ${igVille === v ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Nombre de DMs + Toggle + Launch */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-medium text-zinc-400 mb-2 block">
+                        DMs à envoyer : <span className="text-pink-400 font-semibold">{igCount}</span>
+                      </label>
+                      <input
+                        type="range" min={1} max={20} value={igCount}
+                        onChange={e => setIgCount(Number(e.target.value))}
+                        disabled={igRunning}
+                        className="w-full accent-pink-500"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700/30">
+                      <div>
+                        <p className="text-xs font-medium text-zinc-300">
+                          {igDryRun ? '👁️ Prévisualisation' : '🚀 Envoi réel'}
+                        </p>
+                        <p className="text-[10px] text-zinc-600 mt-0.5">
+                          {igDryRun ? 'Génère les DMs sans envoyer' : 'Envoie via Chrome CDP'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setIgDryRun(v => !v)}
+                        disabled={igRunning}
+                        className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${igDryRun ? 'bg-zinc-600' : 'bg-pink-500'}`}
+                      >
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${igDryRun ? 'left-0.5' : 'left-5'}`} />
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={launchIgCampaign}
+                    disabled={!igNiche.trim() || igRunning}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                  >
+                    {igRunning
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Campagne en cours...</>
+                      : igDryRun
+                      ? <><Search className="w-4 h-4" /> Générer les DMs (prévisualisation)</>
+                      : <><Play className="w-4 h-4" /> Lancer la campagne</>
+                    }
+                  </button>
+                </div>
+                ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left column: Niches + Villes */}
                   <div className="space-y-5">
@@ -781,21 +872,13 @@ export default function ProspectionPage() {
                         <p className="text-xs text-zinc-600 mt-2">Sites en dessous de ce score sont contactés</p>
                       </div>
                     ) : (
-                      <div className={`rounded-xl border p-4 ${
-                        channel === 'instagram' ? 'bg-pink-500/5 border-pink-500/15' : 'bg-blue-500/5 border-blue-500/15'
-                      }`}>
+                      <div className="rounded-xl border p-4 bg-blue-500/5 border-blue-500/15">
                         <div className="flex items-center gap-2 mb-2">
-                          {channel === 'instagram'
-                            ? <Instagram className="w-4 h-4 text-pink-400" />
-                            : <Linkedin className="w-4 h-4 text-blue-400" />}
-                          <p className={`text-xs font-semibold ${channel === 'instagram' ? 'text-pink-300' : 'text-blue-300'}`}>
-                            {channel === 'instagram' ? 'Ciblage Instagram' : 'Ciblage LinkedIn'}
-                          </p>
+                          <Linkedin className="w-4 h-4 text-blue-400" />
+                          <p className="text-xs font-semibold text-blue-300">Ciblage LinkedIn</p>
                         </div>
                         <p className="text-xs text-zinc-400 leading-relaxed">
-                          {channel === 'instagram'
-                            ? 'Cible les entreprises SANS site web ou avec un score Lighthouse < 30. Recherche automatique du profil Instagram via Google.'
-                            : 'Recherche de profils LinkedIn par niche et ville via Google. Extraction du nom et de la headline professionnelle.'}
+                          Recherche de profils LinkedIn par niche et ville via Google. Extraction du nom et de la headline professionnelle.
                         </p>
                       </div>
                     )}
@@ -844,17 +927,14 @@ export default function ProspectionPage() {
 
                     {/* Channel info card */}
                     <div className={`rounded-xl bg-gradient-to-br ${
-                      channel === 'instagram' ? 'from-pink-500/5 border-pink-500/10' :
                       channel === 'linkedin' ? 'from-blue-500/5 border-blue-500/10' :
                       'from-orange-500/5 border-orange-500/10'
                     } to-transparent border p-4`}>
                       <div className="flex items-center gap-2 mb-3">
-                        {channel === 'instagram' ? <MessageCircle className="w-4 h-4 text-pink-400" /> :
-                         channel === 'linkedin' ? <Mail className="w-4 h-4 text-blue-400" /> :
+                        {channel === 'linkedin' ? <Mail className="w-4 h-4 text-blue-400" /> :
                          <Mail className="w-4 h-4 text-orange-400" />}
                         <span className="text-xs font-semibold text-zinc-200">
-                          {channel === 'instagram' ? 'DM Instagram + IA' :
-                           channel === 'linkedin' ? 'Email LinkedIn + IA' :
+                          {channel === 'linkedin' ? 'Email LinkedIn + IA' :
                            'Email HTML + IA'}
                         </span>
                       </div>
@@ -863,12 +943,6 @@ export default function ProspectionPage() {
                           <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">1.</span><span>Smart extraction email depuis le site web</span></div>
                           <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">2.</span><span>Template HTML pro avec diagnostic et CTA</span></div>
                           <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">3.</span><span>Claude IA personnalise chaque email</span></div>
-                        </>}
-                        {channel === 'instagram' && <>
-                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">1.</span><span>Recherche entreprises SANS site web</span></div>
-                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">2.</span><span>Recherche profil Instagram automatique</span></div>
-                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">3.</span><span>Message DM personnalisé par Claude IA</span></div>
-                          <div className="flex items-start gap-2"><span className="text-pink-400 mt-0.5">4.</span><span>Envoi manuel des DMs (pas d'API)</span></div>
                         </>}
                         {channel === 'linkedin' && <>
                           <div className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">1.</span><span>Recherche profils LinkedIn par niche/ville</span></div>
@@ -879,10 +953,26 @@ export default function ProspectionPage() {
                     </div>
                   </div>
                 </div>
+                )} {/* end channel !== 'instagram' conditional */}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Instagram Campaign Timeline — inline (visible quand campagne IG active ou terminée) */}
+        {channel === 'instagram' && (igRunning || igTimeline.phase !== 'idle') && (
+          <div className="rounded-2xl border border-pink-500/20 bg-gradient-to-br from-zinc-900/80 to-zinc-900/50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-zinc-800/50 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
+              <span className="text-xs font-semibold text-zinc-200">Campagne Instagram en cours</span>
+              {igRunning && <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin ml-auto" />}
+            </div>
+            <div className="p-3">
+              <IGCampaignTimeline data={igTimeline} running={igRunning} />
+              <div ref={igLogsEndRef} />
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -1336,24 +1426,10 @@ export default function ProspectionPage() {
         />
       )}
 
-      {/* Instagram Agent — FAB */}
-      <button
-        onClick={() => setIgPanelOpen(o => !o)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 shadow-lg shadow-pink-500/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-        title="Campagne Instagram IA"
-      >
-        {igPanelOpen ? <X className="w-6 h-6 text-white" /> : <Instagram className="w-6 h-6 text-white" />}
-      </button>
-
-      {/* Instagram Agent — Panneau structuré */}
-      <AnimatePresence>
-        {igPanelOpen && (
+      {/* Instagram Agent panel removed — config is now inline in the Config section */}
+      {false && (
           <motion.div
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-            className="fixed top-0 right-0 z-40 h-screen w-[420px] bg-zinc-950 border-l border-zinc-800 flex flex-col shadow-2xl"
+            className="hidden"
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-800 bg-gradient-to-r from-pink-500/10 to-purple-500/10 shrink-0">
@@ -1484,7 +1560,7 @@ export default function ProspectionPage() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
     </div>
   );
 }
+

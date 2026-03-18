@@ -477,6 +477,25 @@ export function getDb() {
       try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
     }
 
+    // Migration: ig_profiles_cache table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS ig_profiles_cache (
+          handle TEXT PRIMARY KEY,
+          status TEXT NOT NULL,
+          reason TEXT,
+          score INTEGER,
+          followers INTEGER,
+          full_name TEXT,
+          bio TEXT,
+          niche TEXT,
+          analyzed_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_ig_cache_status ON ig_profiles_cache(status);
+        CREATE INDEX IF NOT EXISTS idx_ig_cache_analyzed ON ig_profiles_cache(analyzed_at);
+      `);
+    } catch (_) { /* already exists */ }
+
     // Seed n8n workflow IDs
     const seedWorkflows = [
       { name: "Cal.com → Lead", n8nId: "Abf2sv4YFM6MDzjf", status: "Actif", desc: "Booking Cal.com → création lead cockpit" },
@@ -901,4 +920,110 @@ export async function getFollowups(filters?: { status?: string; type?: string })
 }
 export async function deleteFollowup(id: string) {
   await getDb().delete(followups).where(eq(followups.id, id));
+}
+
+// ============================================================
+// INSTAGRAM PROFILE CACHE HELPERS
+// ============================================================
+
+export interface IGProfileCache {
+  handle: string;
+  status: 'qualified' | 'rejected' | 'dm_sent';
+  reason?: string;
+  score?: number;
+  followers?: number;
+  fullName?: string;
+  bio?: string;
+  niche?: string;
+  analyzedAt: number;
+}
+
+export function getCachedProfile(handle: string): IGProfileCache | null {
+  const rawDb = (getDb() as any).$client;
+  try {
+    const row = rawDb.prepare(
+      `SELECT handle, status, reason, score, followers, full_name, bio, niche, analyzed_at FROM ig_profiles_cache WHERE handle = ?`
+    ).get(handle.toLowerCase()) as any;
+    if (!row) return null;
+    return {
+      handle: row.handle,
+      status: row.status,
+      reason: row.reason,
+      score: row.score,
+      followers: row.followers,
+      fullName: row.full_name,
+      bio: row.bio,
+      niche: row.niche,
+      analyzedAt: row.analyzed_at,
+    };
+  } catch { return null; }
+}
+
+export function upsertProfileCache(data: IGProfileCache): void {
+  const rawDb = (getDb() as any).$client;
+  try {
+    rawDb.prepare(`
+      INSERT INTO ig_profiles_cache (handle, status, reason, score, followers, full_name, bio, niche, analyzed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(handle) DO UPDATE SET
+        status = excluded.status,
+        reason = excluded.reason,
+        score = excluded.score,
+        followers = excluded.followers,
+        full_name = excluded.full_name,
+        bio = excluded.bio,
+        niche = excluded.niche,
+        analyzed_at = excluded.analyzed_at
+    `).run(
+      data.handle.toLowerCase(),
+      data.status,
+      data.reason ?? null,
+      data.score ?? null,
+      data.followers ?? null,
+      data.fullName ?? null,
+      data.bio ?? null,
+      data.niche ?? null,
+      data.analyzedAt,
+    );
+  } catch { /* ignore */ }
+}
+
+export function getProfilesByStatus(status: string): IGProfileCache[] {
+  const rawDb = (getDb() as any).$client;
+  try {
+    const rows = rawDb.prepare(
+      `SELECT handle, status, reason, score, followers, full_name, bio, niche, analyzed_at FROM ig_profiles_cache WHERE status = ? ORDER BY analyzed_at DESC`
+    ).all(status) as any[];
+    return rows.map(row => ({
+      handle: row.handle,
+      status: row.status,
+      reason: row.reason,
+      score: row.score,
+      followers: row.followers,
+      fullName: row.full_name,
+      bio: row.bio,
+      niche: row.niche,
+      analyzedAt: row.analyzed_at,
+    }));
+  } catch { return []; }
+}
+
+export function getAllCachedProfiles(): IGProfileCache[] {
+  const rawDb = (getDb() as any).$client;
+  try {
+    const rows = rawDb.prepare(
+      `SELECT handle, status, reason, score, followers, full_name, bio, niche, analyzed_at FROM ig_profiles_cache ORDER BY analyzed_at DESC LIMIT 500`
+    ).all() as any[];
+    return rows.map(row => ({
+      handle: row.handle,
+      status: row.status,
+      reason: row.reason,
+      score: row.score,
+      followers: row.followers,
+      fullName: row.full_name,
+      bio: row.bio,
+      niche: row.niche,
+      analyzedAt: row.analyzed_at,
+    }));
+  } catch { return []; }
 }
