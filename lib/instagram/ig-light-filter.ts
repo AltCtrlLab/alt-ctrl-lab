@@ -277,24 +277,69 @@ export async function filterInstagramProfile(handle: string): Promise<IGLightFil
     return { passed: false, reason: 'Compte inactif — dernier post > 30 jours', profile, score: 0 };
   }
 
-  // ── Influencer Gatekeeper ──
-  // Rejeter les comptes personnels de type influenceur/blogger/créateur de contenu
-  // qui parlent DE la niche mais ne SONT PAS le business cible
+  // ── Business Gatekeeper (3 étapes) ──────────────────────────────────────
+  // Étape 1 : Patterns agrégateur/fan dans le handle ou le nom
+  const AGGREGATOR_HANDLE = [
+    '_in_france', '_de_france', '_france', '_world', '_global', '_officiel',
+    'lover', 'addict', 'passion', 'fan_page', 'best_of', 'top_',
+    'les_meilleurs', 'guide_', 'magazine', 'actu_', 'insolite',
+    'ranking', 'selection', 'discover', 'explore',
+  ];
+  const AGGREGATOR_NAME = [
+    'in france', 'de france', ' france', ' world', 'best of', 'top ',
+    'fan page', 'lovers', 'addict', 'passion',
+  ];
+  const handleLow = profile.handle.toLowerCase();
+  const nameLow = profile.fullName.toLowerCase();
+  const bioLow = profile.bio.toLowerCase();
+
+  const aggHandle = AGGREGATOR_HANDLE.find(p => handleLow.includes(p));
+  if (aggHandle) {
+    return { passed: false, reason: `Page agrégateur/fan ("${aggHandle}" dans @${profile.handle}) — pas un établissement`, profile, score: 0 };
+  }
+  const aggName = AGGREGATOR_NAME.find(p => nameLow.includes(p));
+  if (aggName) {
+    return { passed: false, reason: `Page agrégateur/fan ("${profile.fullName}") — pas un établissement local`, profile, score: 0 };
+  }
+
+  // Étape 2 : Influenceur/créateur de contenu
   const INFLUENCER_KEYWORDS = [
     'influenceur', 'influenceuse', 'influencer',
     'content creator', 'créateur de contenu', 'créatrice de contenu',
-    'blogueur', 'blogueuse', 'blogger', 'blog',
-    'food blogger', 'food lover', 'foodie', 'food addict',
-    'l\'influ', 'l\'influenceur',
-    'partenariat', 'collaboration pro', 'press kit',
-    'ugc creator', 'ugc',
+    'blogueur', 'blogueuse', 'blogger', 'food blogger',
+    'food lover', 'foodie', 'food addict',
+    "l'influ", 'partenariat', 'press kit', 'ugc creator',
     'nano influenceur', 'micro influenceur',
-    'lifestyle', 'créateur', 'créatrice',
   ];
-  const bioAndName = `${profile.bio} ${profile.fullName}`.toLowerCase();
+  const bioAndName = `${bioLow} ${nameLow}`;
   const influencerMatch = INFLUENCER_KEYWORDS.find(kw => bioAndName.includes(kw));
   if (influencerMatch) {
-    return { passed: false, reason: `Influenceur/blogger détecté ("${influencerMatch}") — pas un business`, profile, score: 0 };
+    return { passed: false, reason: `Influenceur/blogger ("${influencerMatch}") — pas un business`, profile, score: 0 };
+  }
+
+  // Étape 3 : Vérifier que c'est un vrai établissement local
+  // Un business réel a au moins UN de ces signaux dans sa bio ou son statut Instagram
+  const businessSignals = [
+    // Adresse physique
+    /\d+[,\s]+(rue|avenue|bd|boulevard|place|allée|chemin|impasse)/i.test(profile.bio),
+    // Code postal
+    /\b\d{5}\b/.test(profile.bio),
+    // Horaires
+    /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|ouvert|fermé)\b/i.test(profile.bio),
+    /\d{1,2}h\d{0,2}\s*[-–]\s*\d{1,2}h/.test(profile.bio),
+    // Contact pro
+    /(\+\d{2}|\d{2}[\s.]\d{2}[\s.]\d{2}|📞|☎️|📱)/.test(profile.bio),
+    // Mots clés service
+    /\b(réservation|réserver|résa|booking|commande|livraison|menu|carte|takeaway|à emporter|sur place)\b/i.test(profile.bio),
+    // Instagram l'a identifié comme compte professionnel
+    profile.isBusinessAccount,
+    // Nom ressemble à un établissement (contient ville ou type de lieu)
+    /\b(restaurant|salon|boutique|studio|atelier|boulangerie|épicerie|bar|café|spa|institut|clinique|cabinet)\b/i.test(profile.fullName),
+  ];
+
+  const signalCount = businessSignals.filter(Boolean).length;
+  if (signalCount === 0) {
+    return { passed: false, reason: `Aucun signal business (pas d'adresse, horaires, contact, réservation, ni compte pro Instagram)`, profile, score: 0 };
   }
 
   // ── Bio-Link Gatekeeper ──
