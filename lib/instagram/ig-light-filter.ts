@@ -277,6 +277,26 @@ export async function filterInstagramProfile(handle: string): Promise<IGLightFil
     return { passed: false, reason: 'Compte inactif — dernier post > 30 jours', profile, score: 0 };
   }
 
+  // ── Influencer Gatekeeper ──
+  // Rejeter les comptes personnels de type influenceur/blogger/créateur de contenu
+  // qui parlent DE la niche mais ne SONT PAS le business cible
+  const INFLUENCER_KEYWORDS = [
+    'influenceur', 'influenceuse', 'influencer',
+    'content creator', 'créateur de contenu', 'créatrice de contenu',
+    'blogueur', 'blogueuse', 'blogger', 'blog',
+    'food blogger', 'food lover', 'foodie', 'food addict',
+    'l\'influ', 'l\'influenceur',
+    'partenariat', 'collaboration pro', 'press kit',
+    'ugc creator', 'ugc',
+    'nano influenceur', 'micro influenceur',
+    'lifestyle', 'créateur', 'créatrice',
+  ];
+  const bioAndName = `${profile.bio} ${profile.fullName}`.toLowerCase();
+  const influencerMatch = INFLUENCER_KEYWORDS.find(kw => bioAndName.includes(kw));
+  if (influencerMatch) {
+    return { passed: false, reason: `Influenceur/blogger détecté ("${influencerMatch}") — pas un business`, profile, score: 0 };
+  }
+
   // ── Bio-Link Gatekeeper ──
   const bioLinkVerdict = classifyBioLink(profile.bioLink);
   if (bioLinkVerdict.verdict === 'AGGREGATOR') {
