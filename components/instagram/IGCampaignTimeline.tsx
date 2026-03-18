@@ -1,6 +1,6 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, XCircle, Clock, Send, Search, Loader2, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Send, Search, Loader2, Sparkles, Copy, Check, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -15,9 +15,11 @@ export interface IGProfile {
 
 export interface IGDMEntry {
   handle: string;
-  status: 'sending' | 'sent' | 'failed';
+  profileUrl?: string;
+  status: 'sending' | 'sent' | 'failed' | 'preview';
   error?: string;
   sentAt?: string;
+  dmText?: string;
 }
 
 export interface IGTimelineData {
@@ -49,6 +51,29 @@ function ScoreBadge({ score }: { score?: number }) {
     <span className={`text-[10px] px-1.5 py-0.5 rounded-md border font-bold tabular-nums ${cls}`}>
       {score}/100
     </span>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      onClick={copy}
+      className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${
+        copied
+          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+          : 'bg-zinc-800 text-zinc-400 border border-zinc-700/50 hover:bg-zinc-700 hover:text-zinc-200'
+      }`}
+    >
+      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+      {copied ? 'Copié !' : 'Copier'}
+    </button>
   );
 }
 
@@ -234,31 +259,54 @@ export function IGCampaignTimeline({ data, running }: Props) {
                   key={`${dm.handle}-${i}`}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border ${
-                    dm.status === 'sent' ? 'bg-emerald-500/5 border-emerald-500/10'
-                    : dm.status === 'failed' ? 'bg-rose-500/5 border-rose-500/10'
-                    : 'bg-zinc-900/40 border-zinc-800/40'
-                  }`}
+                  className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 overflow-hidden"
                 >
-                  {dm.status === 'sent'
-                    ? <Send className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    : dm.status === 'failed'
-                    ? <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                    : <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin shrink-0" />
-                  }
-                  <span className="text-[11px] font-mono font-semibold flex-1 text-zinc-200 truncate">
-                    @{dm.handle}
-                  </span>
-                  {dm.status === 'sent' && (
-                    <span className="text-[10px] text-emerald-500 font-medium shrink-0">Envoyé</span>
-                  )}
-                  {dm.status === 'sent' && dm.sentAt && (
-                    <span className="text-[10px] text-zinc-600 shrink-0">{dm.sentAt}</span>
-                  )}
-                  {dm.status === 'failed' && dm.error && (
-                    <span className="text-[10px] text-rose-500 truncate max-w-[120px] shrink-0">
-                      {dm.error}
+                  {/* Header */}
+                  <div className={`flex items-center gap-2 px-2.5 py-1.5 border-b border-zinc-800/60 ${
+                    dm.status === 'sent' ? 'bg-emerald-500/5'
+                    : dm.status === 'failed' ? 'bg-rose-500/5'
+                    : dm.status === 'preview' ? 'bg-pink-500/5'
+                    : ''
+                  }`}>
+                    {dm.status === 'sent'
+                      ? <Send className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      : dm.status === 'failed'
+                      ? <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                      : dm.status === 'preview'
+                      ? <CheckCircle2 className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                      : <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin shrink-0" />
+                    }
+                    <span className="text-[11px] font-mono font-semibold flex-1 text-zinc-200 truncate">
+                      @{dm.handle}
                     </span>
+                    {dm.profileUrl && (
+                      <a
+                        href={dm.profileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 text-zinc-600 hover:text-pink-400 transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {dm.status === 'sent' && dm.sentAt && (
+                      <span className="text-[10px] text-zinc-600 shrink-0">{dm.sentAt}</span>
+                    )}
+                    {dm.status === 'failed' && dm.error && (
+                      <span className="text-[10px] text-rose-500 truncate max-w-[100px] shrink-0">{dm.error}</span>
+                    )}
+                  </div>
+
+                  {/* DM text (preview ou sent) */}
+                  {dm.dmText && (
+                    <div className="px-3 py-2.5 space-y-2">
+                      <pre className="text-[11px] text-zinc-300 whitespace-pre-wrap font-sans leading-relaxed">
+                        {dm.dmText}
+                      </pre>
+                      <div className="flex justify-end">
+                        <CopyButton text={dm.dmText} />
+                      </div>
+                    </div>
                   )}
                 </motion.div>
               ))}

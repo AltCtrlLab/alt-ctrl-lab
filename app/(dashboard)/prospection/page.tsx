@@ -278,6 +278,7 @@ export default function ProspectionPage() {
   const [igCount, setIgCount] = useState(5);
   const [igTimeline, setIgTimeline] = useState<IGTimelineData>({ phase: 'idle', profiles: [], dms: [], waitingSec: 0 });
   const [igRunning, setIgRunning] = useState(false);
+  const [igDryRun, setIgDryRun] = useState(true);
   const igLogsEndRef = useRef<HTMLDivElement | null>(null);
 
   const fetchLeads = useCallback(async () => {
@@ -334,7 +335,7 @@ export default function ProspectionPage() {
       const res = await fetch('/api/instagram/agent-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-dashboard-key': 'altctrl-cron-secret' },
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({ message: msg, dryRun: igDryRun }),
       });
       if (!res.body) throw new Error('No stream');
       const reader = res.body.getReader();
@@ -361,6 +362,8 @@ export default function ProspectionPage() {
               setIgTimeline(p => ({ ...p, profiles: [...p.profiles, { handle: ev.handle, score: ev.score, followers: ev.followers, reason: '', passed: true }] }));
             } else if (t === 'skip') {
               setIgTimeline(p => ({ ...p, profiles: [...p.profiles, { handle: ev.handle, reason: ev.reason || '', passed: false }] }));
+            } else if (t === 'dm_preview') {
+              setIgTimeline(p => ({ ...p, phase: 'sending', dms: [...p.dms, { handle: ev.handle || '', profileUrl: ev.profileUrl, status: 'preview', dmText: ev.dmText }] }));
             } else if (t === 'send') {
               setIgTimeline(p => ({ ...p, phase: 'sending', dms: [...p.dms, { handle: ev.handle || '', status: 'sending' }], waitingSec: 0 }));
             } else if (t === 'done_lead') {
@@ -1426,13 +1429,37 @@ export default function ProspectionPage() {
                 </div>
               </div>
 
+              {/* Toggle dry run / envoi réel */}
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700/30">
+                <div>
+                  <p className="text-xs font-medium text-zinc-300">
+                    {igDryRun ? '👁️ Mode prévisualisation' : '🚀 Mode envoi réel'}
+                  </p>
+                  <p className="text-[10px] text-zinc-600 mt-0.5">
+                    {igDryRun ? 'Génère les DMs pour copier-coller — rien n\'est envoyé' : 'Envoie les DMs automatiquement via Chrome CDP'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIgDryRun(v => !v)}
+                  disabled={igRunning}
+                  className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${igDryRun ? 'bg-zinc-600' : 'bg-pink-500'}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${igDryRun ? 'left-0.5' : 'left-5'}`} />
+                </button>
+              </div>
+
               {/* Bouton lancer */}
               <button
                 onClick={launchIgCampaign}
                 disabled={!igNiche.trim() || igRunning}
                 className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
-                {igRunning ? <><Loader2 className="w-4 h-4 animate-spin" /> Campagne en cours...</> : <><Play className="w-4 h-4" /> Lancer la campagne</>}
+                {igRunning
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Campagne en cours...</>
+                  : igDryRun
+                  ? <><Search className="w-4 h-4" /> Générer les DMs (prévisualisation)</>
+                  : <><Play className="w-4 h-4" /> Lancer la campagne</>
+                }
               </button>
             </div>
 

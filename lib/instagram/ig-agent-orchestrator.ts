@@ -100,6 +100,7 @@ export async function runIGCampaign(
   campaignStartDate: string,
   onEvent?: CampaignEventCallback,
   maxOverride?: number,
+  dryRun = false,
 ): Promise<IGCampaignResult> {
   const emit = onEvent || (() => {});
   const result: IGCampaignResult = { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
@@ -160,15 +161,18 @@ export async function runIGCampaign(
   emit('info', { message: `🏆 Top ${topProspects.length} prospects sélectionnés pour DM` });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // VITESSE 2 — Filtre Lourd (Puppeteer Stealth)
+  // VITESSE 2 — Génération DM (+ envoi si pas dryRun)
   // ═══════════════════════════════════════════════════════════════════════════
-  emit('info', { message: '🔐 Vérification de la session Instagram...' });
-  const sessionOk = await isSessionValid();
-  if (!sessionOk) {
-    emit('fatal', { message: '❌ Session Instagram expirée — reconnexion manuelle requise' });
-    return result;
+
+  if (!dryRun) {
+    emit('info', { message: '🔐 Vérification de la session Instagram...' });
+    const sessionOk = await isSessionValid();
+    if (!sessionOk) {
+      emit('fatal', { message: '❌ Session Instagram expirée — reconnexion manuelle requise' });
+      return result;
+    }
+    emit('info', { message: '✅ Session active — lancement VITESSE 2' });
   }
-  emit('info', { message: '✅ Session active — lancement VITESSE 2' });
 
   for (const { lead, profile, score } of topProspects) {
     if (result.sent >= maxToday) {
@@ -179,9 +183,23 @@ export async function runIGCampaign(
     emit('scan', { message: `🎯 ${lead.name} (@${lead.instagramHandle}) — score ${score}/100` });
 
     // 2a — Générer le DM depuis les données du profil
-    emit('info', { message: `🤖 Génération du DM (Agent khatib)...` });
     const dm = await generateDM(lead, profile);
-    emit('info', { message: `✍️ DM généré (${dm.length} chars)` });
+
+    // Mode prévisualisation : afficher le DM dans l'UI, pas d'envoi
+    if (dryRun) {
+      result.sent++;
+      emit('dm_preview', {
+        message: `✅ DM généré pour @${lead.instagramHandle}`,
+        handle: lead.instagramHandle,
+        profileUrl: lead.profileUrl,
+        dmText: dm,
+        score,
+        current: result.sent,
+        total: maxToday,
+      });
+      result.details.push({ lead, profile, prospectScore: score, dm: null, message: dm, dbLeadId: null });
+      continue;
+    }
 
     // 2b — Envoyer le DM via Puppeteer Stealth
     emit('send', { message: `📨 Envoi du DM à @${lead.instagramHandle}...`, handle: lead.instagramHandle });
@@ -266,18 +284,20 @@ export async function runIGCampaign(
       }
     }
 
-    // 2e — Pause human-like entre les DMs
-    const idx = topProspects.findIndex(p => p.lead === lead);
-    if (result.sent < maxToday && idx < topProspects.length - 1) {
-      const delayMs = IG_MIN_DELAY + Math.random() * (IG_MAX_DELAY - IG_MIN_DELAY);
-      const delaySec = Math.round(delayMs / 1000);
-      emit('dm_waiting', { message: `⏳ Prochain DM dans ${delaySec}s`, delaySec });
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+    // 2e — Pause human-like entre les DMs (mode envoi seulement)
+    if (!dryRun) {
+      const idx = topProspects.findIndex(p => p.lead === lead);
+      if (result.sent < maxToday && idx < topProspects.length - 1) {
+        const delayMs = IG_MIN_DELAY + Math.random() * (IG_MAX_DELAY - IG_MIN_DELAY);
+        const delaySec = Math.round(delayMs / 1000);
+        emit('dm_waiting', { message: `⏳ Prochain DM dans ${delaySec}s`, delaySec });
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
     }
   }
 
-  // Cleanup
-  await closeBrowser();
+  // Cleanup (seulement si on a utilisé le browser)
+  if (!dryRun) await closeBrowser();
 
   emit('complete', {
     message: `📊 Campagne terminée — ${result.sent} envoyés, ${result.failed} échoués, ${result.filtered} filtrés (Vitesse 1)`,
@@ -303,6 +323,7 @@ export async function runIGCampaignAuto(
   ville: string,
   targetLeads: number,
   onEvent?: CampaignEventCallback,
+  dryRun = false,
 ): Promise<IGCampaignResult> {
   const emit = onEvent || (() => {});
   const { searchInstagramProfiles } = await import('./ig-instagram-searcher');
@@ -385,7 +406,7 @@ export async function runIGCampaignAuto(
     }));
 
     const remaining = targetLeads - campaignResult.sent;
-    const batchResult = await runIGCampaign(leads, campaignStart, batchEmit, remaining);
+    const batchResult = await runIGCampaign(leads, campaignStart, batchEmit, remaining, dryRun);
 
     campaignResult.sent += batchResult.sent;
     campaignResult.failed += batchResult.failed;

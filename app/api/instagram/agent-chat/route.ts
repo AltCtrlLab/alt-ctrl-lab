@@ -28,10 +28,11 @@ export async function POST(request: NextRequest) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  let body: { message?: string } = {};
+  let body: { message?: string; dryRun?: boolean } = {};
   try { body = await request.json(); } catch { /* default */ }
 
   const userMessage = body.message?.trim();
+  const dryRun = body.dryRun === true;
   if (!userMessage) {
     return new Response(JSON.stringify({ error: 'message requis' }), { status: 400 });
   }
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'x-dashboard-key': DASH_KEY,
       },
-      body: JSON.stringify({ message: userMessage }),
+      body: JSON.stringify({ message: userMessage, dryRun }),
     });
     return new Response(vpsRes.body, {
       headers: {
@@ -142,6 +143,7 @@ Réponds UNIQUEMENT avec le JSON sur une ligne.`
           ville,
           targetLeads,
           (type, payload) => send(type, payload as Record<string, unknown>),
+          dryRun,
         );
 
         // ── ÉTAPE 4 : Rapport final (avec skill pour ton cohérent) ──
