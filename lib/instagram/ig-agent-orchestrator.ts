@@ -2,14 +2,13 @@ import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
 import { sendInstagramDM, type DMResult } from './dm-sender';
 import { isSessionValid, closeBrowser } from './stealth-browser';
 import { filterInstagramProfile, type IGLightProfile } from './ig-light-filter';
-import { generateVisualIcebreaker } from './ig-visual-icebreaker';
 import { createLead, updateLead } from '@/lib/db';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 const IG_MAX_DMS_PER_DAY = parseInt(process.env.IG_MAX_DMS_PER_DAY || '10', 10);
 const IG_WARMUP_DAYS = parseInt(process.env.IG_WARMUP_DAYS || '7', 10);
-const IG_MIN_DELAY = parseInt(process.env.IG_MIN_DELAY_BETWEEN_DMS || '180000', 10); // 3 min
-const IG_MAX_DELAY = parseInt(process.env.IG_MAX_DELAY_BETWEEN_DMS || '480000', 10); // 8 min
+const IG_MIN_DELAY = parseInt(process.env.IG_MIN_DELAY_BETWEEN_DMS || '90000', 10);  // 1.5 min
+const IG_MAX_DELAY = parseInt(process.env.IG_MAX_DELAY_BETWEEN_DMS || '140000', 10); // 2.3 min
 const FOLLOWUP_DELAY_MS = 48 * 60 * 60 * 1000; // 48h
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -28,7 +27,6 @@ export interface IGCampaignDetail {
   prospectScore: number;
   dm: DMResult | null;
   message: string | null;
-  icebreaker: string | null;
   dbLeadId: string | null;
   error?: string;
 }
@@ -58,17 +56,22 @@ function randomDelay(min: number, max: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, delay));
 }
 
-// ─── DM Generation (with Visual Icebreaker) ─────────────────────────────────
+// ─── DM Generation ──────────────────────────────────────────────────────────
 
-async function generateDMWithIcebreaker(
+const FALLBACK_DM = (niche: string) =>
+  `Bonjour,\n\nLa cohérence de votre travail de ${niche} se distingue nettement du bruit d'Instagram, et ce type de direction artistique mérite un écrin digital à la hauteur. Avez-vous prévu de prolonger l'expérience de votre marque en dehors des réseaux, ou est-ce un choix stratégique d'y concentrer toute votre visibilité ?\n\nAu plaisir de vous lire,\nL'équipe AltCtrl.Lab`;
+
+async function generateDM(
   lead: IGLead,
-  icebreaker: string,
-): Promise<string | null> {
-  const FALLBACK_DM = (niche: string) =>
-    `Bonjour,\n\nLa cohérence de votre travail de ${niche} se distingue nettement du bruit d'Instagram, et ce type de direction artistique mérite un écrin digital à la hauteur. Avez-vous prévu de prolonger l'expérience de votre marque en dehors des réseaux, ou est-ce un choix stratégique d'y concentrer toute votre visibilité ?\n\nAu plaisir de vous lire,\nL'équipe AltCtrl.Lab`;
+  profile: IGLightProfile,
+): Promise<string> {
+  const followersDesc = profile.followers >= 1000
+    ? `${(profile.followers / 1000).toFixed(1)}K followers`
+    : `${profile.followers} followers`;
 
-  const isGenericFallback = icebreaker.includes('👏') || icebreaker.includes('vraiment qualitatif') || icebreaker.length < 20;
-  const effectiveIcebreaker = isGenericFallback ? '' : icebreaker;
+  const bioLine = profile.bio ? `Bio : "${profile.bio}"` : 'Aucune bio';
+  const nameLine = profile.fullName && profile.fullName !== lead.instagramHandle
+    ? `Nom : ${profile.fullName}` : '';
 
   const prompt = `Tu es un Directeur Artistique et Stratège Digital de haut niveau. Tu rédiges des DMs Instagram qui convertissent.
 
@@ -77,14 +80,16 @@ RÈGLE ABSOLUE : Tu génères TOUJOURS le DM. Tu ne poses JAMAIS de questions. T
 Structure du message — un seul paragraphe fluide, 3 phrases max :
 
 1. "Bonjour." (point final, sobre)
-2. Phrases 1+2 fusionnées : pars de cette observation sur leur profil — "${effectiveIcebreaker}" — et lie immédiatement cette qualité au fait qu'Instagram est trop limité pour un travail de ce calibre. Souligne le potentiel inexploité, pas le manque.
+2. Phrases 1+2 fusionnées : à partir des informations du profil ci-dessous, observe ce qui distingue leur travail, et lie immédiatement cette qualité au fait qu'Instagram est trop limité pour un travail de ce calibre. Souligne le potentiel inexploité, pas le manque.
 3. Une question ouverte sur leur vision digitale à long terme.
 4. Signature exacte (aucune variation) :
 Au plaisir de vous lire,
 L'équipe AltCtrl.Lab
 
 PROFIL :
-- @${lead.instagramHandle} · ${lead.followersCount || '—'} followers · secteur : ${lead.niche}
+- @${lead.instagramHandle} · ${followersDesc} · secteur : ${lead.niche}
+${nameLine ? `- ${nameLine}` : ''}
+- ${bioLine}
 
 EXEMPLE (secteur coiffure) :
 Bonjour. La maîtrise des reflets sur vos balayages révèle une signature visuelle aboutie qui mériterait d'exister dans un espace qui vous est propre, loin du bruit des réseaux. Avez-vous prévu de créer une expérience web dédiée pour prolonger ce que vous construisez ici, ou est-ce un choix stratégique de rester exclusivement sur Instagram ?
@@ -96,9 +101,6 @@ CONTRAINTES : zéro emoji · vouvoiement · jamais "site web" · zéro lien · z
 
 Réponds UNIQUEMENT avec le texte du DM, prêt à coller. Rien d'autre.`;
 
-  // Icebreaker générique → fallback directement, pas besoin de l'agent
-  if (isGenericFallback) return FALLBACK_DM(lead.niche);
-
   try {
     const result = await executeOpenClawAgent('khatib', prompt, 60000);
     if (!result.success || !result.stdout.trim()) return FALLBACK_DM(lead.niche);
@@ -106,8 +108,7 @@ Réponds UNIQUEMENT avec le texte du DM, prêt à coller. Rien d'autre.`;
     let dm = result.stdout.trim();
     if (dm.startsWith('"') && dm.endsWith('"')) dm = dm.slice(1, -1);
     if (dm.startsWith('«') && dm.endsWith('»')) dm = dm.slice(1, -1).trim();
-    // Vérifier que l'agent n'a pas demandé des infos au lieu de générer
-    const asksForInfo = dm.includes('fournissez') || dm.includes('avez-vous des') || dm.includes('pourriez-vous') || dm.includes('capture d\'écran') || dm.includes('j\'ai besoin');
+    const asksForInfo = dm.includes('fournissez') || dm.includes('avez-vous des') || dm.includes('pourriez-vous') || dm.includes("capture d'écran") || dm.includes("j'ai besoin");
     if (asksForInfo) return FALLBACK_DM(lead.niche);
     return dm;
   } catch {
@@ -169,16 +170,27 @@ export async function runIGCampaign(
 
     if (!filterResult.passed || !filterResult.profile) {
       result.filtered++;
-      emit('skip', { message: `   ❌ @${lead.instagramHandle} — ${filterResult.reason}` });
+      emit('skip', {
+        message: `❌ @${lead.instagramHandle} — ${filterResult.reason}`,
+        handle: lead.instagramHandle,
+        reason: filterResult.reason,
+        passed: false,
+      });
       result.details.push({
         lead, profile: filterResult.profile, prospectScore: filterResult.score,
-        dm: null, message: null, icebreaker: null, dbLeadId: null,
+        dm: null, message: null, dbLeadId: null,
         error: filterResult.reason,
       });
       continue;
     }
 
-    emit('qualify', { message: `   ✅ @${lead.instagramHandle} — ${filterResult.reason} (${filterResult.profile.followers} followers)` });
+    emit('qualify', {
+      message: `✅ @${lead.instagramHandle} — ${filterResult.reason}`,
+      handle: lead.instagramHandle,
+      score: filterResult.score,
+      followers: filterResult.profile.followers,
+      passed: true,
+    });
     qualifiedLeads.push({ lead, profile: filterResult.profile, score: filterResult.score });
   }
 
@@ -215,28 +227,13 @@ export async function runIGCampaign(
 
     emit('scan', { message: `🎯 ${lead.name} (@${lead.instagramHandle}) — score ${score}/100` });
 
-    // 2a — Visual Icebreaker
-    emit('info', { message: `   👁️ Visual Icebreaker — analyse du profil...` });
-    const icebreaker = await generateVisualIcebreaker(lead.instagramHandle, lead.name, lead.niche);
-    emit('info', { message: `   💡 Icebreaker: "${icebreaker.icebreaker}"` });
+    // 2a — Générer le DM depuis les données du profil
+    emit('info', { message: `🤖 Génération du DM (Agent khatib)...` });
+    const dm = await generateDM(lead, profile);
+    emit('info', { message: `✍️ DM généré (${dm.length} chars)` });
 
-    // 2b — Générer le DM complet (icebreaker + pitch subtil)
-    emit('info', { message: `   🤖 Génération du DM par Agent khatib...` });
-    const dm = await generateDMWithIcebreaker(lead, icebreaker.icebreaker);
-    if (!dm) {
-      emit('warn', { message: `   ⚠️ Échec génération DM pour ${lead.name}` });
-      result.failed++;
-      result.details.push({
-        lead, profile, prospectScore: score,
-        dm: null, message: null, icebreaker: icebreaker.icebreaker, dbLeadId: null,
-        error: 'Agent khatib failed',
-      });
-      continue;
-    }
-    emit('info', { message: `   ✍️ DM généré (${dm.length} chars)` });
-
-    // 2c — Envoyer le DM via Puppeteer Stealth
-    emit('send', { message: `   📨 Envoi du DM à @${lead.instagramHandle}...` });
+    // 2b — Envoyer le DM via Puppeteer Stealth
+    emit('send', { message: `📨 Envoi du DM à @${lead.instagramHandle}...`, handle: lead.instagramHandle });
     const dmResult = await sendInstagramDM(lead.profileUrl, dm);
 
     const now = Date.now();
@@ -264,8 +261,6 @@ export async function runIGCampaign(
             `Bio: ${profile.bio || '—'}`,
             `Niche: ${lead.niche}`,
             `Adresse: ${lead.address || '—'}`,
-            `Icebreaker: ${icebreaker.icebreaker}`,
-            `Observations: ${icebreaker.observations}`,
             ``,
             `--- DM ENVOYÉ ---`,
             `Date: ${new Date(now).toLocaleString('fr-FR')}`,
@@ -289,21 +284,28 @@ export async function runIGCampaign(
       }
 
       emit('done_lead', {
-        message: `   ✅ DM envoyé à @${lead.instagramHandle} (${Math.round(dmResult.durationMs / 1000)}s) — ${result.sent}/${maxToday} — relance auto dans 48h`,
+        message: `✅ DM envoyé à @${lead.instagramHandle} — ${result.sent}/${maxToday}`,
+        handle: lead.instagramHandle,
         current: result.sent,
         total: maxToday,
+        status: 'sent',
       });
 
       result.details.push({
         lead, profile, prospectScore: score,
-        dm: dmResult, message: dm, icebreaker: icebreaker.icebreaker, dbLeadId,
+        dm: dmResult, message: dm, dbLeadId,
       });
     } else {
       result.failed++;
-      emit('warn', { message: `   ❌ Échec envoi : ${dmResult.error}` });
+      emit('dm_error', {
+        message: `❌ Échec envoi @${lead.instagramHandle} : ${dmResult.error}`,
+        handle: lead.instagramHandle,
+        error: dmResult.error,
+        status: 'failed',
+      });
       result.details.push({
         lead, profile, prospectScore: score,
-        dm: dmResult, message: dm, icebreaker: icebreaker.icebreaker, dbLeadId: null,
+        dm: dmResult, message: dm, dbLeadId: null,
         error: dmResult.error,
       });
 
@@ -316,9 +318,10 @@ export async function runIGCampaign(
     // 2e — Pause human-like entre les DMs
     const idx = topProspects.findIndex(p => p.lead === lead);
     if (result.sent < maxToday && idx < topProspects.length - 1) {
-      const delaySec = Math.round((IG_MIN_DELAY + Math.random() * (IG_MAX_DELAY - IG_MIN_DELAY)) / 1000);
-      emit('info', { message: `   ⏳ Pause ${delaySec}s avant le prochain DM...` });
-      await randomDelay(IG_MIN_DELAY, IG_MAX_DELAY);
+      const delayMs = IG_MIN_DELAY + Math.random() * (IG_MAX_DELAY - IG_MIN_DELAY);
+      const delaySec = Math.round(delayMs / 1000);
+      emit('dm_waiting', { message: `⏳ Prochain DM dans ${delaySec}s`, delaySec });
+      await new Promise(resolve => setTimeout(resolve, delayMs));
     }
   }
 
@@ -399,7 +402,7 @@ export async function runIGCampaignAuto(
     if (campaignResult.sent >= targetLeads) break;
 
     const query = searchVille ? `${searchNiche} ${searchVille}` : searchNiche;
-    emit('info', { message: `🔍 Recherche : "${query}" (objectif : ${campaignResult.sent}/${targetLeads} atteint)` });
+    emit('search', { message: `🔍 Recherche : "${query}"`, query, phase: 'searching' });
 
     let handles: string[] = [];
     try {
@@ -421,7 +424,7 @@ export async function runIGCampaignAuto(
       continue;
     }
 
-    emit('info', { message: `   ${handles.length} nouveaux profils → qualification en cours...` });
+    emit('search_result', { message: `${handles.length} profils trouvés`, query, count: handles.length });
 
     const leads: IGLead[] = handles.map(handle => ({
       profileUrl: `https://www.instagram.com/${handle}/`,

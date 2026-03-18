@@ -193,13 +193,22 @@ export async function sendInstagramDM(profileUrl: string, message: string): Prom
     }
 
     // 4 — Attendre le chargement de la conversation DM
-    await humanDelay(2000, 4000);
+    await humanDelay(4000, 6000);
+
+    // Attendre qu'un champ de saisie apparaisse (Instagram = Lexical editor ou textarea)
+    await page.waitForSelector(
+      'div[role="textbox"], textarea[placeholder*="essage"], p[data-lexical-paragraph="true"]',
+      { timeout: 8000 }
+    ).catch(() => {});
 
     // Chercher la zone de saisie du message
     const textareaSelectors = [
+      'p[data-lexical-paragraph="true"]',       // Instagram Lexical editor (2024+)
+      'div[data-lexical-editor="true"]',         // Lexical editor container
+      'div[role="textbox"][contenteditable="true"]',
+      'div[contenteditable="true"][role="textbox"]',
       'textarea[placeholder*="message"]',
       'textarea[placeholder*="Message"]',
-      'div[role="textbox"][contenteditable="true"]',
       'textarea[aria-label*="message"]',
       'textarea[aria-label*="Message"]',
     ];

@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { N8nLivePanel } from '@/components/automations/N8nLivePanel';
 import { LeadDetailModal } from '@/components/leads/LeadDetailModal';
+import { IGCampaignTimeline, type IGTimelineData } from '@/components/instagram/IGCampaignTimeline';
 
 interface Lead {
   id: string;
@@ -275,7 +276,7 @@ export default function ProspectionPage() {
   const [igNiche, setIgNiche] = useState('');
   const [igVille, setIgVille] = useState('');
   const [igCount, setIgCount] = useState(5);
-  const [igLogs, setIgLogs] = useState<{ text: string; type: string }[]>([]);
+  const [igTimeline, setIgTimeline] = useState<IGTimelineData>({ phase: 'idle', profiles: [], dms: [], waitingSec: 0 });
   const [igRunning, setIgRunning] = useState(false);
   const igLogsEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -322,12 +323,12 @@ export default function ProspectionPage() {
 
   useEffect(() => {
     igLogsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [igLogs]);
+  }, [igTimeline.profiles.length, igTimeline.dms.length]);
 
   async function launchIgCampaign() {
     if (!igNiche.trim() || igRunning) return;
     const msg = `Démarche ${igCount} ${igNiche.trim()}${igVille.trim() ? ` à ${igVille.trim()}` : ' en France'}`;
-    setIgLogs([]);
+    setIgTimeline({ phase: 'idle', profiles: [], dms: [], waitingSec: 0 });
     setIgRunning(true);
     try {
       const res = await fetch('/api/instagram/agent-chat', {
@@ -348,23 +349,37 @@ export default function ProspectionPage() {
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
           try {
-            const event = JSON.parse(line.slice(6));
-            const t = event.type;
-            if (t === 'thinking') setIgLogs(p => [...p, { text: '🧠 Analyse de la mission...', type: 'info' }]);
-            else if (t === 'start_campaign') setIgLogs(p => [...p, { text: '🚀 Campagne lancée', type: 'info' }]);
-            else if (t === 'plan' && event.niche) setIgLogs(p => [...p, { text: `📋 ${event.niche}${event.ville ? ` · ${event.ville}` : ''} · objectif ${event.targetLeads} DMs`, type: 'plan' }]);
-            else if (t === 'info') setIgLogs(p => [...p, { text: event.message, type: 'info' }]);
-            else if (t === 'qualify') setIgLogs(p => [...p, { text: event.message, type: 'qualify' }]);
-            else if (t === 'skip') setIgLogs(p => [...p, { text: event.message, type: 'skip' }]);
-            else if (t === 'done_lead') { setIgLogs(p => [...p, { text: event.message, type: 'done' }]); fetchLeads(); }
-            else if (t === 'complete') { setIgLogs(p => [...p, { text: event.message, type: event.message?.includes('✅') ? 'done' : 'warn' }]); fetchLeads(); }
-            else if (t === 'warn') setIgLogs(p => [...p, { text: event.message, type: 'warn' }]);
-            else if (['error', 'fatal'].includes(t)) setIgLogs(p => [...p, { text: event.message, type: 'error' }]);
+            const ev = JSON.parse(line.slice(6));
+            const t = ev.type;
+            if (t === 'plan' && ev.niche) {
+              setIgTimeline(p => ({ ...p, phase: 'searching', plan: { niche: ev.niche, ville: ev.ville || '', target: ev.targetLeads || igCount } }));
+            } else if (t === 'search') {
+              setIgTimeline(p => ({ ...p, phase: 'searching', searchQuery: ev.query }));
+            } else if (t === 'search_result') {
+              setIgTimeline(p => ({ ...p, phase: 'qualifying', searchQuery: ev.query || p.searchQuery, searchCount: ev.count }));
+            } else if (t === 'qualify') {
+              setIgTimeline(p => ({ ...p, profiles: [...p.profiles, { handle: ev.handle, score: ev.score, followers: ev.followers, reason: '', passed: true }] }));
+            } else if (t === 'skip') {
+              setIgTimeline(p => ({ ...p, profiles: [...p.profiles, { handle: ev.handle, reason: ev.reason || '', passed: false }] }));
+            } else if (t === 'send') {
+              setIgTimeline(p => ({ ...p, phase: 'sending', dms: [...p.dms, { handle: ev.handle || '', status: 'sending' }], waitingSec: 0 }));
+            } else if (t === 'done_lead') {
+              setIgTimeline(p => ({ ...p, dms: p.dms.map((d, i) => i === p.dms.length - 1 && d.status === 'sending' ? { ...d, status: 'sent', sentAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) } : d), waitingSec: 0 }));
+              fetchLeads();
+            } else if (t === 'dm_error') {
+              setIgTimeline(p => ({ ...p, dms: p.dms.map((d, i) => i === p.dms.length - 1 && d.status === 'sending' ? { ...d, status: 'failed', error: ev.error } : d) }));
+            } else if (t === 'dm_waiting') {
+              setIgTimeline(p => ({ ...p, waitingSec: ev.delaySec || 0 }));
+            } else if (t === 'complete') {
+              const r = ev.results;
+              setIgTimeline(p => ({ ...p, phase: 'complete', waitingSec: 0, summary: { sent: r?.sent ?? 0, failed: r?.failed ?? 0, filtered: r?.filtered ?? 0 } }));
+              fetchLeads();
+            }
           } catch { /* ignore */ }
         }
       }
     } catch (err: any) {
-      setIgLogs(p => [...p, { text: `❌ Erreur: ${err.message}`, type: 'error' }]);
+      setIgTimeline(p => ({ ...p, phase: 'complete', waitingSec: 0 }));
     } finally {
       setIgRunning(false);
     }
@@ -1421,34 +1436,24 @@ export default function ProspectionPage() {
               </button>
             </div>
 
-            {/* Live log */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1.5">
-              {igLogs.length === 0 && !igRunning && (
-                <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
-                  <MessageCircle className="w-8 h-8 text-zinc-700" />
-                  <p className="text-xs text-zinc-600">Configure ta campagne ci-dessus et lance.</p>
+            {/* Timeline */}
+            <div className="flex-1 overflow-y-auto px-3 py-2">
+              {igTimeline.phase === 'idle' && !igRunning ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-8">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/10 flex items-center justify-center">
+                    <Instagram className="w-6 h-6 text-pink-500/40" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-zinc-500">Timeline de campagne</p>
+                    <p className="text-[11px] text-zinc-700 mt-0.5">Configure et lance pour voir les résultats ici.</p>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <IGCampaignTimeline data={igTimeline} running={igRunning} />
+                  <div ref={igLogsEndRef} />
+                </>
               )}
-              {igLogs.map((log, i) => (
-                <div key={i} className={`text-xs px-3 py-1.5 rounded-lg font-mono ${
-                  log.type === 'error' ? 'bg-rose-500/10 text-rose-400' :
-                  log.type === 'done' ? 'bg-emerald-500/10 text-emerald-400' :
-                  log.type === 'qualify' ? 'bg-green-500/10 text-green-400' :
-                  log.type === 'skip' ? 'bg-zinc-800/50 text-zinc-500' :
-                  log.type === 'warn' ? 'bg-amber-500/10 text-amber-400' :
-                  log.type === 'plan' ? 'bg-purple-500/10 text-purple-300' :
-                  'text-zinc-400'
-                }`}>
-                  {log.text}
-                </div>
-              ))}
-              {igRunning && (
-                <div className="flex items-center gap-2 px-3 py-1.5">
-                  <Loader2 className="w-3 h-3 animate-spin text-pink-400" />
-                  <span className="text-xs text-zinc-500">En cours...</span>
-                </div>
-              )}
-              <div ref={igLogsEndRef} />
             </div>
           </motion.div>
         )}
