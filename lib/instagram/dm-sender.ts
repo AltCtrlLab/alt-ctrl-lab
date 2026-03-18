@@ -227,8 +227,10 @@ export async function sendInstagramDM(profileUrl: string, message: string): Prom
     }
 
     // 5 — Taper le message (human-like, caractère par caractère)
+    // Les \n envoient le message sur Lexical — on normalise en une ligne plate
+    const flatMessage = message.replace(/\n+/g, ' ').trim();
     await humanDelay(500, 1500);
-    await humanType(page, textareaSelector, message);
+    await humanType(page, textareaSelector, flatMessage);
 
     // 6 — Pause avant envoi (comme un humain qui relit)
     await humanDelay(800, 2500);

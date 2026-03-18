@@ -1,4 +1,3 @@
-import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
 import { sendInstagramDM, type DMResult } from './dm-sender';
 import { isSessionValid, closeBrowser } from './stealth-browser';
 import { filterInstagramProfile, type IGLightProfile } from './ig-light-filter';
@@ -63,57 +62,9 @@ const FALLBACK_DM = (niche: string) =>
 
 async function generateDM(
   lead: IGLead,
-  profile: IGLightProfile,
+  _profile: IGLightProfile,
 ): Promise<string> {
-  const followersDesc = profile.followers >= 1000
-    ? `${(profile.followers / 1000).toFixed(1)}K followers`
-    : `${profile.followers} followers`;
-
-  const bioLine = profile.bio ? `Bio : "${profile.bio}"` : 'Aucune bio';
-  const nameLine = profile.fullName && profile.fullName !== lead.instagramHandle
-    ? `Nom : ${profile.fullName}` : '';
-
-  const prompt = `Tu es un Directeur Artistique et Stratège Digital de haut niveau. Tu rédiges des DMs Instagram qui convertissent.
-
-RÈGLE ABSOLUE : Tu génères TOUJOURS le DM. Tu ne poses JAMAIS de questions. Tu ne demandes JAMAIS plus d'informations. Tu travailles avec ce que tu as.
-
-Structure du message — un seul paragraphe fluide, 3 phrases max :
-
-1. "Bonjour." (point final, sobre)
-2. Phrases 1+2 fusionnées : à partir des informations du profil ci-dessous, observe ce qui distingue leur travail, et lie immédiatement cette qualité au fait qu'Instagram est trop limité pour un travail de ce calibre. Souligne le potentiel inexploité, pas le manque.
-3. Une question ouverte sur leur vision digitale à long terme.
-4. Signature exacte (aucune variation) :
-Au plaisir de vous lire,
-L'équipe AltCtrl.Lab
-
-PROFIL :
-- @${lead.instagramHandle} · ${followersDesc} · secteur : ${lead.niche}
-${nameLine ? `- ${nameLine}` : ''}
-- ${bioLine}
-
-EXEMPLE (secteur coiffure) :
-Bonjour. La maîtrise des reflets sur vos balayages révèle une signature visuelle aboutie qui mériterait d'exister dans un espace qui vous est propre, loin du bruit des réseaux. Avez-vous prévu de créer une expérience web dédiée pour prolonger ce que vous construisez ici, ou est-ce un choix stratégique de rester exclusivement sur Instagram ?
-
-Au plaisir de vous lire,
-L'équipe AltCtrl.Lab
-
-CONTRAINTES : zéro emoji · vouvoiement · jamais "site web" · zéro lien · zéro point d'exclamation · vocabulaire : écrin, sublimer, prolonger, indépendance digitale
-
-Réponds UNIQUEMENT avec le texte du DM, prêt à coller. Rien d'autre.`;
-
-  try {
-    const result = await executeOpenClawAgent('khatib', prompt, 60000);
-    if (!result.success || !result.stdout.trim()) return FALLBACK_DM(lead.niche);
-
-    let dm = result.stdout.trim();
-    if (dm.startsWith('"') && dm.endsWith('"')) dm = dm.slice(1, -1);
-    if (dm.startsWith('«') && dm.endsWith('»')) dm = dm.slice(1, -1).trim();
-    const asksForInfo = dm.includes('fournissez') || dm.includes('avez-vous des') || dm.includes('pourriez-vous') || dm.includes("capture d'écran") || dm.includes("j'ai besoin");
-    if (asksForInfo) return FALLBACK_DM(lead.niche);
-    return dm;
-  } catch {
-    return FALLBACK_DM(lead.niche);
-  }
+  return FALLBACK_DM(lead.niche);
 }
 
 // ─── Followup message ───────────────────────────────────────────────────────
