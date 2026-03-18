@@ -496,6 +496,24 @@ export function getDb() {
       `);
     } catch (_) { /* already exists */ }
 
+    // Migration: business_insights table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS business_insights (
+          id TEXT PRIMARY KEY,
+          topic TEXT NOT NULL,
+          source TEXT,
+          insight TEXT NOT NULL,
+          recommendation TEXT,
+          priority INTEGER DEFAULT 5,
+          applied INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_bi_topic ON business_insights(topic);
+        CREATE INDEX IF NOT EXISTS idx_bi_priority ON business_insights(priority DESC);
+      `);
+    } catch (_) { /* already exists */ }
+
     // Seed n8n workflow IDs
     const seedWorkflows = [
       { name: "Cal.com → Lead", n8nId: "Abf2sv4YFM6MDzjf", status: "Actif", desc: "Booking Cal.com → création lead cockpit" },

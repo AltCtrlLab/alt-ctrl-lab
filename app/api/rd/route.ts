@@ -368,11 +368,31 @@ export async function POST(request: NextRequest) {
         }, { headers: corsHeaders });
       }
       
+      case 'business-intel': {
+        const { scoutBusinessIntelligence, getInsightsByTopic, markInsightApplied, AVAILABLE_TOPICS } = await import('@/lib/ai/agents/khabir-business');
+
+        if (payload.action === 'get') {
+          const insights = getInsightsByTopic(payload.topic);
+          return NextResponse.json({ success: true, data: { insights } }, { headers: corsHeaders });
+        }
+        if (payload.action === 'apply' && payload.id) {
+          markInsightApplied(payload.id);
+          return NextResponse.json({ success: true }, { headers: corsHeaders });
+        }
+        if (payload.action === 'topics') {
+          return NextResponse.json({ success: true, data: { topics: AVAILABLE_TOPICS } }, { headers: corsHeaders });
+        }
+        // Default: scout
+        const topic = payload.topic || 'instagram-acquisition';
+        const result = await scoutBusinessIntelligence(topic, payload.limit || 5);
+        return NextResponse.json({ success: result.success, data: result }, { headers: corsHeaders });
+      }
+
       default:
         return NextResponse.json({
           success: false,
           error: `Unknown action: ${action}`,
-          validActions: ['scout', 'elevate', 'analyze', 'enrich-vault', 'run-pipeline', 'approve-innovation', 'reject-innovation'],
+          validActions: ['scout', 'elevate', 'analyze', 'enrich-vault', 'run-pipeline', 'approve-innovation', 'reject-innovation', 'business-intel'],
         }, { status: 400, headers: corsHeaders });
     }
   } catch (error) {
