@@ -17,6 +17,9 @@ import { getDb } from '@/lib/db';
 import { discoveries, innovations, detectedPatterns } from '@/lib/db/schema_rd';
 import { eq, desc, sql } from 'drizzle-orm';
 
+const VPS_BASE_URL = process.env.VPS_BASE_URL || '';
+const DASH_KEY = process.env.CRON_SECRET || 'altctrl-cron-secret';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
@@ -369,6 +372,17 @@ export async function POST(request: NextRequest) {
       }
       
       case 'business-intel': {
+        // Proxy vers VPS si Railway (openclaw n'est pas installé sur Railway)
+        if (VPS_BASE_URL && payload.action !== 'get' && payload.action !== 'apply' && payload.action !== 'topics') {
+          const vpsRes = await fetch(`${VPS_BASE_URL}/api/rd`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-dashboard-key': DASH_KEY },
+            body: JSON.stringify({ action: 'business-intel', payload }),
+          });
+          const data = await vpsRes.json();
+          return NextResponse.json(data, { headers: corsHeaders });
+        }
+
         const { scoutBusinessIntelligence, getInsightsByTopic, markInsightApplied, AVAILABLE_TOPICS } = await import('@/lib/ai/agents/khabir-business');
 
         if (payload.action === 'get') {

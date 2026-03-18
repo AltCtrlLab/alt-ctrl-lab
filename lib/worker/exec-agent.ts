@@ -116,6 +116,7 @@ export async function executeOpenClawAgent(
     if (IS_WINDOWS) {
       bashCmd = [
         `export PATH=/home/user/.npm-global/bin:/usr/local/bin:/usr/bin:/bin`,
+        `&& mkdir -p ${OPENCLAW_WORKSPACE}`,
         `&& cd ${OPENCLAW_WORKSPACE}`,
         `&& ${OPENCLAW_BIN} agent`,
         `--agent ${resolvedAgent}`,
@@ -126,6 +127,7 @@ export async function executeOpenClawAgent(
     } else {
       bashCmd = [
         `export PATH=/usr/local/bin:/usr/bin:/bin`,
+        `&& mkdir -p ${OPENCLAW_WORKSPACE}`,
         `&& cd ${OPENCLAW_WORKSPACE}`,
         `&& ${OPENCLAW_BIN} agent`,
         `--agent ${resolvedAgent}`,
