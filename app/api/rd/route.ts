@@ -95,19 +95,28 @@ export async function GET(request: NextRequest) {
       }
       
       case 'innovations': {
-        const status = searchParams.get('status') || 'proposed';
-        const limit = parseInt(searchParams.get('limit') || '20');
-        
-        const results = await db.select()
-          .from(innovations)
-          .where(eq(innovations.status, status as any))
-          .orderBy(desc(innovations.opportunityScore))
-          .limit(limit);
-        
+        const status = searchParams.get('status') || 'all';
+        const limit = parseInt(searchParams.get('limit') || '50');
+
+        const results = status === 'all'
+          ? await db.select().from(innovations).orderBy(desc(innovations.opportunityScore)).limit(limit)
+          : await db.select().from(innovations).where(eq(innovations.status, status as any)).orderBy(desc(innovations.opportunityScore)).limit(limit);
+
         return NextResponse.json({
           success: true,
           data: { innovations: results },
         }, { headers: corsHeaders });
+      }
+
+      case 'insights': {
+        const topic = searchParams.get('topic') || undefined;
+        try {
+          const { getInsightsByTopic } = await import('@/lib/ai/agents/khabir-business');
+          const insights = getInsightsByTopic(topic);
+          return NextResponse.json({ success: true, data: { insights } }, { headers: corsHeaders });
+        } catch {
+          return NextResponse.json({ success: true, data: { insights: [] } }, { headers: corsHeaders });
+        }
       }
       
       case 'patterns': {
