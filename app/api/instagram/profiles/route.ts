@@ -23,6 +23,20 @@ export async function GET(_req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const handle = req.nextUrl.searchParams.get('handle');
+    if (!handle) return NextResponse.json({ success: false, error: 'Missing handle' }, { status: 400 });
+
+    const rawDb = (getDb() as any).$client;
+    rawDb.prepare(`DELETE FROM ig_profiles_cache WHERE handle = ?`).run(handle.toLowerCase());
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
 export async function PATCH(req: NextRequest) {
   try {
     const { id, status } = await req.json();

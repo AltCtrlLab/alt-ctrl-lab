@@ -281,6 +281,20 @@ export default function ProspectionPage() {
   const [igDryRun, setIgDryRun] = useState(true);
   const igLogsEndRef = useRef<HTMLDivElement | null>(null);
 
+  // IG leads panels
+  const [igLeads, setIgLeads] = useState<{ dmed: any[]; cache: any[] }>({ dmed: [], cache: [] });
+  const [igLeadsTab, setIgLeadsTab] = useState<'dmed' | 'qualified' | 'rejected'>('dmed');
+
+  const fetchIGLeads = useCallback(async () => {
+    try {
+      const res = await fetch('/api/instagram/profiles');
+      const data = await res.json();
+      if (data.success) setIgLeads({ dmed: data.dmed || [], cache: data.cache || [] });
+    } catch {}
+  }, []);
+
+  useEffect(() => { fetchIGLeads(); }, [fetchIGLeads]);
+
   const fetchLeads = useCallback(async () => {
     try {
       // Fetch all prospection sources (GMB, Instagram, LinkedIn)
@@ -368,7 +382,7 @@ export default function ProspectionPage() {
               setIgTimeline(p => ({ ...p, phase: 'sending', dms: [...p.dms, { handle: ev.handle || '', status: 'sending' }], waitingSec: 0 }));
             } else if (t === 'done_lead') {
               setIgTimeline(p => ({ ...p, dms: p.dms.map((d, i) => i === p.dms.length - 1 && d.status === 'sending' ? { ...d, status: 'sent', sentAt: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) } : d), waitingSec: 0 }));
-              fetchLeads();
+              fetchLeads(); fetchIGLeads();
             } else if (t === 'dm_error') {
               setIgTimeline(p => ({ ...p, dms: p.dms.map((d, i) => i === p.dms.length - 1 && d.status === 'sending' ? { ...d, status: 'failed', error: ev.error } : d) }));
             } else if (t === 'dm_waiting') {
@@ -376,7 +390,7 @@ export default function ProspectionPage() {
             } else if (t === 'complete') {
               const r = ev.results;
               setIgTimeline(p => ({ ...p, phase: 'complete', waitingSec: 0, summary: { sent: r?.sent ?? 0, failed: r?.failed ?? 0, filtered: r?.filtered ?? 0 } }));
-              fetchLeads();
+              fetchLeads(); fetchIGLeads();
             }
           } catch { /* ignore */ }
         }
@@ -617,7 +631,7 @@ export default function ProspectionPage() {
             return (
               <button
                 key={ch.id}
-                onClick={() => setChannel(ch.id)}
+                onClick={() => { setChannel(ch.id); setConfigOpen(true); }}
                 className={`relative flex items-center gap-3 p-4 rounded-2xl border transition-all duration-200 ${
                   active
                     ? `${ch.bg} ${ch.border} shadow-[0_0_24px_rgba(0,0,0,0.3)]`
@@ -656,6 +670,21 @@ export default function ProspectionPage() {
             liveLog={liveLog}
             channel={channel}
           />
+        )}
+
+        {/* Instagram Campaign Timeline — au-dessus du config panel */}
+        {channel === 'instagram' && (igRunning || igTimeline.phase !== 'idle') && (
+          <div className="rounded-2xl border border-pink-500/20 bg-gradient-to-br from-zinc-900/80 to-zinc-900/50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-zinc-800/50 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
+              <span className="text-xs font-semibold text-zinc-200">Campagne Instagram en cours</span>
+              {igRunning && <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin ml-auto" />}
+            </div>
+            <div className="p-3">
+              <IGCampaignTimeline data={igTimeline} running={igRunning} />
+              <div ref={igLogsEndRef} />
+            </div>
+          </div>
         )}
 
         {/* Config panel */}
@@ -959,21 +988,6 @@ export default function ProspectionPage() {
           )}
         </AnimatePresence>
 
-        {/* Instagram Campaign Timeline — inline (visible quand campagne IG active ou terminée) */}
-        {channel === 'instagram' && (igRunning || igTimeline.phase !== 'idle') && (
-          <div className="rounded-2xl border border-pink-500/20 bg-gradient-to-br from-zinc-900/80 to-zinc-900/50 overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-800/50 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
-              <span className="text-xs font-semibold text-zinc-200">Campagne Instagram en cours</span>
-              {igRunning && <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin ml-auto" />}
-            </div>
-            <div className="p-3">
-              <IGCampaignTimeline data={igTimeline} running={igRunning} />
-              <div ref={igLogsEndRef} />
-            </div>
-          </div>
-        )}
-
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
@@ -1053,8 +1067,143 @@ export default function ProspectionPage() {
           </div>
         </div>
 
+        {/* IG Leads Panel — visible uniquement quand canal Instagram */}
+        {activeTab === 'campagne' && channel === 'instagram' && (
+        <div className="rounded-xl border border-pink-500/20 bg-zinc-900/50">
+          <div className="px-4 py-3 border-b border-zinc-800/50 flex items-center gap-2">
+            <Instagram className="w-4 h-4 text-pink-400" />
+            <span className="text-sm font-semibold text-zinc-100">Leads Instagram</span>
+            <div className="ml-auto flex items-center gap-1">
+              {(['dmed', 'qualified', 'rejected'] as const).map(tab => {
+                const count = tab === 'dmed' ? igLeads.dmed.length
+                  : tab === 'qualified' ? igLeads.cache.filter(c => c.status === 'qualified').length
+                  : igLeads.cache.filter(c => c.status === 'rejected' || c.status === 'dm_sent').length;
+                const label = tab === 'dmed' ? 'DMs envoyés' : tab === 'qualified' ? 'Qualifiés' : 'Rejetés/DM';
+                return (
+                  <button key={tab} onClick={() => setIgLeadsTab(tab)}
+                    className={`text-xs px-2.5 py-1 rounded-full transition-colors ${igLeadsTab === tab ? 'bg-pink-500/20 text-pink-300' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                    {label} ({count})
+                  </button>
+                );
+              })}
+              <button onClick={fetchIGLeads} className="p-1 text-zinc-600 hover:text-pink-400 transition-colors ml-1" title="Actualiser">
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {igLeadsTab === 'dmed' && (
+            igLeads.dmed.length === 0 ? (
+              <div className="p-10 text-center text-zinc-600 text-sm">Aucun DM envoyé pour l&apos;instant</div>
+            ) : (
+              <div className="divide-y divide-zinc-800/30">
+                <div className="hidden sm:grid grid-cols-[1.5fr_1fr_0.7fr_0.8fr_1fr_auto] gap-3 px-4 py-2 text-xs text-zinc-600 font-medium border-b border-zinc-800/50">
+                  <span>Profil</span><span>Followers</span><span>Score</span><span>Date DM</span><span>État</span><span>Action</span>
+                </div>
+                {igLeads.dmed.map((lead: any) => (
+                  <div key={lead.id} className="grid grid-cols-[1.5fr_1fr_0.7fr_0.8fr_1fr_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors">
+                    <a href={`https://instagram.com/${lead.ig_handle}`} target="_blank" rel="noopener noreferrer"
+                      className="text-sm font-medium text-pink-400 hover:text-pink-300 truncate">
+                      @{lead.ig_handle}
+                    </a>
+                    <span className="text-xs text-zinc-400">{lead.ig_followers ? lead.ig_followers.toLocaleString('fr-FR') : '—'}</span>
+                    <span className="text-xs text-zinc-400">{lead.ig_prospect_score ?? '—'}/100</span>
+                    <span className="text-xs text-zinc-500">
+                      {lead.ig_dm_sent_at ? new Date(lead.ig_dm_sent_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '—'}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
+                      lead.ig_dm_state === 'WAITING_REPLY' ? 'bg-amber-500/10 text-amber-400' :
+                      lead.ig_dm_state === 'FOLLOWUP_SENT' ? 'bg-blue-500/10 text-blue-400' :
+                      lead.ig_dm_state === 'CONVERTED' ? 'bg-emerald-500/10 text-emerald-400' :
+                      'bg-zinc-800 text-zinc-500'
+                    }`}>
+                      {lead.ig_dm_state === 'WAITING_REPLY' ? 'En attente' :
+                       lead.ig_dm_state === 'FOLLOWUP_SENT' ? 'Relancé' :
+                       lead.ig_dm_state === 'CONVERTED' ? 'Converti' :
+                       lead.ig_dm_state}
+                    </span>
+                    <button onClick={() => setSelectedLead(lead)} className="p-1.5 text-zinc-600 hover:text-pink-400 transition-colors" title="Voir détails">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {igLeadsTab === 'qualified' && (
+            (() => {
+              const list = igLeads.cache.filter((c: any) => c.status === 'qualified');
+              const dmedHandles = new Set(igLeads.dmed.map((d: any) => d.ig_handle?.toLowerCase()));
+              return list.length === 0 ? (
+                <div className="p-10 text-center text-zinc-600 text-sm">Aucun profil qualifié en cache</div>
+              ) : (
+                <div className="divide-y divide-zinc-800/30">
+                  <div className="hidden sm:grid grid-cols-[1.5fr_1fr_0.6fr_1fr] gap-3 px-4 py-2 text-xs text-zinc-600 font-medium border-b border-zinc-800/50">
+                    <span>Profil</span><span>Followers</span><span>Score</span><span>Raison</span>
+                  </div>
+                  {list.map((p: any) => (
+                    <div key={p.handle} className="grid grid-cols-[1.5fr_1fr_0.6fr_1fr] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <a href={`https://instagram.com/${p.handle}`} target="_blank" rel="noopener noreferrer"
+                          className="text-sm font-medium text-emerald-400 hover:text-emerald-300 truncate">
+                          @{p.handle}
+                        </a>
+                        {dmedHandles.has(p.handle?.toLowerCase()) && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-pink-500/10 text-pink-400 shrink-0">DM ✓</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-zinc-400">{p.followers ? p.followers.toLocaleString('fr-FR') : '—'}</span>
+                      <span className="text-xs text-zinc-400">{p.score ?? '—'}/100</span>
+                      <span className="text-xs text-zinc-500 truncate">{p.reason || '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()
+          )}
+
+          {igLeadsTab === 'rejected' && (
+            (() => {
+              const list = igLeads.cache.filter((c: any) => c.status === 'rejected' || c.status === 'dm_sent');
+              return list.length === 0 ? (
+                <div className="p-10 text-center text-zinc-600 text-sm">Aucun profil rejeté en cache</div>
+              ) : (
+                <div className="divide-y divide-zinc-800/30">
+                  <div className="hidden sm:grid grid-cols-[1.5fr_0.6fr_1.5fr_auto] gap-3 px-4 py-2 text-xs text-zinc-600 font-medium border-b border-zinc-800/50">
+                    <span>Profil</span><span>Statut</span><span>Raison rejet</span><span>Action</span>
+                  </div>
+                  {list.map((p: any) => (
+                    <div key={p.handle} className="grid grid-cols-[1.5fr_0.6fr_1.5fr_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors">
+                      <a href={`https://instagram.com/${p.handle}`} target="_blank" rel="noopener noreferrer"
+                        className="text-sm font-medium text-zinc-400 hover:text-zinc-300 truncate">
+                        @{p.handle}
+                      </a>
+                      <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
+                        p.status === 'dm_sent' ? 'bg-pink-500/10 text-pink-400' : 'bg-rose-500/10 text-rose-400'
+                      }`}>
+                        {p.status === 'dm_sent' ? 'DM envoyé' : 'Rejeté'}
+                      </span>
+                      <span className="text-xs text-zinc-600 truncate">{p.reason || '—'}</span>
+                      <button
+                        onClick={async () => {
+                          await fetch(`/api/instagram/profiles?handle=${p.handle}`, { method: 'DELETE' });
+                          fetchIGLeads();
+                        }}
+                        className="p-1.5 text-zinc-600 hover:text-amber-400 transition-colors" title="Forcer réanalyse">
+                        <RefreshCw className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()
+          )}
+        </div>
+        )}
+
         {/* Leads table */}
-        {activeTab === 'campagne' && (
+        {activeTab === 'campagne' && channel !== 'instagram' && (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
           <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
             <Target className="w-4 h-4 text-orange-400" />

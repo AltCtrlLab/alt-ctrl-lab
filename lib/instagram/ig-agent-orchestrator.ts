@@ -248,6 +248,20 @@ export async function runIGCampaign(
           ig_next_action_at: now + FOLLOWUP_DELAY_MS,
           ig_prospect_score: score,
         });
+
+        // Couche 1 dédup : marquer le cache profil comme dm_sent → évite re-qualification
+        const { upsertProfileCache } = await import('@/lib/db');
+        upsertProfileCache({
+          handle: lead.instagramHandle.toLowerCase(),
+          status: 'dm_sent',
+          reason: 'DM envoyé',
+          score,
+          followers: profile.followers,
+          fullName: profile.fullName,
+          bio: profile.bio ?? undefined,
+          niche: lead.niche,
+          analyzedAt: now,
+        });
       } catch (e: any) {
         emit('warn', { message: `   ⚠️ Erreur DB: ${e.message}` });
       }
@@ -383,6 +397,19 @@ export async function runIGCampaignAuto(
   } catch { /* colonne pas encore migrée — ignorer */ }
 
   const seenHandles = new Set<string>(alreadyDmd);
+
+  // Couche 3 dédup : syncer le cache profil pour tous les handles déjà DM'd
+  // → garantit que filterInstagramProfile les rejette même si le cache est obsolète
+  if (alreadyDmd.size > 0) {
+    const { getCachedProfile: getCP, upsertProfileCache: upsertPC } = await import('@/lib/db');
+    for (const handle of alreadyDmd) {
+      const existing = getCP(handle);
+      if (!existing || existing.status === 'qualified') {
+        upsertPC({ handle, status: 'dm_sent', reason: 'DM déjà envoyé (sync)', analyzedAt: Date.now() });
+      }
+    }
+  }
+
   const campaignResult: IGCampaignResult = { sent: 0, failed: 0, skipped: 0, filtered: 0, details: [] };
   const campaignStart = new Date().toISOString();
 

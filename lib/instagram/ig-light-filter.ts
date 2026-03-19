@@ -259,6 +259,10 @@ export async function filterInstagramProfile(handle: string, niche?: string): Pr
   // ── Cache check ───────────────────────────────────────────
   const cached = getCachedProfile(handle);
   if (cached) {
+    // Couche 2 dédup : DM déjà envoyé → rejet immédiat sans ré-analyse
+    if (cached.status === 'dm_sent') {
+      return { passed: false, reason: '[Cache] DM déjà envoyé', profile: null, score: cached.score ?? 0 };
+    }
     const cachedProfile: IGLightProfile | null = cached.status === 'qualified' ? {
       handle,
       profileUrl: `https://www.instagram.com/${handle}/`,
