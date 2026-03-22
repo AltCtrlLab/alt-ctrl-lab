@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutGrid, Table2, Plus, Search } from 'lucide-react';
+import { LayoutGrid, Table2, Plus, Search, Download, RotateCcw } from 'lucide-react';
 import type { LeadSource, LeadStatus } from '@/lib/db/schema_leads';
 
 interface LeadsToolbarProps {
@@ -12,20 +12,50 @@ interface LeadsToolbarProps {
   onFilterStatus: (s: LeadStatus | '') => void;
   filterSource: LeadSource | '';
   onFilterSource: (s: LeadSource | '') => void;
+  filterDate: string;
+  onFilterDate: (v: string) => void;
+  filterScore: string;
+  onFilterScore: (v: string) => void;
   onNewLead: () => void;
+  onExport: () => void;
   totalLeads: number;
 }
 
 const STATUSES = ['', 'Nouveau', 'Qualifié', 'À creuser', 'Discovery fait', 'Proposition envoyée', 'Relance 1', 'Relance 2', 'Signé', 'Perdu'] as const;
 const SOURCES = ['', 'LinkedIn', 'Email', 'Instagram', 'GMB', 'Referral', 'Site'] as const;
+const DATE_FILTERS = [
+  { value: '', label: 'Toutes dates' },
+  { value: '7d', label: '7 derniers jours' },
+  { value: '30d', label: '30 derniers jours' },
+  { value: 'month', label: 'Ce mois' },
+];
+const SCORE_FILTERS = [
+  { value: '', label: 'Tous scores' },
+  { value: '5', label: 'Score > 5' },
+  { value: '7', label: 'Score > 7' },
+];
 
 export function LeadsToolbar({
   viewMode, onViewChange,
   search, onSearchChange,
   filterStatus, onFilterStatus,
   filterSource, onFilterSource,
-  onNewLead, totalLeads,
+  filterDate, onFilterDate,
+  filterScore, onFilterScore,
+  onNewLead, onExport, totalLeads,
 }: LeadsToolbarProps) {
+  const hasFilters = filterStatus || filterSource || filterDate || filterScore;
+
+  const resetAll = () => {
+    onFilterStatus('');
+    onFilterSource('');
+    onFilterDate('');
+    onFilterScore('');
+    onSearchChange('');
+  };
+
+  const selectCls = 'text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-violet-500/50 cursor-pointer';
+
   return (
     <div className="flex flex-wrap items-center gap-3">
       {/* Search */}
@@ -41,29 +71,48 @@ export function LeadsToolbar({
       </div>
 
       {/* Status filter */}
-      <select
-        value={filterStatus}
-        onChange={e => onFilterStatus(e.target.value as any)}
-        className="text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-violet-500/50 cursor-pointer"
-      >
+      <select value={filterStatus} onChange={e => onFilterStatus(e.target.value as LeadStatus | '')} className={selectCls}>
         <option value="">Tous les statuts</option>
         {STATUSES.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
       </select>
 
       {/* Source filter */}
-      <select
-        value={filterSource}
-        onChange={e => onFilterSource(e.target.value as any)}
-        className="text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-violet-500/50 cursor-pointer"
-      >
+      <select value={filterSource} onChange={e => onFilterSource(e.target.value as LeadSource | '')} className={selectCls}>
         <option value="">Toutes les sources</option>
         {SOURCES.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
       </select>
+
+      {/* Date filter */}
+      <select value={filterDate} onChange={e => onFilterDate(e.target.value)} className={selectCls}>
+        {DATE_FILTERS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+      </select>
+
+      {/* Score filter */}
+      <select value={filterScore} onChange={e => onFilterScore(e.target.value)} className={selectCls}>
+        {SCORE_FILTERS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+      </select>
+
+      {/* Reset */}
+      {hasFilters && (
+        <button onClick={resetAll} className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+          <RotateCcw className="w-3 h-3" />
+          Reset
+        </button>
+      )}
 
       {/* Count */}
       <span className="text-xs text-zinc-600">{totalLeads} lead{totalLeads !== 1 ? 's' : ''}</span>
 
       <div className="flex-1" />
+
+      {/* Export CSV */}
+      <button
+        onClick={onExport}
+        className="flex items-center gap-1.5 px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200 bg-zinc-900 border border-zinc-800 rounded-lg transition-colors"
+      >
+        <Download className="w-3.5 h-3.5" />
+        CSV
+      </button>
 
       {/* View toggle */}
       <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">

@@ -30,6 +30,7 @@ import {
   getStoredDarkMode,
   setStoredDarkMode,
 } from '@/lib/theme';
+import { SettingsModal } from './SettingsModal';
 
 interface NavItem {
   label: string;
@@ -67,7 +68,7 @@ const navSections: NavSection[] = [
     items: [
       { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-pink-400' },
       { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-violet-400' },
-      { label: 'PIL', href: '/pil', icon: Terminal, color: 'text-rose-400' },
+      { label: 'Cockpit Ops', href: '/pil', icon: Terminal, color: 'text-rose-400' },
     ],
   },
 ];
@@ -89,6 +90,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [teamAiOpen, setTeamAiOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     setIsDark(getStoredDarkMode());
@@ -155,7 +157,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
       className={`my-4 ml-4 hidden md:flex flex-col py-4 shrink-0 backdrop-blur-xl rounded-3xl shadow-2xl border overflow-hidden z-10 transition-opacity duration-200 ${glass}`}
     >
       {/* Header — Logo */}
-      <div className="flex items-center px-4 mb-2">
+      <div className="flex items-center justify-center px-4 mb-2">
         <Image
           src={isDark ? '/email/LogoHeader1.png' : '/email/LogoHeader.png'}
           alt="Alt Ctrl Lab"
@@ -244,12 +246,20 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
 
         {/* Settings */}
         <button
+          onClick={() => setSettingsOpen(true)}
           className={`flex items-center gap-3 px-3 py-2 rounded-xl w-full transition-colors ${navHover}`}
         >
           <Settings size={16} />
-          <span className="text-sm">Paramètres</span>
+          <span className="text-sm">Parametres</span>
         </button>
       </div>
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        isDark={isDark}
+        onToggleDark={toggleDark}
+      />
     </nav>
   );
 }

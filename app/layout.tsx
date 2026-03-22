@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { NotificationProvider } from '@/providers/NotificationProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -23,7 +24,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('acl-dark')==='false')document.documentElement.classList.add('light');}catch(e){}` }} />
       </head>
-      <body className={`${inter.variable} font-sans`}>{children}</body>
+      <body className={`${inter.variable} font-sans`}>
+        <NotificationProvider>{children}</NotificationProvider>
+      </body>
     </html>
   );
 }

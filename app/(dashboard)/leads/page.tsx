@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Lead, LeadStatus, LeadSource } from '@/lib/db/schema_leads';
+import { exportCSV } from '@/lib/utils';
 import { LeadsStatsBar } from '@/components/leads/LeadsStatsBar';
 import { LeadsToolbar } from '@/components/leads/LeadsToolbar';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
@@ -26,6 +27,8 @@ export default function LeadsPage() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<LeadStatus | ''>('');
   const [filterSource, setFilterSource] = useState<LeadSource | ''>('');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterScore, setFilterScore] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
@@ -80,6 +83,21 @@ export default function LeadsPage() {
     return leads.filter(l => {
       if (filterStatus && l.status !== filterStatus) return false;
       if (filterSource && l.source !== filterSource) return false;
+      if (filterDate) {
+        const now = Date.now();
+        const created = new Date(l.createdAt).getTime();
+        if (filterDate === '7d' && now - created > 7 * 86400000) return false;
+        if (filterDate === '30d' && now - created > 30 * 86400000) return false;
+        if (filterDate === 'month') {
+          const d = new Date();
+          const start = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+          if (created < start) return false;
+        }
+      }
+      if (filterScore) {
+        const min = parseInt(filterScore, 10);
+        if ((l.score ?? 0) <= min) return false;
+      }
       if (search) {
         const q = search.toLowerCase();
         return (
@@ -90,7 +108,22 @@ export default function LeadsPage() {
       }
       return true;
     });
-  }, [leads, filterStatus, filterSource, search]);
+  }, [leads, filterStatus, filterSource, filterDate, filterScore, search]);
+
+  const handleExport = useCallback(() => {
+    const data = filteredLeads.map(l => ({
+      Nom: l.name,
+      Entreprise: l.company ?? '',
+      Email: l.email ?? '',
+      Telephone: l.phone ?? '',
+      Statut: l.status,
+      Source: l.source ?? '',
+      Score: l.score ?? 0,
+      Budget: l.budget ?? '',
+      Date: new Date(l.createdAt).toLocaleDateString('fr-FR'),
+    }));
+    exportCSV(data, `leads-${new Date().toISOString().slice(0, 10)}.csv`);
+  }, [filteredLeads]);
 
   // Sync selectedLead with updated data
   useEffect(() => {
@@ -133,7 +166,12 @@ export default function LeadsPage() {
             onFilterStatus={setFilterStatus}
             filterSource={filterSource}
             onFilterSource={setFilterSource}
+            filterDate={filterDate}
+            onFilterDate={setFilterDate}
+            filterScore={filterScore}
+            onFilterScore={setFilterScore}
             onNewLead={() => setCreateOpen(true)}
+            onExport={handleExport}
             totalLeads={filteredLeads.length}
           />
         </motion.div>

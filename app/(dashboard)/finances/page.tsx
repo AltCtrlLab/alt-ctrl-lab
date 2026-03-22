@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Wallet } from 'lucide-react';
 import type { Invoice } from '@/lib/db/schema_finances';
 import type { Expense } from '@/lib/db/schema_finances';
+import { exportCSV } from '@/lib/utils';
 import { FinancesStatsBar } from '@/components/finances/FinancesStatsBar';
 import { FinancesToolbar } from '@/components/finances/FinancesToolbar';
 import { InvoiceList } from '@/components/finances/InvoiceList';
@@ -73,6 +74,25 @@ export default function FinancesPage() {
           onViewChange={setView}
           onCreateInvoice={() => setCreateInvoiceOpen(true)}
           onCreateExpense={() => setCreateExpenseOpen(true)}
+          onExport={() => {
+            if (view === 'invoices') {
+              exportCSV(invoices.map(i => ({
+                Numero: i.invoiceNumber ?? '',
+                Client: i.clientName ?? '',
+                Montant: i.amount ?? 0,
+                Statut: i.status ?? '',
+                Echeance: i.dueDate ? new Date(i.dueDate).toLocaleDateString('fr-FR') : '',
+                Date: i.createdAt ? new Date(i.createdAt).toLocaleDateString('fr-FR') : '',
+              })), `factures-${new Date().toISOString().slice(0, 10)}.csv`);
+            } else {
+              exportCSV(expenses.map(e => ({
+                Description: e.description ?? '',
+                Montant: e.amount ?? 0,
+                Categorie: e.category ?? '',
+                Date: e.date ? new Date(e.date).toLocaleDateString('fr-FR') : '',
+              })), `depenses-${new Date().toISOString().slice(0, 10)}.csv`);
+            }
+          }}
         />
 
         {loading ? (

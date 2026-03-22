@@ -25,6 +25,8 @@ export default function ProjetsPage() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<ProjectType | ''>('');
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | ''>('Actif');
+  const [filterPhase, setFilterPhase] = useState<ProjectPhase | ''>('');
+  const [filterDate, setFilterDate] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -79,13 +81,25 @@ export default function ProjetsPage() {
     return projects.filter(p => {
       if (filterType && p.projectType !== filterType) return false;
       if (filterStatus && p.status !== filterStatus) return false;
+      if (filterPhase && p.phase !== filterPhase) return false;
+      if (filterDate) {
+        const now = Date.now();
+        const created = new Date(p.createdAt).getTime();
+        if (filterDate === '7d' && now - created > 7 * 86400000) return false;
+        if (filterDate === '30d' && now - created > 30 * 86400000) return false;
+        if (filterDate === 'month') {
+          const d = new Date();
+          const start = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+          if (created < start) return false;
+        }
+      }
       if (search) {
         const q = search.toLowerCase();
         return p.clientName.toLowerCase().includes(q) || (p.notes ?? '').toLowerCase().includes(q);
       }
       return true;
     });
-  }, [projects, filterType, filterStatus, search]);
+  }, [projects, filterType, filterStatus, filterPhase, filterDate, search]);
 
   // Sync selectedProject with updated data
   useEffect(() => {
@@ -128,6 +142,10 @@ export default function ProjetsPage() {
             onFilterType={setFilterType}
             filterStatus={filterStatus}
             onFilterStatus={setFilterStatus}
+            filterPhase={filterPhase}
+            onFilterPhase={setFilterPhase}
+            filterDate={filterDate}
+            onFilterDate={setFilterDate}
             onNewProjet={() => setCreateOpen(true)}
             totalProjects={filteredProjects.length}
           />

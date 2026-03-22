@@ -1,49 +1,123 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { History, CheckCircle2, XCircle, Clock, Loader2, AlertCircle } from 'lucide-react';
+import { formatRelativeTime } from '@/lib/utils';
 
-const mockHistory = [
-  { id: '1', title: 'Logo Fintech', agent: 'Musawwir', status: 'approved', date: 'Hier' },
-  { id: '2', title: 'API E-commerce', agent: 'Matin', status: 'approved', date: '3 jours' },
-  { id: '3', title: 'Campagne LinkedIn', agent: 'Fatah', status: 'rejected', date: '1 semaine' },
-];
+interface Activity {
+  id: string;
+  agentName: string;
+  status: string;
+  prompt: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+const STATUS_ICON: Record<string, { icon: React.ElementType; color: string }> = {
+  COMPLETED: { icon: CheckCircle2, color: 'text-emerald-400' },
+  FAILED: { icon: XCircle, color: 'text-rose-400' },
+  FAILED_QA: { icon: XCircle, color: 'text-rose-400' },
+  PENDING: { icon: Clock, color: 'text-amber-400' },
+  DIRECTOR_PLANNING: { icon: Loader2, color: 'text-sky-400' },
+  EXECUTOR_DRAFTING: { icon: Loader2, color: 'text-sky-400' },
+  DIRECTOR_QA: { icon: Loader2, color: 'text-violet-400' },
+  EXECUTOR_REVISING: { icon: Loader2, color: 'text-violet-400' },
+};
 
 export default function HistoryPage() {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch('/api/agents/activity');
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        setActivities(data.data?.activities ?? data.activities ?? []);
+      } catch {
+        setError('Impossible de charger l\'historique');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivities();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-300">
-      <header className="fixed top-0 left-0 right-0 h-14 bg-zinc-950 border-b border-zinc-800/50 flex items-center px-4 z-50">
-        <Link href="/" className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm">Retour</span>
-        </Link>
-      </header>
-
-      <main className="pt-14">
-        <div className="max-w-2xl mx-auto p-6">
-          <h1 className="text-lg font-medium text-zinc-100 mb-6">Historique</h1>
-
-          <div className="space-y-2">
-            {mockHistory.map(item => (
-              <div 
-                key={item.id}
-                className="flex items-center justify-between p-3 bg-zinc-900/30 border border-zinc-800 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  {item.status === 'approved' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-                  {item.status === 'rejected' && <XCircle className="w-4 h-4 text-rose-500" />}
-                  {item.status === 'pending' && <Clock className="w-4 h-4 text-amber-500" />}
-                  <div>
-                    <p className="text-sm text-zinc-300">{item.title}</p>
-                    <p className="text-xs text-zinc-500">{item.agent} • {item.date}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+    <div className="min-h-screen p-6">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center">
+            <History className="w-4 h-4 text-zinc-400" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-zinc-100">Historique des taches</h1>
+            <p className="text-xs text-zinc-500">Activite recente des agents IA</p>
           </div>
         </div>
-      </main>
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
+            <AlertCircle className="w-4 h-4 text-rose-400" />
+            <p className="text-sm text-rose-400">{error}</p>
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && !error && activities.length === 0 && (
+          <div className="text-center py-20">
+            <History className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
+            <p className="text-zinc-500 text-sm">Aucune activite recente</p>
+          </div>
+        )}
+
+        {/* Activity list */}
+        {!loading && activities.length > 0 && (
+          <div className="space-y-2">
+            {activities.map((item) => {
+              const statusInfo = STATUS_ICON[item.status] || STATUS_ICON.PENDING;
+              const Icon = statusInfo.icon;
+              const isActive = ['DIRECTOR_PLANNING', 'EXECUTOR_DRAFTING', 'DIRECTOR_QA', 'EXECUTOR_REVISING'].includes(item.status);
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 p-3 bg-zinc-900/30 border border-zinc-800/60 rounded-xl"
+                >
+                  <Icon className={`w-4 h-4 shrink-0 ${statusInfo.color} ${isActive ? 'animate-spin' : ''}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-zinc-200 truncate">
+                      {item.prompt?.slice(0, 80) || 'Tache sans titre'}
+                    </p>
+                    <p className="text-[11px] text-zinc-500">
+                      {item.agentName} &middot; {formatRelativeTime(new Date(item.createdAt))}
+                    </p>
+                  </div>
+                  <span className={`text-[10px] uppercase font-medium px-2 py-0.5 rounded-full border ${
+                    item.status === 'COMPLETED'
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      : item.status.includes('FAIL')
+                      ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                      : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
+                  }`}>
+                    {item.status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
