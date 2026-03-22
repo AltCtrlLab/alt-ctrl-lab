@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -133,25 +134,45 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
       style={{ opacity: mounted ? 1 : 0 }}
       className={`my-4 ml-4 hidden md:flex flex-col py-4 shrink-0 backdrop-blur-xl rounded-3xl shadow-2xl border overflow-hidden z-10 ${glass}`}
     >
-      {/* Header */}
-      <div className={`flex items-center ${isExpanded ? 'px-4 justify-between' : 'justify-center'} mb-4`}>
-        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center cursor-pointer shrink-0 ${isDark ? 'bg-gradient-to-br from-neutral-800 to-neutral-900 border-white/10 text-white' : 'bg-gradient-to-br from-white to-neutral-100 border-neutral-200/60 text-neutral-900'}`}>
-          <span className="font-bold text-xs tracking-tighter">AC</span>
-        </div>
-        {isExpanded && (
-          <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-            Alt Ctrl Lab
-          </motion.span>
+      {/* Header — Logo */}
+      <div className={`flex items-center ${isExpanded ? 'px-4 justify-between' : 'justify-center'} mb-2`}>
+        {isExpanded ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex items-center">
+            <Image
+              src="/email/LogoHeader.png"
+              alt="Alt Ctrl Lab"
+              width={130}
+              height={36}
+              className="object-contain"
+              style={{ filter: isDark ? 'brightness(1)' : 'brightness(0.1)' }}
+            />
+          </motion.div>
+        ) : (
+          <div
+            onClick={() => { setIsExpanded(true); setStoredSidebarExpanded(true); }}
+            className="cursor-pointer"
+          >
+            <Image
+              src="/email/LogoHeader.png"
+              alt="AC"
+              width={36}
+              height={36}
+              className="object-contain"
+              style={{ filter: isDark ? 'brightness(1)' : 'brightness(0.1)' }}
+            />
+          </div>
         )}
         {isExpanded && (
           <button
             onClick={() => { setIsExpanded(false); setStoredSidebarExpanded(false); }}
-            className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-neutral-500' : 'hover:bg-neutral-200 text-neutral-400'}`}
+            className={`p-1 rounded-lg transition-colors shrink-0 ${isDark ? 'hover:bg-white/10 text-neutral-500' : 'hover:bg-neutral-200 text-neutral-400'}`}
           >
             <ChevronLeft size={14} />
           </button>
         )}
       </div>
+      {/* Separator */}
+      <div className={`mx-3 mb-3 border-t ${isDark ? 'border-white/[0.08]' : 'border-neutral-200'}`} />
 
       {/* CTA — Nouveau Brief */}
       <div className="px-2 mb-3">
@@ -346,23 +367,6 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
           {isExpanded && <span className="text-sm">Paramètres</span>}
         </button>
 
-        {/* User profile */}
-        <div className={`${isExpanded ? 'flex items-center gap-3 px-2 py-2' : 'flex justify-center py-1'}`}>
-          <div className="relative shrink-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <span className="text-white text-[10px] font-bold">CEO</span>
-            </div>
-            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full flex items-center justify-center ${isDark ? 'bg-neutral-950' : 'bg-[#F4F5F7]'}`}>
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            </div>
-          </div>
-          {isExpanded && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0">
-              <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-neutral-900'}`}>AbdulHakim</p>
-              <p className={`text-[10px] ${textMuted}`}>CEO / Superviseur</p>
-            </motion.div>
-          )}
-        </div>
       </div>
     </motion.nav>
   );
