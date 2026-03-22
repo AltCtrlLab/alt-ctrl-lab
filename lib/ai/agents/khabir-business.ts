@@ -24,6 +24,10 @@ export interface BusinessInsight {
   recommendation: string;
   priority: number;
   applied: number;
+  status: string; // 'new' | 'read' | 'applied' | 'rejected'
+  note?: string;
+  rejected: number;
+  readAt?: number;
   createdAt: number;
 }
 
@@ -168,21 +172,41 @@ export async function scoutBusinessIntelligence(
 
 export function getInsightsByTopic(topic?: string): BusinessInsight[] {
   const rawDb = (getDb() as any).$client;
+  const cols = `id, topic, source, insight, recommendation, priority, applied,
+    COALESCE(status, 'new') as status, note, COALESCE(rejected, 0) as rejected,
+    read_at as readAt, created_at as createdAt`;
   if (topic) {
     return rawDb.prepare(
-      `SELECT id, topic, source, insight, recommendation, priority, applied, created_at as createdAt
-       FROM business_insights WHERE topic = ? ORDER BY priority DESC, created_at DESC LIMIT 50`
+      `SELECT ${cols} FROM business_insights WHERE topic = ? ORDER BY priority DESC, created_at DESC LIMIT 50`
     ).all(topic) as BusinessInsight[];
   }
   return rawDb.prepare(
-    `SELECT id, topic, source, insight, recommendation, priority, applied, created_at as createdAt
-     FROM business_insights ORDER BY priority DESC, created_at DESC LIMIT 50`
+    `SELECT ${cols} FROM business_insights ORDER BY priority DESC, created_at DESC LIMIT 50`
   ).all() as BusinessInsight[];
 }
 
 export function markInsightApplied(id: string): void {
   const rawDb = (getDb() as any).$client;
-  rawDb.prepare(`UPDATE business_insights SET applied = 1 WHERE id = ?`).run(id);
+  rawDb.prepare(`UPDATE business_insights SET applied = 1, status = 'applied' WHERE id = ?`).run(id);
+}
+
+export function markInsightRead(id: string): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(
+    `UPDATE business_insights SET status = 'read', read_at = ? WHERE id = ? AND COALESCE(status, 'new') = 'new'`
+  ).run(Date.now(), id);
+}
+
+export function markInsightRejected(id: string): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(
+    `UPDATE business_insights SET rejected = 1, status = 'rejected' WHERE id = ?`
+  ).run(id);
+}
+
+export function saveInsightNote(id: string, note: string): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(`UPDATE business_insights SET note = ? WHERE id = ?`).run(note, id);
 }
 
 export const AVAILABLE_TOPICS = Object.keys(TOPIC_PROMPTS);

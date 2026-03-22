@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, TrendingUp, Brain, Zap, Lightbulb, Telescope, BarChart3,
-  CheckCircle2, AlertCircle, Clock, Loader2, ChevronDown, ChevronUp,
-  ExternalLink, RefreshCw, Play, Star, Layers, Target, ArrowRight,
-  Sparkles, Activity, BookOpen, GitBranch, Tag, X, Filter,
+  Search, TrendingUp, Brain, Zap, Lightbulb, Telescope,
+  CheckCircle2, AlertCircle, Clock, Loader2,
+  ExternalLink, RefreshCw, Play, Target, ArrowRight,
+  Sparkles, Activity, BookOpen, GitBranch, X, Filter,
+  Copy, ChevronRight, Send, Ban, PenLine,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,8 +35,9 @@ interface Pattern {
   suggestedAction: string | null; status: string; createdAt: number;
 }
 interface BusinessInsight {
-  id: string; topic: string; insight: string; recommendation: string;
-  priority: number; applied: number; createdAt: number;
+  id: string; topic: string; source?: string; insight: string; recommendation: string;
+  priority: number; applied: number; status: string; note?: string;
+  rejected: number; readAt?: number; createdAt: number;
 }
 interface Stats { discoveries: number; innovations: number; patterns: number; insights: number; }
 
@@ -173,7 +175,7 @@ export default function RDPage() {
   const [running, setRunning] = useState(false);
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>([]);
-  const [logOpen] = useState(true);
+  const [, setLogOpen] = useState(true);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   // Data
@@ -188,6 +190,17 @@ export default function RDPage() {
   const [innovFilter, setInnovFilter] = useState<string>('all');
   const [selectedInnovation, setSelectedInnovation] = useState<Innovation | null>(null);
   const [selectedTopic, setSelectedTopic] = useState('instagram-acquisition');
+
+  // Insight detail + filters
+  const [selectedInsight, setSelectedInsight] = useState<BusinessInsight | null>(null);
+  const [insightFilter, setInsightFilter] = useState<'all' | 'new' | 'applied' | 'rejected'>('all');
+  const [insightPriority, setInsightPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [insightSearch, setInsightSearch] = useState('');
+  const [insightNote, setInsightNote] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+  const [creatingTask, setCreatingTask] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [taskToast, setTaskToast] = useState<string | null>(null);
 
   // ── Fetch ───────────────────────────────────────────────────────────────────
 
@@ -299,14 +312,211 @@ export default function RDPage() {
   };
   const handleApplyInsight = async (id: string) => {
     await fetch('/api/rd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'business-intel', payload: { action: 'apply', id } }) });
-    setInsightsList(prev => prev.map(i => i.id === id ? { ...i, applied: 1 } : i));
+    setInsightsList(prev => prev.map(i => i.id === id ? { ...i, applied: 1, status: 'applied' } : i));
+    if (selectedInsight?.id === id) setSelectedInsight(prev => prev ? { ...prev, applied: 1, status: 'applied' } : null);
+  };
+
+  const handleOpenInsight = async (ins: BusinessInsight) => {
+    setSelectedInsight(ins);
+    setInsightNote(ins.note ?? '');
+    if (ins.status === 'new' || !ins.status) {
+      await fetch('/api/rd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'read-insight', payload: { insightId: ins.id } }) });
+      setInsightsList(prev => prev.map(i => i.id === ins.id ? { ...i, status: 'read' } : i));
+    }
+  };
+
+  const handleRejectInsight = async (id: string) => {
+    await fetch('/api/rd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reject-insight', payload: { insightId: id } }) });
+    setInsightsList(prev => prev.map(i => i.id === id ? { ...i, rejected: 1, status: 'rejected' } : i));
+    setSelectedInsight(null);
+  };
+
+  const handleSaveNote = async (id: string, note: string) => {
+    setSavingNote(true);
+    await fetch('/api/rd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'note-insight', payload: { insightId: id, note } }) });
+    setInsightsList(prev => prev.map(i => i.id === id ? { ...i, note } : i));
+    if (selectedInsight?.id === id) setSelectedInsight(prev => prev ? { ...prev, note } : null);
+    setSavingNote(false);
+  };
+
+  const handleCreateTask = async (ins: BusinessInsight) => {
+    setCreatingTask(true);
+    try {
+      await fetch('/api/rd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        action: 'create-task-from-insight',
+        payload: { insightId: ins.id, insightText: ins.insight, recommendation: ins.recommendation, topic: ins.topic, priority: ins.priority },
+      }) });
+      setInsightsList(prev => prev.map(i => i.id === ins.id ? { ...i, applied: 1, status: 'applied' } : i));
+      if (selectedInsight?.id === ins.id) setSelectedInsight(prev => prev ? { ...prev, applied: 1, status: 'applied' } : null);
+      setTaskToast('Tâche créée dans le War Room !');
+      setTimeout(() => setTaskToast(null), 3000);
+    } catch { /* silent */ }
+    setCreatingTask(false);
+  };
+
+  const handleCopyReco = (id: string, text: string) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
   const filteredInnovations = innovFilter === 'all' ? innovationsList : innovationsList.filter(i => i.status === innovFilter);
-  const filteredInsights = insightsList.filter(i => i.topic === selectedTopic);
-  const appliedCount = filteredInsights.filter(i => i.applied).length;
+
+  const topicInsights = insightsList.filter(i => i.topic === selectedTopic);
+  const filteredInsights = topicInsights.filter(ins => {
+    if (insightFilter === 'new' && (ins.status === 'applied' || ins.status === 'rejected' || ins.applied)) return false;
+    if (insightFilter === 'applied' && ins.status !== 'applied' && !ins.applied) return false;
+    if (insightFilter === 'rejected' && ins.status !== 'rejected') return false;
+    if (insightPriority === 'high' && ins.priority < 8) return false;
+    if (insightPriority === 'medium' && (ins.priority < 5 || ins.priority > 7)) return false;
+    if (insightPriority === 'low' && ins.priority > 4) return false;
+    if (insightSearch) {
+      const q = insightSearch.toLowerCase();
+      if (!ins.insight.toLowerCase().includes(q) && !ins.recommendation.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const insightStats = {
+    total: topicInsights.length,
+    newCount: topicInsights.filter(i => !i.status || i.status === 'new' || i.status === 'read').filter(i => !i.applied && !i.rejected).length,
+    applied: topicInsights.filter(i => i.applied || i.status === 'applied').length,
+    rejected: topicInsights.filter(i => i.rejected || i.status === 'rejected').length,
+  };
+
+  // ── Priority helpers ─────────────────────────────────────────────────────────
+
+  const priorityBg = (p: number) =>
+    p >= 8 ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+    p >= 5 ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' :
+             'bg-blue-500/20 text-blue-400 border-blue-500/30';
+
+  const statusBadge = (ins: BusinessInsight) => {
+    if (ins.rejected || ins.status === 'rejected') return { label: 'Rejeté', cls: 'bg-zinc-800/80 text-zinc-500' };
+    if (ins.applied || ins.status === 'applied') return { label: 'Appliqué', cls: 'bg-emerald-500/10 text-emerald-400' };
+    if (ins.status === 'read') return { label: 'Lu', cls: 'bg-zinc-700/60 text-zinc-400' };
+    return { label: 'Nouveau', cls: 'bg-cyan-500/10 text-cyan-400' };
+  };
+
+  // ── Insight Detail Drawer ─────────────────────────────────────────────────────
+
+  const InsightDrawer = selectedInsight && (
+    <div className="fixed inset-0 z-50 flex">
+      <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedInsight(null)} />
+      <motion.div
+        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="w-full max-w-xl bg-zinc-900 border-l border-zinc-700/60 shadow-2xl flex flex-col overflow-hidden"
+      >
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800/60 shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${priorityBg(selectedInsight.priority)}`}>
+              P{selectedInsight.priority}
+            </span>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${statusBadge(selectedInsight).cls}`}>
+              {statusBadge(selectedInsight).label}
+            </span>
+            <span className="text-xs text-zinc-600 px-2 py-0.5 rounded-full bg-zinc-800/60">
+              {TOPICS.find(t => t.id === selectedInsight.topic)?.icon} {TOPICS.find(t => t.id === selectedInsight.topic)?.label || selectedInsight.topic}
+            </span>
+          </div>
+          <button onClick={() => setSelectedInsight(null)} className="p-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Drawer body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+
+          {/* Insight */}
+          <div className="rounded-xl bg-zinc-800/40 border border-zinc-700/40 p-4">
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Insight</span>
+            </div>
+            <p className="text-sm text-zinc-200 leading-relaxed">{selectedInsight.insight}</p>
+            {selectedInsight.source && (
+              <p className="text-xs text-zinc-600 mt-2">Source : {selectedInsight.source} · {new Date(selectedInsight.createdAt).toLocaleDateString('fr-FR')}</p>
+            )}
+          </div>
+
+          {/* Recommandation */}
+          <div className="rounded-xl bg-violet-500/5 border border-violet-500/20 p-4">
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-violet-400" />
+                <span className="text-xs font-semibold text-violet-400 uppercase tracking-wide">Recommandation AltCtrl.Lab</span>
+              </div>
+              <button
+                onClick={() => handleCopyReco(selectedInsight.id, selectedInsight.recommendation)}
+                className="flex items-center gap-1 text-xs text-zinc-500 hover:text-violet-400 transition-colors"
+              >
+                {copiedId === selectedInsight.id ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedId === selectedInsight.id ? 'Copié' : 'Copier'}
+              </button>
+            </div>
+            <p className="text-sm text-zinc-300 leading-relaxed">{selectedInsight.recommendation}</p>
+          </div>
+
+          {/* Note CEO */}
+          <div className="rounded-xl bg-zinc-800/30 border border-zinc-700/30 p-4">
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <PenLine className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">Note CEO</span>
+            </div>
+            <textarea
+              value={insightNote}
+              onChange={e => setInsightNote(e.target.value)}
+              placeholder="Ajouter une note personnelle sur cet insight..."
+              rows={3}
+              className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-lg px-3 py-2 text-sm text-zinc-300 placeholder-zinc-600 resize-none focus:outline-none focus:border-zinc-600 transition-colors"
+            />
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={() => handleSaveNote(selectedInsight.id, insightNote)}
+                disabled={savingNote || insightNote === (selectedInsight.note ?? '')}
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-200 rounded-lg transition-colors"
+              >
+                {savingNote ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Drawer footer — Actions */}
+        <div className="shrink-0 px-5 py-4 border-t border-zinc-800/60 space-y-2">
+          {!(selectedInsight.applied || selectedInsight.status === 'applied') && !(selectedInsight.rejected || selectedInsight.status === 'rejected') && (
+            <button
+              onClick={() => handleApplyInsight(selectedInsight.id)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors"
+            >
+              <CheckCircle2 className="w-4 h-4" /> Marquer comme appliqué
+            </button>
+          )}
+          <button
+            onClick={() => handleCreateTask(selectedInsight)}
+            disabled={creatingTask}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+          >
+            {creatingTask ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            Créer une tâche War Room
+          </button>
+          {!(selectedInsight.rejected || selectedInsight.status === 'rejected') && (
+            <button
+              onClick={() => handleRejectInsight(selectedInsight.id)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-zinc-800 hover:bg-rose-500/20 hover:border-rose-500/40 border border-zinc-700/40 text-zinc-400 hover:text-rose-400 text-sm font-medium transition-all"
+            >
+              <Ban className="w-4 h-4" /> Rejeter cet insight
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -482,9 +692,11 @@ export default function RDPage() {
         {/* ── Tab: Intelligence Métier ──────────────────────────────────────── */}
         {activeTab === 'insights' && (
           <div className="space-y-4">
+
+            {/* Topic pills + Analyser */}
             <div className="flex flex-wrap items-center gap-2">
               {TOPICS.map(t => (
-                <button key={t.id} onClick={() => setSelectedTopic(t.id)}
+                <button key={t.id} onClick={() => { setSelectedTopic(t.id); setInsightFilter('all'); setInsightSearch(''); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm transition-all ${
                     selectedTopic === t.id ? t.color + ' font-medium' : 'border-zinc-800/60 bg-zinc-900/30 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
                   }`}>
@@ -500,16 +712,54 @@ export default function RDPage() {
                 Analyser
               </button>
             </div>
-            {filteredInsights.length > 0 && (
-              <div className="flex items-center gap-3 text-xs text-zinc-500">
-                <span>{filteredInsights.length} insights</span>
+
+            {/* Stats mini-bar */}
+            {insightStats.total > 0 && (
+              <div className="flex items-center gap-4 text-xs text-zinc-500 px-1">
+                <span className="text-cyan-400 font-medium">🆕 {insightStats.newCount} nouveaux</span>
                 <span>·</span>
-                <span className="text-emerald-400">{appliedCount} appliqués</span>
+                <span className="text-emerald-400">✅ {insightStats.applied} appliqués</span>
                 <span>·</span>
-                <span>{filteredInsights.filter(i => i.priority >= 8).length} haute priorité</span>
+                <span className="text-rose-400">❌ {insightStats.rejected} rejetés</span>
+                <span>·</span>
+                <span>📊 {insightStats.total} total</span>
               </div>
             )}
-            {filteredInsights.length === 0 ? (
+
+            {/* Filter bar */}
+            {insightStats.total > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative flex-1 min-w-40">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher un insight..."
+                    value={insightSearch}
+                    onChange={e => setInsightSearch(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 bg-zinc-800/60 border border-zinc-700/40 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
+                  />
+                </div>
+                <div className="flex items-center gap-1 bg-zinc-800/40 rounded-lg p-0.5">
+                  {(['all', 'new', 'applied', 'rejected'] as const).map(f => (
+                    <button key={f} onClick={() => setInsightFilter(f)}
+                      className={`text-xs px-2.5 py-1 rounded-md transition-colors ${insightFilter === f ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      {f === 'all' ? 'Tous' : f === 'new' ? 'Nouveaux' : f === 'applied' ? 'Appliqués' : 'Rejetés'}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1 bg-zinc-800/40 rounded-lg p-0.5">
+                  {(['all', 'high', 'medium', 'low'] as const).map(f => (
+                    <button key={f} onClick={() => setInsightPriority(f)}
+                      className={`text-xs px-2.5 py-1 rounded-md transition-colors ${insightPriority === f ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      {f === 'all' ? 'Priorité' : f === 'high' ? 'P8+' : f === 'medium' ? 'P5-7' : 'P1-4'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Insights list */}
+            {topicInsights.length === 0 ? (
               <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-12 text-center">
                 <Lightbulb className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
                 <p className="text-sm text-zinc-400 mb-1">Aucun insight pour ce topic</p>
@@ -519,38 +769,81 @@ export default function RDPage() {
                   Analyser maintenant
                 </button>
               </div>
+            ) : filteredInsights.length === 0 ? (
+              <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-8 text-center">
+                <Filter className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+                <p className="text-sm text-zinc-500">Aucun insight ne correspond aux filtres actifs.</p>
+              </div>
             ) : (
-              <div className="space-y-3">
-                {filteredInsights.sort((a, b) => b.priority - a.priority).map(insight => (
-                  <motion.div key={insight.id} layout
-                    className={`rounded-xl border p-4 transition-all ${insight.applied ? 'opacity-50 border-zinc-800/40 bg-zinc-900/20' : 'border-zinc-800/60 bg-zinc-900/40 hover:border-zinc-700/60'}`}>
-                    <div className="flex items-start gap-3">
-                      <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                        insight.priority >= 9 ? 'bg-rose-500/20 text-rose-400' :
-                        insight.priority >= 7 ? 'bg-orange-500/20 text-orange-400' :
-                        insight.priority >= 5 ? 'bg-amber-500/20 text-amber-400' :
-                        'bg-zinc-800 text-zinc-500'
-                      }`}>P{insight.priority}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-zinc-200 leading-relaxed">{insight.insight}</p>
-                        {insight.recommendation && (
-                          <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">→ {insight.recommendation}</p>
-                        )}
-                        <div className="flex items-center gap-3 mt-2">
-                          <span className="text-xs text-zinc-600">{new Date(insight.createdAt).toLocaleDateString('fr-FR')}</span>
-                          {!insight.applied ? (
-                            <button onClick={() => handleApplyInsight(insight.id)}
-                              className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors">
-                              Marquer appliqué
-                            </button>
-                          ) : (
-                            <span className="text-xs text-emerald-600">✓ Appliqué</span>
-                          )}
+              <div className="space-y-2">
+                {filteredInsights.sort((a, b) => b.priority - a.priority).map(insight => {
+                  const badge = statusBadge(insight);
+                  const isRejected = insight.rejected || insight.status === 'rejected';
+                  const isApplied = insight.applied || insight.status === 'applied';
+                  const isNew = !isRejected && !isApplied && (!insight.status || insight.status === 'new');
+                  return (
+                    <motion.div key={insight.id} layout
+                      onClick={() => handleOpenInsight(insight)}
+                      className={`relative rounded-xl border p-4 cursor-pointer transition-all group ${
+                        isRejected ? 'opacity-40 border-zinc-800/30 bg-zinc-900/20' :
+                        isApplied ? 'border-emerald-500/20 bg-emerald-500/3 hover:border-emerald-500/30' :
+                        'border-zinc-800/60 bg-zinc-900/40 hover:border-violet-500/30 hover:bg-zinc-900/60'
+                      }`}>
+                      {/* New dot */}
+                      {isNew && (
+                        <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                      )}
+                      <div className="flex items-start gap-3">
+                        {/* Priority badge */}
+                        <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold border ${priorityBg(insight.priority)}`}>
+                          P{insight.priority}
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>
+                            {insight.source && <span className="text-xs text-zinc-600">{insight.source}</span>}
+                          </div>
+                          <p className={`text-sm text-zinc-200 leading-relaxed line-clamp-2 ${isRejected ? 'line-through text-zinc-500' : ''}`}>
+                            {insight.insight}
+                          </p>
+                          {insight.recommendation && (
+                            <p className="text-xs text-zinc-500 mt-1 leading-relaxed line-clamp-1">
+                              → {insight.recommendation}
+                            </p>
+                          )}
+                          {insight.note && (
+                            <p className="text-xs text-amber-500/70 mt-1 italic line-clamp-1">📝 {insight.note}</p>
+                          )}
+                          <div className="flex items-center gap-3 mt-2.5">
+                            <span className="text-xs text-zinc-600">{new Date(insight.createdAt).toLocaleDateString('fr-FR')}</span>
+                            <button
+                              onClick={e => { e.stopPropagation(); handleOpenInsight(insight); }}
+                              className="flex items-center gap-1 text-xs text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <BookOpen className="w-3 h-3" /> Lire
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); handleCopyReco(insight.id, insight.recommendation); }}
+                              className="flex items-center gap-1 text-xs text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              {copiedId === insight.id ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                              {copiedId === insight.id ? 'Copié' : 'Copier'}
+                            </button>
+                            {!isApplied && !isRejected && (
+                              <button
+                                onClick={e => { e.stopPropagation(); handleApplyInsight(insight.id); }}
+                                className="flex items-center gap-1 text-xs text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <CheckCircle2 className="w-3 h-3" /> Appliquer
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-500 shrink-0 mt-1 transition-colors" />
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -718,6 +1011,23 @@ export default function RDPage() {
             onApprove={handleApprove}
             onReject={handleReject}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ── Insight Drawer ───────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {selectedInsight && InsightDrawer}
+      </AnimatePresence>
+
+      {/* ── Task Toast ───────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {taskToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-xl shadow-xl"
+          >
+            <CheckCircle2 className="w-4 h-4" /> {taskToast}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

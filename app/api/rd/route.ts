@@ -394,6 +394,52 @@ export async function POST(request: NextRequest) {
         }, { headers: corsHeaders });
       }
       
+      case 'read-insight': {
+        const { insightId } = payload;
+        if (!insightId) return NextResponse.json({ success: false, error: 'insightId required' }, { status: 400, headers: corsHeaders });
+        const { markInsightRead } = await import('@/lib/ai/agents/khabir-business');
+        markInsightRead(insightId);
+        return NextResponse.json({ success: true }, { headers: corsHeaders });
+      }
+
+      case 'reject-insight': {
+        const { insightId } = payload;
+        if (!insightId) return NextResponse.json({ success: false, error: 'insightId required' }, { status: 400, headers: corsHeaders });
+        const { markInsightRejected } = await import('@/lib/ai/agents/khabir-business');
+        markInsightRejected(insightId);
+        return NextResponse.json({ success: true }, { headers: corsHeaders });
+      }
+
+      case 'note-insight': {
+        const { insightId, note } = payload;
+        if (!insightId) return NextResponse.json({ success: false, error: 'insightId required' }, { status: 400, headers: corsHeaders });
+        const { saveInsightNote } = await import('@/lib/ai/agents/khabir-business');
+        saveInsightNote(insightId, note ?? '');
+        return NextResponse.json({ success: true }, { headers: corsHeaders });
+      }
+
+      case 'create-task-from-insight': {
+        const { insightId, insightText, recommendation, topic, priority } = payload;
+        if (!insightText) return NextResponse.json({ success: false, error: 'insightText required' }, { status: 400, headers: corsHeaders });
+        const brief = `[R&D Intelligence Métier — ${topic || 'Général'} — Priorité P${priority || '?'}]\n\n${insightText}\n\n—\nRecommandation AltCtrl.Lab :\n${recommendation || ''}`;
+        try {
+          const orchestrateRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/orchestrate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ brief }),
+          });
+          const orchestrateData = await orchestrateRes.json();
+          // Also mark as applied
+          if (insightId) {
+            const { markInsightApplied } = await import('@/lib/ai/agents/khabir-business');
+            markInsightApplied(insightId);
+          }
+          return NextResponse.json({ success: true, data: orchestrateData }, { headers: corsHeaders });
+        } catch (e: unknown) {
+          return NextResponse.json({ success: false, error: e instanceof Error ? e.message : 'Dispatch failed' }, { status: 500, headers: corsHeaders });
+        }
+      }
+
       case 'business-intel': {
         // Proxy vers VPS si Railway (openclaw n'est pas installé sur Railway)
         if (VPS_BASE_URL && payload.action !== 'get' && payload.action !== 'apply' && payload.action !== 'topics') {

@@ -514,6 +514,12 @@ export function getDb() {
       `);
     } catch (_) { /* already exists */ }
 
+    // Migration: business_insights — status/note/rejected/read_at columns
+    try { sqlite.exec(`ALTER TABLE business_insights ADD COLUMN status TEXT DEFAULT 'new'`); } catch (_) { /* already exists */ }
+    try { sqlite.exec(`ALTER TABLE business_insights ADD COLUMN note TEXT`); } catch (_) { /* already exists */ }
+    try { sqlite.exec(`ALTER TABLE business_insights ADD COLUMN rejected INTEGER DEFAULT 0`); } catch (_) { /* already exists */ }
+    try { sqlite.exec(`ALTER TABLE business_insights ADD COLUMN read_at INTEGER`); } catch (_) { /* already exists */ }
+
     // Seed n8n workflow IDs
     const seedWorkflows = [
       { name: "Cal.com → Lead", n8nId: "Abf2sv4YFM6MDzjf", status: "Actif", desc: "Booking Cal.com → création lead cockpit" },
