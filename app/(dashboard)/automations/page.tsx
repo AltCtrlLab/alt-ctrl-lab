@@ -55,7 +55,7 @@ export default function AutomationsPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
-          <Workflow className="w-5 h-5 text-violet-400" />
+          <Workflow className="w-5 h-5 text-fuchsia-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Automations</h1>
           <span className="text-xs text-zinc-600">Abdul Hasib</span>
         </div>

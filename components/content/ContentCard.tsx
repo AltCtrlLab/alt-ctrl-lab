@@ -22,7 +22,7 @@ export function ContentCard({ item, onClick }: Props) {
           <span className="text-[10px] text-zinc-500">{item.type}</span>
         </div>
         {item.agent !== 'manuel' && (
-          <span className="text-[10px] text-violet-400 bg-violet-900/30 px-1.5 py-0.5 rounded">{item.agent}</span>
+          <span className="text-[10px] text-fuchsia-400 bg-fuchsia-900/30 px-1.5 py-0.5 rounded">{item.agent}</span>
         )}
       </div>
       {item.scheduledAt && (

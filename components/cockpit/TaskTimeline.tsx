@@ -28,11 +28,11 @@ interface TaskTimelineProps {
 const statusColors: Record<TaskStatus, string> = {
   PENDING: 'bg-neutral-600',
   PLANNING: 'bg-neutral-600',
-  EXECUTING: 'bg-blue-500 animate-pulse',
+  EXECUTING: 'bg-cyan-500 animate-pulse',
   REJECTED: 'bg-red-500',
   VALIDATED: 'bg-emerald-500',
   COMPLETED: 'bg-emerald-500',
-  FORCED_VALIDATION: 'bg-purple-500',
+  FORCED_VALIDATION: 'bg-fuchsia-500',
 };
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -144,7 +144,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
             Full Agency
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2 rounded-full bg-cyan-500" />
             Direct
           </span>
         </div>
@@ -210,9 +210,9 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                         <span className={`
                           inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded text-xs font-medium
                           ${task.status === 'REJECTED' ? 'bg-red-950 text-red-400' : ''}
-                          ${task.status === 'FORCED_VALIDATION' ? 'bg-purple-950 text-purple-400' : ''}
+                          ${task.status === 'FORCED_VALIDATION' ? 'bg-fuchsia-950 text-fuchsia-400' : ''}
                           ${task.status === 'COMPLETED' || task.status === 'VALIDATED' ? 'bg-emerald-950 text-emerald-400' : ''}
-                          ${task.status === 'EXECUTING' ? 'bg-blue-950 text-blue-400' : ''}
+                          ${task.status === 'EXECUTING' ? 'bg-cyan-950 text-cyan-400' : ''}
                           ${task.status === 'PENDING' || task.status === 'PLANNING' ? 'bg-neutral-800 text-neutral-400' : ''}
                         `}>
                           <span className={`w-1.5 h-1.5 rounded-full ${statusColors[task.status].replace('animate-pulse', '')}`} />
@@ -248,7 +248,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
             Planning
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2 rounded-full bg-cyan-500" />
             Exécution
           </span>
           <span className="flex items-center gap-1.5">
@@ -260,7 +260,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
             Validé
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-purple-500" />
+            <span className="w-2 h-2 rounded-full bg-fuchsia-500" />
             Override
           </span>
         </div>

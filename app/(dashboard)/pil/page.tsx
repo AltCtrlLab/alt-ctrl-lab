@@ -74,8 +74,8 @@ function ActiveTasksFeed({ tasks, onOpenKanban }: { tasks: any[]; onOpenKanban: 
       {active.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-            <span className="text-xs font-semibold text-blue-300 uppercase tracking-wider">
+            <span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-pulse" />
+            <span className="text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">
               {active.length} mission{active.length > 1 ? 's' : ''} en cours
             </span>
           </div>
@@ -83,7 +83,7 @@ function ActiveTasksFeed({ tasks, onOpenKanban }: { tasks: any[]; onOpenKanban: 
             const { brief, dir, exc } = parseBriefShort(task.prompt);
             return (
               <button key={task.id} onClick={onOpenKanban}
-                className="w-full text-left p-4 rounded-2xl bg-blue-500/8 border border-blue-500/25 hover:bg-blue-500/15 transition-all group">
+                className="w-full text-left p-4 rounded-2xl bg-fuchsia-500/8 border border-fuchsia-500/25 hover:bg-fuchsia-500/15 transition-all group">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-white">
                     <span>{AGENT_EMOJI[dir] || '🤖'}</span>
@@ -93,14 +93,14 @@ function ActiveTasksFeed({ tasks, onOpenKanban }: { tasks: any[]; onOpenKanban: 
                     <span className="capitalize">{exc}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-                    <Loader2 className="w-3 h-3 text-blue-400 animate-spin" />
+                    <Loader2 className="w-3 h-3 text-fuchsia-400 animate-spin" />
                     <Clock className="w-3 h-3" />
                     <span>{elapsed(task.createdAt)}</span>
                   </div>
                 </div>
                 <p className="text-xs text-neutral-400 line-clamp-2 mb-2">{brief}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-blue-300 font-medium">
+                  <span className="text-xs text-fuchsia-300 font-medium">
                     {STAGE_LABEL[task.status] || task.status}
                   </span>
                   <span className="text-[10px] text-neutral-600 group-hover:text-neutral-400 transition-colors">
@@ -170,7 +170,7 @@ export default function PilCockpit() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [accentColor, setAccentColor] = useState<AccentColor>('indigo');
+  const [accentColor, setAccentColor] = useState<AccentColor>('fuchsia');
 
   // Initialize from localStorage
   useEffect(() => {
@@ -220,7 +220,7 @@ export default function PilCockpit() {
 
   return (
     <NotificationProvider>
-      <div className={`h-screen w-full ${t.mainBg} ${t.textMain} font-sans flex overflow-hidden selection:bg-blue-500/30 transition-colors duration-500`}>
+      <div className={`h-screen w-full ${t.mainBg} ${t.textMain} font-sans flex overflow-hidden selection:bg-fuchsia-500/30 transition-colors duration-500`}>
         {/* Ambient */}
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[120px] pointer-events-none transition-colors duration-700 ${t.ambient}`} />
 

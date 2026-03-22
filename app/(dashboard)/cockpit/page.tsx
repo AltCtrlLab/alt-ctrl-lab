@@ -62,14 +62,14 @@ export default function CockpitPage() {
 
   const kpiCards = kpis ? [
     { label: 'Leads actifs', value: kpis.leadsActifs, icon: TrendingUp, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
-    { label: 'Projets en cours', value: kpis.projetsEnCours, icon: FolderKanban, color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
+    { label: 'Projets en cours', value: kpis.projetsEnCours, icon: FolderKanban, color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10 border-fuchsia-500/20' },
     { label: 'CA du mois', value: `${(kpis.caMois / 1000).toFixed(1)}k`, icon: Wallet, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
     { label: 'Taches agents', value: kpis.tachesAgents, icon: Users, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
   ] : [];
 
   const quickLinks = [
     { label: 'Nouveau Brief', href: '/brief', icon: PlusCircle, color: 'bg-cyan-600 hover:bg-cyan-500' },
-    { label: 'Voir Leads', href: '/leads', icon: TrendingUp, color: 'bg-violet-600 hover:bg-violet-500' },
+    { label: 'Voir Leads', href: '/leads', icon: TrendingUp, color: 'bg-fuchsia-600 hover:bg-fuchsia-500' },
     { label: 'Voir Projets', href: '/projets', icon: FolderKanban, color: 'bg-emerald-600 hover:bg-emerald-500' },
   ];
 

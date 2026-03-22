@@ -15,9 +15,9 @@ function fmtDate(ts: number) {
 }
 
 const CAT_COLORS: Record<string, string> = {
-  'Outils': 'text-violet-400 bg-violet-900/30',
-  'Freelance': 'text-blue-400 bg-blue-900/30',
-  'Pub': 'text-pink-400 bg-pink-900/30',
+  'Outils': 'text-fuchsia-400 bg-fuchsia-900/30',
+  'Freelance': 'text-cyan-400 bg-cyan-900/30',
+  'Pub': 'text-fuchsia-400 bg-fuchsia-900/30',
   'Formation': 'text-amber-400 bg-amber-900/30',
   'Autre': 'text-zinc-400 bg-zinc-800',
 };

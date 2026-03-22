@@ -184,7 +184,7 @@ export function ProjectDetailModal({ project, onClose, onPhaseChange, onUpdated,
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2.5 text-xs font-medium transition-all border-b-2 -mb-px ${
-                  activeTab === tab.id ? 'text-violet-400 border-violet-500' : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                  activeTab === tab.id ? 'text-fuchsia-400 border-fuchsia-500' : 'text-zinc-500 border-transparent hover:text-zinc-300'
                 }`}
               >
                 {tab.label}
@@ -255,7 +255,7 @@ export function ProjectDetailModal({ project, onClose, onPhaseChange, onUpdated,
                   onBlur={saveNotes}
                   rows={10}
                   placeholder="Notes, contexte, décisions, livrables..."
-                  className="w-full px-3 py-3 text-sm bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all resize-none"
+                  className="w-full px-3 py-3 text-sm bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all resize-none"
                 />
                 <div className="flex justify-end">
                   {savingNotes && <span className="text-[10px] text-zinc-600 flex items-center gap-1"><Loader2 className="w-2.5 h-2.5 animate-spin" /> Sauvegarde...</span>}

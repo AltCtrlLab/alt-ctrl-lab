@@ -32,8 +32,8 @@ const statusOrder: Record<Status, number> = {
 };
 
 const getRoleBadge = (id: string): { text: string; color: string } => {
-  if (id === 'abdulhakim') return { text: 'CEO', color: 'bg-indigo-500' };
-  if (['musawwir', 'matin', 'fatah', 'hasib'].includes(id)) return { text: 'Director', color: 'bg-purple-500' };
+  if (id === 'abdulhakim') return { text: 'CEO', color: 'bg-fuchsia-500' };
+  if (['musawwir', 'matin', 'fatah', 'hasib'].includes(id)) return { text: 'Director', color: 'bg-fuchsia-500' };
   return { text: 'Executor', color: 'bg-emerald-500' };
 };
 
@@ -81,14 +81,14 @@ export const AgentList: React.FC<AgentListProps> = ({
             >
               {/* Avatar avec gradient */}
               <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg font-bold text-white">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 flex items-center justify-center text-lg font-bold text-white">
                   {agent.name.charAt(0).toUpperCase()}
                 </div>
                 <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-neutral-900 ${
                   agent.status === 'running' ? 'bg-emerald-500 animate-pulse' :
                   agent.status === 'error' ? 'bg-red-500' :
                   agent.status === 'paused' ? 'bg-amber-500' :
-                  agent.status === 'completed' ? 'bg-blue-500' :
+                  agent.status === 'completed' ? 'bg-cyan-500' :
                   'bg-neutral-500'
                 }`} />
               </div>

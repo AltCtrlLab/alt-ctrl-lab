@@ -25,14 +25,14 @@ const getTheme = (isDark: boolean) => ({
 
 const priorityConfig: Record<TodoPriority, { color: string; label: string; icon: any }> = {
   critical: { color: 'text-rose-500', label: 'Critique', icon: AlertCircle },
-  high: { color: 'text-orange-500', label: 'Haute', icon: AlertCircle },
+  high: { color: 'text-amber-500', label: 'Haute', icon: AlertCircle },
   medium: { color: 'text-yellow-500', label: 'Moyenne', icon: Clock },
-  low: { color: 'text-blue-500', label: 'Basse', icon: Clock },
+  low: { color: 'text-cyan-500', label: 'Basse', icon: Clock },
 };
 
 const categoryColors: Record<string, string> = {
-  personal: 'bg-purple-500/20 text-purple-400',
-  work: 'bg-blue-500/20 text-blue-400',
+  personal: 'bg-fuchsia-500/20 text-fuchsia-400',
+  work: 'bg-cyan-500/20 text-cyan-400',
   urgent: 'bg-rose-500/20 text-rose-400',
   backlog: 'bg-neutral-500/20 text-neutral-400',
 };
@@ -285,14 +285,14 @@ export const TodoPanel: React.FC<TodoPanelProps> = ({ isDark }) => {
                   placeholder="Titre de la tâche..."
                   value={newTodo.title}
                   onChange={(e) => setNewTodo({ ...newTodo, title: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl bg-transparent border ${t.borderLight} ${t.textMain} placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50`}
+                  className={`w-full px-4 py-3 rounded-xl bg-transparent border ${t.borderLight} ${t.textMain} placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50`}
                 />
                 
                 <textarea
                   placeholder="Description (optionnel)..."
                   value={newTodo.description}
                   onChange={(e) => setNewTodo({ ...newTodo, description: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl bg-transparent border ${t.borderLight} ${t.textMain} placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none h-20`}
+                  className={`w-full px-4 py-3 rounded-xl bg-transparent border ${t.borderLight} ${t.textMain} placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 resize-none h-20`}
                 />
 
                 <div className="grid grid-cols-2 gap-3">

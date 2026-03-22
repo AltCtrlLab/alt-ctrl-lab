@@ -68,7 +68,7 @@ const t = (isDark: boolean) => ({
 
 const complexityColors: Record<string, string> = {
   trivial: 'text-emerald-400', easy: 'text-green-400',
-  medium: 'text-amber-400', hard: 'text-orange-400', epic: 'text-rose-400',
+  medium: 'text-amber-400', hard: 'text-amber-400', epic: 'text-rose-400',
 };
 
 const scoreColor = (s: number) => s >= 80 ? 'text-emerald-400' : s >= 60 ? 'text-amber-400' : 'text-rose-400';
@@ -193,7 +193,7 @@ function CycleControl({ isDark }: { isDark: boolean }) {
     <div className={`${th.card} rounded-xl border p-4 space-y-4`}>
       <div className="flex items-center justify-between">
         <h3 className={`font-semibold text-sm flex items-center gap-2 ${th.heading}`}>
-          <Settings size={15} className="text-blue-400" />
+          <Settings size={15} className="text-cyan-400" />
           Contrôle du Cycle R&D
         </h3>
         <span className={`text-xs px-2 py-1 rounded-full ${
@@ -230,7 +230,7 @@ function CycleControl({ isDark }: { isDark: boolean }) {
         <span className={`text-xs ${th.muted}`}>h</span>
         <button
           onClick={saveInterval}
-          className="px-3 py-1 text-xs rounded-lg bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 transition-colors"
+          className="px-3 py-1 text-xs rounded-lg bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 transition-colors"
         >
           Sauvegarder
         </button>
@@ -251,7 +251,7 @@ function CycleControl({ isDark }: { isDark: boolean }) {
         <button
           onClick={() => trigger('trigger_elevate', 'Élévation')}
           disabled={isRunning}
-          className="flex flex-col items-center gap-1 py-2 px-3 rounded-lg bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-medium"
+          className="flex flex-col items-center gap-1 py-2 px-3 rounded-lg bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-medium"
         >
           {running === 'trigger_elevate'
             ? <Loader2 size={16} className="animate-spin" />
@@ -318,7 +318,7 @@ function InnovationCard({
                 {inn.implementationComplexity} · {inn.estimatedImplementationDays}j
               </span>
               <span className={th.muted}>·</span>
-              <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300">{inn.category}</span>
+              <span className="px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-300">{inn.category}</span>
             </div>
           </div>
           <div className="shrink-0">
@@ -341,8 +341,8 @@ function InnovationCard({
                 Nouveauté <strong className="text-yellow-300 ml-1">{inn.noveltyScore}/10</strong>
               </span>
               <span className="flex items-center gap-1">
-                <TrendingUp size={11} className="text-blue-400" />
-                Faisabilité <strong className="text-blue-300 ml-1">{inn.feasibilityScore}/10</strong>
+                <TrendingUp size={11} className="text-cyan-400" />
+                Faisabilité <strong className="text-cyan-300 ml-1">{inn.feasibilityScore}/10</strong>
               </span>
               <span className="flex items-center gap-1">
                 <Clock size={11} className="text-neutral-400" />
@@ -350,7 +350,7 @@ function InnovationCard({
               </span>
               {inn.sourceUrl && (
                 <a href={inn.sourceUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-400 hover:text-blue-300"
+                  className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300"
                   onClick={e => e.stopPropagation()}>
                   <ExternalLink size={11} /> Source
                 </a>
@@ -365,19 +365,19 @@ function InnovationCard({
               <p className={`text-sm italic ${th.muted}`}>{inn.originalConcept}</p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-y border-purple-500/20">
+            <div className="p-4 bg-gradient-to-br from-fuchsia-500/10 to-cyan-500/10 border-y border-fuchsia-500/20">
               <div className="flex items-center gap-2 mb-2">
-                <Rocket size={14} className="text-purple-400" />
-                <span className="text-sm font-semibold text-purple-400 uppercase tracking-wider">Innovation Alt Ctrl Lab</span>
-                <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs">Top 1%</span>
+                <Rocket size={14} className="text-fuchsia-400" />
+                <span className="text-sm font-semibold text-fuchsia-400 uppercase tracking-wider">Innovation Alt Ctrl Lab</span>
+                <span className="px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 text-xs">Top 1%</span>
               </div>
               <p className={`text-sm ${th.main} leading-relaxed`}>{inn.altCtrlMutation}</p>
 
               {inn.technicalArchitecture && (
                 <div className="mt-3 p-3 rounded-lg bg-black/30">
                   <div className="flex items-center gap-2 mb-1">
-                    <Code2 size={12} className="text-blue-400" />
-                    <span className="text-xs font-medium text-blue-400">Stack technique</span>
+                    <Code2 size={12} className="text-cyan-400" />
+                    <span className="text-xs font-medium text-cyan-400">Stack technique</span>
                   </div>
                   <p className={`text-xs ${th.muted}`}>{inn.technicalArchitecture}</p>
                 </div>
@@ -549,7 +549,7 @@ export const DailyProposals: React.FC<DailyProposalsProps> = ({ isDark }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
-        <Loader2 className="animate-spin text-purple-400 w-8 h-8" />
+        <Loader2 className="animate-spin text-fuchsia-400 w-8 h-8" />
       </div>
     );
   }
@@ -615,7 +615,7 @@ export const DailyProposals: React.FC<DailyProposalsProps> = ({ isDark }) => {
         <div className="grid grid-cols-4 gap-3">
           {[
             { label: 'Découvertes', value: metrics.discoveries, color: 'text-cyan-400', icon: Search },
-            { label: 'Innovations', value: metrics.innovations.total, color: 'text-violet-400', icon: Brain },
+            { label: 'Innovations', value: metrics.innovations.total, color: 'text-fuchsia-400', icon: Brain },
             { label: 'En attente', value: metrics.innovations.proposed, color: 'text-amber-400', icon: Clock },
             { label: 'Score moyen', value: `${parseFloat(metrics.averageOpportunityScore).toFixed(0)}/100`, color: 'text-emerald-400', icon: BarChart3 },
           ].map(({ label, value, color, icon: Icon }) => (
@@ -639,7 +639,7 @@ export const DailyProposals: React.FC<DailyProposalsProps> = ({ isDark }) => {
         />
         <AgentCard
           name="AbdulBasir" role="Elevateur — Analyse"
-          emoji="⚗️" color="text-violet-400"
+          emoji="⚗️" color="text-fuchsia-400"
           lastEvent={lastElevateEvent}
           isRunning={schedulerRunning}
           isDark={isDark}
@@ -676,7 +676,7 @@ export const DailyProposals: React.FC<DailyProposalsProps> = ({ isDark }) => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className={`text-lg font-semibold flex items-center gap-2 ${th.heading}`}>
-            <Sparkles size={18} className="text-purple-400" />
+            <Sparkles size={18} className="text-fuchsia-400" />
             Innovations à valider ({innovations.length})
           </h2>
           <button onClick={fetchAll} className={`p-1.5 rounded-lg hover:bg-white/5 transition-colors ${th.muted}`}>
@@ -686,7 +686,7 @@ export const DailyProposals: React.FC<DailyProposalsProps> = ({ isDark }) => {
 
         {innovations.length === 0 ? (
           <div className={`${th.glass} backdrop-blur-xl rounded-2xl border p-8 text-center`}>
-            <Sparkles className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+            <Sparkles className="w-8 h-8 text-fuchsia-400 mx-auto mb-3" />
             <p className={`text-sm ${th.muted}`}>
               Aucune innovation en attente. Lance un cycle de scouting ci-dessus.
             </p>

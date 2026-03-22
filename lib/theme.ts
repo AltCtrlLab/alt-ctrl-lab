@@ -3,7 +3,7 @@
  * Accent color system with CSS variables and localStorage persistence.
  */
 
-export type AccentColor = 'indigo' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'violet';
+export type AccentColor = 'fuchsia' | 'indigo' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'violet';
 
 export interface AccentPalette {
   300: string;
@@ -15,8 +15,16 @@ export interface AccentPalette {
 }
 
 export const ACCENT_PALETTES: Record<AccentColor, AccentPalette> = {
+  fuchsia: {
+    300: '232, 121, 249',
+    400: '217, 70, 239',
+    500: '192, 38, 211',
+    600: '162, 28, 175',
+    glow: 'rgba(217, 70, 239, 0.5)',
+    gradient: 'from-fuchsia-500 to-fuchsia-600',
+  },
   indigo: {
-    300: '165, 180, 252',  // rgb values for CSS vars
+    300: '165, 180, 252',
     400: '129, 140, 248',
     500: '99, 102, 241',
     600: '79, 70, 229',
@@ -77,7 +85,7 @@ export function applyAccentColor(accent: AccentColor): void {
 }
 
 export function getStoredAccent(): AccentColor {
-  if (typeof window === 'undefined') return 'indigo';
+  if (typeof window === 'undefined') return 'fuchsia';
   return (localStorage.getItem('acl-accent') as AccentColor) || 'indigo';
 }
 
@@ -111,7 +119,7 @@ export function getTheme(isDark: boolean) {
       ? 'bg-white/[0.03] border-white/[0.08] shadow-black/50'
       : 'bg-white/60 border-white/40 shadow-neutral-200/50',
     glassHover: isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-white/80',
-    ambient: isDark ? 'bg-blue-900/10' : 'bg-blue-400/5',
+    ambient: isDark ? 'bg-fuchsia-900/10' : 'bg-fuchsia-400/5',
     card: isDark
       ? 'bg-white/[0.03] border-white/[0.08]'
       : 'bg-white border-neutral-200',

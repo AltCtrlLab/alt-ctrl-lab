@@ -53,10 +53,10 @@ export function VaultExplorer({ isDark }: { isDark: boolean }) {
   const handleSearch = () => { if (query.trim()) fetchVault(query); else fetchVault(); };
 
   const serviceColors: Record<string, string> = {
-    branding: 'bg-pink-500/20 text-pink-300',
+    branding: 'bg-fuchsia-500/20 text-fuchsia-300',
     web_dev: 'bg-emerald-500/20 text-emerald-300',
     marketing: 'bg-amber-500/20 text-amber-300',
-    data: 'bg-blue-500/20 text-blue-300',
+    data: 'bg-cyan-500/20 text-cyan-300',
     generic: 'bg-neutral-500/20 text-neutral-300',
   };
 

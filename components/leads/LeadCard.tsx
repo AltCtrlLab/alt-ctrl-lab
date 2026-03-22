@@ -67,7 +67,7 @@ export function LeadCard({ lead, index = 0, onClick }: LeadCardProps) {
           </span>
         )}
         {lead.propositionAmount && (
-          <span className="text-[10px] font-semibold text-violet-400">
+          <span className="text-[10px] font-semibold text-fuchsia-400">
             {lead.propositionAmount.toLocaleString('fr-FR')} €
           </span>
         )}

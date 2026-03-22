@@ -51,7 +51,7 @@ export function ProjectCard({ project, index = 0, onClick }: ProjectCardProps) {
         </div>
         {project.budget && (
           <div className="flex-shrink-0 text-right">
-            <p className="text-sm font-bold text-violet-400">{project.budget.toLocaleString('fr-FR')} €</p>
+            <p className="text-sm font-bold text-fuchsia-400">{project.budget.toLocaleString('fr-FR')} €</p>
             <p className="text-[9px] text-zinc-600">budget</p>
           </div>
         )}

@@ -28,11 +28,11 @@ export function Button({
   const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: `bg-cyan-600 hover:bg-cyan-500 text-white focus:ring-cyan-500`,
+    primary: `bg-fuchsia-600 hover:bg-fuchsia-500 text-white focus:ring-fuchsia-500`,
     secondary: `bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700 focus:ring-zinc-500`,
     ghost: `bg-transparent hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 focus:ring-zinc-500`,
     danger: `bg-rose-600 hover:bg-rose-500 text-white focus:ring-rose-500`,
-    premium: `bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white focus:ring-amber-500`,
+    premium: `bg-gradient-to-r from-fuchsia-500 to-cyan-400 hover:from-fuchsia-400 hover:to-cyan-300 text-white focus:ring-fuchsia-500`,
   };
   
   const sizes = {
@@ -42,8 +42,8 @@ export function Button({
   };
 
   const glowStyles = glow && (variant === 'primary' || variant === 'premium' || variant === 'danger') ? {
-    primary: 'shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]',
-    premium: 'shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]',
+    primary: 'shadow-[0_0_20px_rgba(217,70,239,0.3)] hover:shadow-[0_0_30px_rgba(217,70,239,0.5)]',
+    premium: 'shadow-[0_0_20px_rgba(217,70,239,0.3)] hover:shadow-[0_0_30px_rgba(217,70,239,0.5)]',
     danger: 'shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)]',
   }[variant] : '';
 

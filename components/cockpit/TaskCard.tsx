@@ -59,8 +59,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             className="w-8 h-8 rounded-full object-cover"
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-            <span className="text-sm font-medium text-indigo-600">
+          <div className="w-8 h-8 rounded-full bg-fuchsia-100 flex items-center justify-center">
+            <span className="text-sm font-medium text-fuchsia-600">
               {agent.name.charAt(0).toUpperCase()}
             </span>
           </div>

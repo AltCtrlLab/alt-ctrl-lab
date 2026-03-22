@@ -50,9 +50,9 @@ const columns: Column[] = [
     title: 'Planification',
     emoji: '🧠',
     statuses: ['DIRECTOR_PLANNING'],
-    color: 'text-purple-400',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/20',
+    color: 'text-fuchsia-400',
+    bgColor: 'bg-fuchsia-500/10',
+    borderColor: 'border-fuchsia-500/20',
     pulse: true,
   },
   {
@@ -60,9 +60,9 @@ const columns: Column[] = [
     title: 'Exécution',
     emoji: '⚡',
     statuses: ['RUNNING', 'EXECUTING_SUBTASK', 'EXECUTOR_DRAFTING', 'EXECUTOR_SWARMING', 'EXECUTOR_SYNTHESIZING', 'EXECUTOR_REVISING'],
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/20',
+    color: 'text-cyan-400',
+    bgColor: 'bg-cyan-500/10',
+    borderColor: 'border-cyan-500/20',
     pulse: true,
   },
   {
@@ -166,10 +166,10 @@ function StageProgress({ status }: { status: string }) {
             <div className="flex flex-col items-center gap-1 flex-1">
               <div className={`
                 w-full h-1.5 rounded-full transition-all duration-500
-                ${isFailed ? 'bg-red-500/40' : isDone ? 'bg-emerald-500' : isActive ? 'bg-blue-400 animate-pulse' : 'bg-white/10'}
+                ${isFailed ? 'bg-red-500/40' : isDone ? 'bg-emerald-500' : isActive ? 'bg-cyan-400 animate-pulse' : 'bg-white/10'}
               `} />
               {isActive && (
-                <span className="text-[9px] text-blue-300 font-medium whitespace-nowrap">
+                <span className="text-[9px] text-cyan-300 font-medium whitespace-nowrap">
                   {STAGE_LABELS[status] || status}
                 </span>
               )}
@@ -250,13 +250,13 @@ function TaskDetailModal({ task, onClose, onRefresh }: { task: Task; onClose: ()
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {isActive ? (
-                <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
               ) : task.status === 'COMPLETED' ? (
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
               ) : (
                 <XCircle className="w-4 h-4 text-red-400" />
               )}
-              <span className={`text-sm font-medium ${isActive ? 'text-blue-300' : task.status === 'COMPLETED' ? 'text-emerald-300' : 'text-red-300'}`}>
+              <span className={`text-sm font-medium ${isActive ? 'text-cyan-300' : task.status === 'COMPLETED' ? 'text-emerald-300' : 'text-red-300'}`}>
                 {STAGE_LABELS[task.status] || task.status.replace(/_/g, ' ')}
               </span>
               {task.iteration !== undefined && task.iteration !== null && task.iteration > 0 && (
@@ -268,21 +268,21 @@ function TaskDetailModal({ task, onClose, onRefresh }: { task: Task; onClose: ()
             <div className="flex items-center gap-1 text-xs text-neutral-500">
               <Clock className="w-3 h-3" />
               <span>{formatDuration(liveElapsed)}</span>
-              {isActive && <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse ml-1" />}
+              {isActive && <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse ml-1" />}
             </div>
           </div>
 
           {/* Stuck warning */}
           {isStuck && (
-            <div className="flex items-center justify-between p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl">
-              <div className="flex items-center gap-2 text-xs text-orange-300">
+            <div className="flex items-center justify-between p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+              <div className="flex items-center gap-2 text-xs text-amber-300">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>Tâche bloquée depuis {Math.round(stuckMs / 60000)}min — le processus WSL a peut-être été interrompu.</span>
               </div>
               <button
                 onClick={handleCancel}
                 disabled={cancelling}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 rounded-lg text-xs text-orange-300 font-medium transition-colors shrink-0 ml-3"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded-lg text-xs text-amber-300 font-medium transition-colors shrink-0 ml-3"
               >
                 {cancelling ? <Loader2 className="w-3 h-3 animate-spin" /> : <Ban className="w-3 h-3" />}
                 Annuler
@@ -311,7 +311,7 @@ function TaskDetailModal({ task, onClose, onRefresh }: { task: Task; onClose: ()
                 return (
                   <div key={stage} className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs transition-all ${
                     isDone ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' :
-                    isActive ? 'bg-blue-500/10 border-blue-500/30 text-blue-300 ring-1 ring-blue-500/20' :
+                    isActive ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 ring-1 ring-cyan-500/20' :
                     'bg-white/[0.02] border-white/[0.05] text-neutral-500'
                   }`}>
                     <span>{isActive ? <Loader2 className="w-3 h-3 animate-spin" /> : isDone ? '✓' : emoji}</span>
@@ -366,7 +366,7 @@ function TaskDetailModal({ task, onClose, onRefresh }: { task: Task; onClose: ()
                   href={`/api/deliverable/${task.id}?format=html`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-500/15 border border-indigo-500/30 rounded-lg text-xs text-indigo-300 hover:bg-indigo-500/25 transition-colors font-medium"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-fuchsia-500/15 border border-fuchsia-500/30 rounded-lg text-xs text-fuchsia-300 hover:bg-fuchsia-500/25 transition-colors font-medium"
                 >
                   <Globe className="w-3.5 h-3.5" />
                   HTML / PDF
@@ -426,7 +426,7 @@ function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
       onClick={onClick}
       className={`w-full text-left bg-white/[0.03] border rounded-2xl p-4 hover:bg-white/[0.06] transition-all duration-200 group ${
         isActive
-          ? 'border-blue-500/30 hover:border-blue-500/50'
+          ? 'border-cyan-500/30 hover:border-cyan-500/50'
           : isFailed
           ? 'border-red-500/20 hover:border-red-500/30'
           : 'border-white/[0.08] hover:border-white/[0.14]'
@@ -446,7 +446,7 @@ function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
           )}
         </div>
         <div className="flex items-center gap-1.5">
-          {isActive && <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />}
+          {isActive && <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />}
           <span className="text-xs text-neutral-600">{formatDuration(elapsed)}</span>
         </div>
       </div>
@@ -464,7 +464,7 @@ function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
         <span className={`text-xs font-medium ${
           isFailed ? 'text-red-400' :
           task.status === 'COMPLETED' ? 'text-emerald-400' :
-          'text-blue-300'
+          'text-cyan-300'
         }`}>
           {isFailed ? '✗ Échec' : task.status === 'COMPLETED' ? '✓ Terminé' : STAGE_LABELS[task.status] || task.status}
         </span>
@@ -540,8 +540,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ isDark, tasks, onRefresh }) =
           <div className="flex items-center gap-3">
             <h2 className="text-base font-semibold text-white">Tableau de Bord Missions</h2>
             {totalActive > 0 && (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/15 border border-blue-500/30 rounded-full text-xs text-blue-300 font-medium">
-                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-cyan-500/15 border border-cyan-500/30 rounded-full text-xs text-cyan-300 font-medium">
+                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
                 {totalActive} mission{totalActive > 1 ? 's' : ''} en cours
               </span>
             )}
@@ -551,7 +551,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ isDark, tasks, onRefresh }) =
               onClick={() => setAutoRefresh(v => !v)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                 autoRefresh
-                  ? 'bg-blue-500/15 border-blue-500/30 text-blue-300'
+                  ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300'
                   : 'bg-white/[0.03] border-white/[0.08] text-neutral-400'
               }`}
             >
@@ -560,7 +560,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ isDark, tasks, onRefresh }) =
             </button>
             <button
               onClick={onRefresh}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-xs text-neutral-300 hover:bg-white/[0.06] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-xs text-neutral-300 hover:bg-white/[0.06] transition-colors font-medium"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Actualiser

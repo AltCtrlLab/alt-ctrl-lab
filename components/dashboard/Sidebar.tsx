@@ -52,37 +52,37 @@ const navSections: NavSection[] = [
   {
     title: 'Commande',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, color: 'text-zinc-300' },
-      { label: 'Nouveau Brief', href: '/brief', icon: PlusCircle, color: 'text-cyan-400' },
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, color: 'text-zinc-400' },
+      { label: 'Nouveau Brief', href: '/brief', icon: PlusCircle, color: 'text-zinc-400' },
     ],
   },
   {
     title: 'Pipeline',
     items: [
-      { label: 'Leads', href: '/leads', icon: TrendingUp, color: 'text-cyan-400' },
-      { label: 'Projets', href: '/projets', icon: FolderKanban, color: 'text-violet-400' },
-      { label: 'Finances', href: '/finances', icon: Wallet, color: 'text-emerald-400' },
-      { label: 'Prospection', href: '/prospection', icon: Target, color: 'text-orange-400' },
-      { label: 'Post-Vente', href: '/postvente', icon: HeartHandshake, color: 'text-pink-400' },
+      { label: 'Leads', href: '/leads', icon: TrendingUp, color: 'text-zinc-400' },
+      { label: 'Projets', href: '/projets', icon: FolderKanban, color: 'text-zinc-400' },
+      { label: 'Finances', href: '/finances', icon: Wallet, color: 'text-zinc-400' },
+      { label: 'Prospection', href: '/prospection', icon: Target, color: 'text-zinc-400' },
+      { label: 'Post-Vente', href: '/postvente', icon: HeartHandshake, color: 'text-zinc-400' },
     ],
   },
   {
     title: 'Ops',
     items: [
-      { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-pink-400' },
-      { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-violet-400' },
-      { label: 'Cockpit Ops', href: '/pil', icon: Terminal, color: 'text-rose-400' },
+      { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-zinc-400' },
+      { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-zinc-400' },
+      { label: 'Cockpit Ops', href: '/pil', icon: Terminal, color: 'text-zinc-400' },
       { label: 'Historique', href: '/history', icon: History, color: 'text-zinc-400' },
     ],
   },
 ];
 
 const teamAiItems: NavItem[] = [
-  { label: 'Portfolio', href: '/portfolio', icon: Briefcase, color: 'text-amber-400' },
-  { label: 'Branding', href: '/branding', icon: Palette, color: 'text-pink-400', agent: 'Abdul Musawwir' },
-  { label: 'Web Dev', href: '/web-dev', icon: Code2, color: 'text-emerald-400', agent: 'Abdul Matin' },
-  { label: 'Marketing', href: '/marketing', icon: Megaphone, color: 'text-amber-400', agent: 'Abdul Fatah' },
-  { label: 'R&D', href: '/rd', icon: FlaskConical, color: 'text-teal-400' },
+  { label: 'Portfolio', href: '/portfolio', icon: Briefcase, color: 'text-zinc-400' },
+  { label: 'Branding', href: '/branding', icon: Palette, color: 'text-zinc-400', agent: 'Abdul Musawwir' },
+  { label: 'Web Dev', href: '/web-dev', icon: Code2, color: 'text-zinc-400', agent: 'Abdul Matin' },
+  { label: 'Marketing', href: '/marketing', icon: Megaphone, color: 'text-zinc-400', agent: 'Abdul Fatah' },
+  { label: 'R&D', href: '/rd', icon: FlaskConical, color: 'text-zinc-400' },
 ];
 
 interface SidebarProps {
@@ -118,7 +118,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
     ? 'text-neutral-400 hover:bg-fuchsia-500/10 hover:text-fuchsia-400'
     : 'text-neutral-500 hover:bg-fuchsia-500/10 hover:text-fuchsia-600';
 
-  const navActive = isDark ? 'bg-white/[0.08] text-white' : 'bg-blue-50 text-blue-700';
+  const navActive = isDark ? 'bg-white/[0.08] text-white' : 'bg-fuchsia-50 text-fuchsia-700';
 
   const renderNavLink = (item: NavItem) => {
     const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
@@ -136,7 +136,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
         {isActive && (
           <motion.div
             layoutId="sidebarActive"
-            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full ${isDark ? 'bg-[rgb(var(--accent-500))]' : 'bg-blue-600'}`}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full ${isDark ? 'bg-[rgb(var(--accent-500))]' : 'bg-fuchsia-600'}`}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           />
         )}
@@ -183,8 +183,8 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
           className={`
             w-full flex items-center gap-3 px-3 py-2 rounded-xl border transition-all duration-200
             ${isDark
-              ? 'bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border-cyan-500/20 text-cyan-400 hover:from-cyan-500/20 hover:to-violet-500/20'
-              : 'bg-gradient-to-r from-cyan-500/15 to-violet-500/15 border-cyan-400/30 text-cyan-600 hover:from-cyan-500/25 hover:to-violet-500/25'
+              ? 'bg-gradient-to-r from-fuchsia-500/10 to-cyan-500/10 border-fuchsia-500/20 text-fuchsia-400 hover:from-fuchsia-500/20 hover:to-cyan-500/20'
+              : 'bg-gradient-to-r from-fuchsia-500/15 to-cyan-500/15 border-fuchsia-400/30 text-fuchsia-600 hover:from-fuchsia-500/25 hover:to-cyan-500/25'
             }
           `}
         >

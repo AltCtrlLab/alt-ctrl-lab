@@ -12,7 +12,7 @@ interface PostVenteStats {
 export function PostVenteStatsBar({ stats }: { stats: PostVenteStats | null }) {
   const items = [
     { label: 'À faire', value: stats?.aFaire ?? '—', icon: ClipboardList, color: 'text-cyan-400' },
-    { label: 'NPS moyen', value: stats?.scoreNpsMoyen != null ? `${stats.scoreNpsMoyen}/10` : '—', icon: Star, color: 'text-violet-400' },
+    { label: 'NPS moyen', value: stats?.scoreNpsMoyen != null ? `${stats.scoreNpsMoyen}/10` : '—', icon: Star, color: 'text-fuchsia-400' },
     { label: 'En retard', value: stats?.overdueCount ?? '—', icon: AlertTriangle, color: stats && stats.overdueCount > 0 ? 'text-rose-400' : 'text-zinc-500' },
     { label: 'Upsells', value: stats?.upsellsIdentifies ?? '—', icon: TrendingUp, color: 'text-emerald-400' },
   ];

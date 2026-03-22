@@ -101,12 +101,12 @@ export function ScoreCalculator({ initialCriteria, onChange }: ScoreCalculatorPr
                     onClick={() => setCriterion(c.key, opt.value)}
                     className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
                       isSelected
-                        ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                        ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300'
                         : 'bg-zinc-900 border-zinc-700 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                   >
                     {opt.label}
-                    <span className={`ml-1 font-semibold ${isSelected ? 'text-violet-400' : 'text-zinc-600'}`}>
+                    <span className={`ml-1 font-semibold ${isSelected ? 'text-fuchsia-400' : 'text-zinc-600'}`}>
                       +{opt.points}
                     </span>
                   </button>

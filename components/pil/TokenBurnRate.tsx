@@ -104,8 +104,8 @@ export function TokenBurnRate({ isDark }: TokenBurnRateProps) {
                 ? 'text-red-400'
                 : 'text-red-600'
               : isDark
-              ? 'text-orange-400'
-              : 'text-orange-600'
+              ? 'text-amber-400'
+              : 'text-amber-600'
           } ${isHighBurn ? 'animate-pulse' : ''}`}
         />
         {isHighBurn && (

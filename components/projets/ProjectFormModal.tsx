@@ -74,7 +74,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
     }
   };
 
-  const inputCls = "w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all";
+  const inputCls = "w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
 
   return (
     <AnimatePresence>
@@ -144,7 +144,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
                     onClick={() => toggleAgent(a.id)}
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
                       form.teamAgents.includes(a.id)
-                        ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                        ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300'
                         : 'bg-zinc-900 border-zinc-700 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                   >
@@ -177,7 +177,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 px-6 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-all"
+                className="flex items-center gap-2 px-6 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-all"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Créer le projet

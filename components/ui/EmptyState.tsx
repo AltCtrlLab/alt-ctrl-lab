@@ -12,21 +12,13 @@ interface EmptyStateProps {
 }
 
 const COLOR_MAP: Record<string, { iconBg: string; iconBorder: string; iconText: string; btnBg: string; btnBorder: string; btnText: string }> = {
-  emerald: {
-    iconBg: 'bg-emerald-500/10',
-    iconBorder: 'border-emerald-500/20',
-    iconText: 'text-emerald-400',
-    btnBg: 'bg-emerald-600/20 hover:bg-emerald-600/30',
-    btnBorder: 'border-emerald-500/30',
-    btnText: 'text-emerald-300',
-  },
-  amber: {
-    iconBg: 'bg-amber-500/10',
-    iconBorder: 'border-amber-500/20',
-    iconText: 'text-amber-400',
-    btnBg: 'bg-amber-600/20 hover:bg-amber-600/30',
-    btnBorder: 'border-amber-500/30',
-    btnText: 'text-amber-300',
+  fuchsia: {
+    iconBg: 'bg-fuchsia-500/10',
+    iconBorder: 'border-fuchsia-500/20',
+    iconText: 'text-fuchsia-400',
+    btnBg: 'bg-fuchsia-600/20 hover:bg-fuchsia-600/30',
+    btnBorder: 'border-fuchsia-500/30',
+    btnText: 'text-fuchsia-300',
   },
   cyan: {
     iconBg: 'bg-cyan-500/10',
@@ -36,26 +28,18 @@ const COLOR_MAP: Record<string, { iconBg: string; iconBorder: string; iconText: 
     btnBorder: 'border-cyan-500/30',
     btnText: 'text-cyan-300',
   },
-  pink: {
-    iconBg: 'bg-pink-500/10',
-    iconBorder: 'border-pink-500/20',
-    iconText: 'text-pink-400',
-    btnBg: 'bg-pink-600/20 hover:bg-pink-600/30',
-    btnBorder: 'border-pink-500/30',
-    btnText: 'text-pink-300',
-  },
-  violet: {
-    iconBg: 'bg-violet-500/10',
-    iconBorder: 'border-violet-500/20',
-    iconText: 'text-violet-400',
-    btnBg: 'bg-violet-600/20 hover:bg-violet-600/30',
-    btnBorder: 'border-violet-500/30',
-    btnText: 'text-violet-300',
+  zinc: {
+    iconBg: 'bg-zinc-800',
+    iconBorder: 'border-zinc-700',
+    iconText: 'text-zinc-400',
+    btnBg: 'bg-zinc-800 hover:bg-zinc-700',
+    btnBorder: 'border-zinc-700',
+    btnText: 'text-zinc-300',
   },
 };
 
 export function EmptyState({ icon: Icon, color, message, submessage, ctaLabel, onAction }: EmptyStateProps) {
-  const c = COLOR_MAP[color] ?? COLOR_MAP.violet;
+  const c = COLOR_MAP[color] ?? COLOR_MAP.fuchsia;
 
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">

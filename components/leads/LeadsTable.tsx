@@ -69,7 +69,7 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                     type="checkbox"
                     checked={allSelected}
                     onChange={() => onToggleAll?.()}
-                    className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-violet-500 cursor-pointer"
+                    className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-fuchsia-500 cursor-pointer"
                   />
                 </th>
               )}
@@ -100,7 +100,7 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.02 }}
-                  className={`group hover:bg-zinc-800/30 cursor-pointer transition-colors ${isSelected ? 'bg-violet-500/5' : ''}`}
+                  className={`group hover:bg-zinc-800/30 cursor-pointer transition-colors ${isSelected ? 'bg-fuchsia-500/5' : ''}`}
                 >
                   {hasBulk && (
                     <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
@@ -108,7 +108,7 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => onToggle!(lead.id)}
-                        className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-violet-500 cursor-pointer"
+                        className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-fuchsia-500 cursor-pointer"
                       />
                     </td>
                   )}
@@ -130,7 +130,7 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                   <td className="px-4 py-3 text-xs text-zinc-500" onClick={() => onRowClick(lead)}>{lead.source}</td>
                   <td className="px-4 py-3 text-right" onClick={() => onRowClick(lead)}>
                     {lead.propositionAmount
-                      ? <span className="text-xs font-semibold text-violet-400">{lead.propositionAmount.toLocaleString('fr-FR')} &euro;</span>
+                      ? <span className="text-xs font-semibold text-fuchsia-400">{lead.propositionAmount.toLocaleString('fr-FR')} &euro;</span>
                       : <span className="text-xs text-zinc-700">&mdash;</span>
                     }
                   </td>

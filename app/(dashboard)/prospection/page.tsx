@@ -37,9 +37,9 @@ const GOOGLE_MAPS_WORKFLOW_ID = 'nrRSJkM4xCBrzRau';
 type ProspectionChannel = 'google-maps' | 'instagram' | 'linkedin';
 
 const CHANNEL_OPTIONS: { id: ProspectionChannel; label: string; pitch: string; badge: string; icon: any; color: string; bg: string; border: string }[] = [
-  { id: 'google-maps', label: 'Google Maps', pitch: 'Refonte site web', badge: 'Email', icon: MapPin, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  { id: 'instagram', label: 'Instagram', pitch: 'Création site web', badge: 'DM', icon: Instagram, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/30' },
-  { id: 'linkedin', label: 'LinkedIn', pitch: 'Site web pro', badge: 'Email', icon: Linkedin, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  { id: 'google-maps', label: 'Google Maps', pitch: 'Refonte site web', badge: 'Email', icon: MapPin, color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
+  { id: 'instagram', label: 'Instagram', pitch: 'Création site web', badge: 'DM', icon: Instagram, color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
+  { id: 'linkedin', label: 'LinkedIn', pitch: 'Site web pro', badge: 'Email', icon: Linkedin, color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
 ];
 
 const NICHE_OPTIONS: { label: string; icon: any }[] = [
@@ -111,7 +111,7 @@ function FollowupBadge({ lastContactedAt, status }: { lastContactedAt: number | 
     ? 'bg-rose-500/10 text-rose-400'
     : daysSince >= 7
     ? 'bg-amber-500/10 text-amber-400'
-    : 'bg-orange-500/10 text-orange-400';
+    : 'bg-amber-500/10 text-amber-400';
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full ${color}`}>{label}</span>
   );
@@ -138,19 +138,19 @@ function CampaignStepper({
 }) {
   const CAMPAIGN_STEPS = CAMPAIGN_STEPS_MAP[channel];
   return (
-    <div className="rounded-2xl border border-orange-500/20 bg-gradient-to-br from-zinc-900/80 via-zinc-900/60 to-orange-950/10 backdrop-blur-xl overflow-hidden">
+    <div className="rounded-2xl border border-fuchsia-500/20 bg-gradient-to-br from-zinc-900/80 via-zinc-900/60 to-fuchsia-950/10 backdrop-blur-xl overflow-hidden">
       <div className="px-5 py-4">
         {/* Header with timer */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
             <span className="text-xs font-semibold text-zinc-200">Campagne en cours</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-zinc-400">
               {progress.qualified}/{progress.target} leads
             </span>
-            <span className="font-mono text-sm font-bold text-orange-400 bg-orange-500/10 px-3 py-1 rounded-lg">
+            <span className="font-mono text-sm font-bold text-fuchsia-400 bg-fuchsia-500/10 px-3 py-1 rounded-lg">
               {formatTimer(timer)}
             </span>
           </div>
@@ -169,23 +169,23 @@ function CampaignStepper({
                     isDone
                       ? 'bg-emerald-500/20 border-2 border-emerald-500/40'
                       : isActive
-                        ? 'bg-orange-500/20 border-2 border-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.2)]'
+                        ? 'bg-fuchsia-500/20 border-2 border-fuchsia-400 shadow-[0_0_20px_rgba(217,70,239,0.2)]'
                         : 'bg-zinc-800/60 border-2 border-zinc-700/50'
                   }`}>
                     {isDone ? (
                       <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400" />
                     ) : (
-                      <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-orange-400' : 'text-zinc-600'} ${isActive ? 'animate-pulse' : ''}`} />
+                      <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-fuchsia-400' : 'text-zinc-600'} ${isActive ? 'animate-pulse' : ''}`} />
                     )}
                   </div>
-                  <span className={`text-xs mt-1.5 font-medium ${isDone ? 'text-emerald-400' : isActive ? 'text-orange-300' : 'text-zinc-600'}`}>
+                  <span className={`text-xs mt-1.5 font-medium ${isDone ? 'text-emerald-400' : isActive ? 'text-fuchsia-300' : 'text-zinc-600'}`}>
                     {s.label}
                   </span>
                 </div>
                 {i < CAMPAIGN_STEPS.length - 1 && (
                   <div className="flex-1 h-0.5 mx-1 -mt-5 rounded-full overflow-hidden bg-zinc-800">
                     <div
-                      className="h-full bg-gradient-to-r from-orange-500 to-orange-400 transition-all duration-700"
+                      className="h-full bg-gradient-to-r from-fuchsia-500 to-fuchsia-400 transition-all duration-700"
                       style={{ width: isDone ? '100%' : isActive ? '50%' : '0%' }}
                     />
                   </div>
@@ -226,7 +226,7 @@ function CampaignStepper({
                     entry.type === 'qualify' || entry.type === 'done_lead' || entry.type === 'complete' ? 'text-emerald-400' :
                     entry.type === 'error' || entry.type === 'fatal' ? 'text-rose-400' :
                     entry.type === 'warn' ? 'text-amber-400' :
-                    entry.type === 'query' ? 'text-orange-300 mt-1.5' :
+                    entry.type === 'query' ? 'text-fuchsia-300 mt-1.5' :
                     entry.type === 'skip' ? 'text-zinc-600' :
                     'text-zinc-500'
                   }>
@@ -556,15 +556,15 @@ export default function ProspectionPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
-          <Target className="w-5 h-5 text-orange-400" />
+          <Target className="w-5 h-5 text-fuchsia-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Prospection</h1>
           <span className="text-xs text-zinc-600">Multi-canal</span>
           <span className="text-xs text-zinc-700 hidden sm:inline">·</span>
           <span className="text-xs text-zinc-600 hidden sm:inline">{totalLeads} lead{totalLeads > 1 ? 's' : ''}</span>
 
           {triggering && (
-            <span className="flex items-center gap-1.5 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2.5 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+            <span className="flex items-center gap-1.5 text-xs text-fuchsia-400 bg-fuchsia-500/10 border border-fuchsia-500/20 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
               Live
             </span>
           )}
@@ -587,7 +587,7 @@ export default function ProspectionPage() {
               onClick={() => setConfigOpen(o => !o)}
               className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-sm transition-all ${
                 configOpen
-                  ? 'border-orange-500/30 bg-orange-500/10 text-orange-300'
+                  ? 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-300'
                   : 'border-zinc-700 hover:border-zinc-600 text-zinc-300'
               }`}
             >
@@ -597,7 +597,7 @@ export default function ProspectionPage() {
             <button
               onClick={launchCampaign}
               disabled={triggering || selectedNiches.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
             >
               {triggering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
               Lancer campagne
@@ -674,11 +674,11 @@ export default function ProspectionPage() {
 
         {/* Instagram Campaign Timeline — au-dessus du config panel */}
         {channel === 'instagram' && (igRunning || igTimeline.phase !== 'idle') && (
-          <div className="rounded-2xl border border-pink-500/20 bg-gradient-to-br from-zinc-900/80 to-zinc-900/50 overflow-hidden">
+          <div className="rounded-2xl border border-fuchsia-500/20 bg-gradient-to-br from-zinc-900/80 to-zinc-900/50 overflow-hidden">
             <div className="px-4 py-3 border-b border-zinc-800/50 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
               <span className="text-xs font-semibold text-zinc-200">Campagne Instagram en cours</span>
-              {igRunning && <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin ml-auto" />}
+              {igRunning && <Loader2 className="w-3.5 h-3.5 text-fuchsia-400 animate-spin ml-auto" />}
             </div>
             <div className="p-3">
               <IGCampaignTimeline data={igTimeline} running={igRunning} />
@@ -717,13 +717,13 @@ export default function ProspectionPage() {
                       value={igNiche}
                       onChange={e => setIgNiche(e.target.value)}
                       placeholder="ex: coiffeur, restaurant, artisan..."
-                      className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                      className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-fuchsia-500/50 transition-colors"
                       disabled={igRunning}
                     />
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {['Coiffeurs', 'Restaurants', 'Artisans', 'Centres de beauté', 'Boutiques'].map(n => (
                         <button key={n} onClick={() => setIgNiche(n.toLowerCase())} disabled={igRunning}
-                          className={`text-xs px-2 py-1 rounded-md border transition-colors ${igNiche.toLowerCase() === n.toLowerCase() ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                          className={`text-xs px-2 py-1 rounded-md border transition-colors ${igNiche.toLowerCase() === n.toLowerCase() ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-fuchsia-500/30'}`}>
                           {n}
                         </button>
                       ))}
@@ -737,13 +737,13 @@ export default function ProspectionPage() {
                       value={igVille}
                       onChange={e => setIgVille(e.target.value)}
                       placeholder="ex: Paris, Lyon, Genève..."
-                      className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                      className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-fuchsia-500/50 transition-colors"
                       disabled={igRunning}
                     />
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {['Paris', 'Lyon', 'Genève', 'Bordeaux', 'Marseille', 'Annecy', 'Chambéry'].map(v => (
                         <button key={v} onClick={() => setIgVille(v)} disabled={igRunning}
-                          className={`text-xs px-2 py-1 rounded-md border transition-colors ${igVille === v ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                          className={`text-xs px-2 py-1 rounded-md border transition-colors ${igVille === v ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-fuchsia-500/30'}`}>
                           {v}
                         </button>
                       ))}
@@ -753,13 +753,13 @@ export default function ProspectionPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-medium text-zinc-400 mb-2 block">
-                        DMs à envoyer : <span className="text-pink-400 font-semibold">{igCount}</span>
+                        DMs à envoyer : <span className="text-fuchsia-400 font-semibold">{igCount}</span>
                       </label>
                       <input
                         type="range" min={1} max={20} value={igCount}
                         onChange={e => setIgCount(Number(e.target.value))}
                         disabled={igRunning}
-                        className="w-full accent-pink-500"
+                        className="w-full accent-fuchsia-500"
                       />
                     </div>
                     <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700/30">
@@ -774,7 +774,7 @@ export default function ProspectionPage() {
                       <button
                         onClick={() => setIgDryRun(v => !v)}
                         disabled={igRunning}
-                        className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${igDryRun ? 'bg-zinc-600' : 'bg-pink-500'}`}
+                        className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${igDryRun ? 'bg-zinc-600' : 'bg-fuchsia-500'}`}
                       >
                         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${igDryRun ? 'left-0.5' : 'left-5'}`} />
                       </button>
@@ -783,7 +783,7 @@ export default function ProspectionPage() {
                   <button
                     onClick={launchIgCampaign}
                     disabled={!igNiche.trim() || igRunning}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                   >
                     {igRunning
                       ? <><Loader2 className="w-4 h-4 animate-spin" /> Campagne en cours...</>
@@ -809,11 +809,11 @@ export default function ProspectionPage() {
                               onClick={() => toggleNiche(label)}
                               className={`flex items-center gap-2 text-xs px-3 py-2.5 rounded-xl border transition-all duration-200 ${
                                 active
-                                  ? 'bg-orange-500/15 border-orange-500/30 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.08)]'
+                                  ? 'bg-fuchsia-500/15 border-fuchsia-500/30 text-fuchsia-300 shadow-[0_0_12px_rgba(217,70,239,0.08)]'
                                   : 'border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-400 hover:scale-[1.02]'
                               }`}
                             >
-                              <Icon className={`w-3.5 h-3.5 ${active ? 'text-orange-400' : 'text-zinc-600'}`} />
+                              <Icon className={`w-3.5 h-3.5 ${active ? 'text-fuchsia-400' : 'text-zinc-600'}`} />
                               <span className="truncate">{label}</span>
                             </button>
                           );
@@ -834,7 +834,7 @@ export default function ProspectionPage() {
                               exit={{ scale: 0.8, opacity: 0 }}
                               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-zinc-800/80 border border-zinc-700/50 text-zinc-300"
                             >
-                              <MapPin className="w-3 h-3 text-orange-400/60" />
+                              <MapPin className="w-3 h-3 text-fuchsia-400/60" />
                               {v}
                               <button onClick={() => setVilles(prev => prev.filter(x => x !== v))}>
                                 <X className="w-3 h-3 text-zinc-600 hover:text-zinc-300 transition-colors" />
@@ -852,7 +852,7 @@ export default function ProspectionPage() {
                           onFocus={() => setShowSuggestions(true)}
                           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                           placeholder="Ajouter une ville..."
-                          className="text-xs bg-zinc-800/60 border border-zinc-700/50 rounded-xl pl-9 pr-3 py-2.5 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-orange-500/30 focus:bg-zinc-800 w-full transition-all"
+                          className="text-xs bg-zinc-800/60 border border-zinc-700/50 rounded-xl pl-9 pr-3 py-2.5 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-fuchsia-500/30 focus:bg-zinc-800 w-full transition-all"
                         />
                         {/* Suggestions dropdown */}
                         {showSuggestions && filteredSuggestions.length > 0 && (
@@ -880,7 +880,7 @@ export default function ProspectionPage() {
                       <div className="rounded-xl bg-zinc-800/30 border border-zinc-800/50 p-4">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs text-zinc-400 font-medium">Score Lighthouse minimum</p>
-                          <span className="text-sm font-bold text-orange-400 font-mono">{minScore}/100</span>
+                          <span className="text-sm font-bold text-fuchsia-400 font-mono">{minScore}/100</span>
                         </div>
                         <div className="relative">
                           <div className="h-2 rounded-full bg-zinc-700/50 overflow-hidden mb-1">
@@ -901,10 +901,10 @@ export default function ProspectionPage() {
                         <p className="text-xs text-zinc-600 mt-2">Sites en dessous de ce score sont contactés</p>
                       </div>
                     ) : (
-                      <div className="rounded-xl border p-4 bg-blue-500/5 border-blue-500/15">
+                      <div className="rounded-xl border p-4 bg-cyan-500/5 border-cyan-500/15">
                         <div className="flex items-center gap-2 mb-2">
-                          <Linkedin className="w-4 h-4 text-blue-400" />
-                          <p className="text-xs font-semibold text-blue-300">Ciblage LinkedIn</p>
+                          <Linkedin className="w-4 h-4 text-cyan-400" />
+                          <p className="text-xs font-semibold text-cyan-300">Ciblage LinkedIn</p>
                         </div>
                         <p className="text-xs text-zinc-400 leading-relaxed">
                           Recherche de profils LinkedIn par niche et ville via Google. Extraction du nom et de la headline professionnelle.
@@ -916,12 +916,12 @@ export default function ProspectionPage() {
                     <div className="rounded-xl bg-zinc-800/30 border border-zinc-800/50 p-4">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-xs text-zinc-400 font-medium">Objectif leads</p>
-                        <span className="text-sm font-bold text-orange-400 font-mono">{maxLeads}</span>
+                        <span className="text-sm font-bold text-fuchsia-400 font-mono">{maxLeads}</span>
                       </div>
                       <div className="relative">
                         <div className="h-2 rounded-full bg-zinc-700/50 overflow-hidden mb-1">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-400"
+                            className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 to-fuchsia-400"
                             style={{ width: `${(maxLeads / 50) * 100}%` }}
                           />
                         </div>
@@ -944,7 +944,7 @@ export default function ProspectionPage() {
                             key={tier.label}
                             className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
                               maxLeads <= tier.max && (tier.max === 3 || maxLeads > (tier.max === 15 ? 3 : 15))
-                                ? 'bg-orange-500/15 text-orange-300'
+                                ? 'bg-fuchsia-500/15 text-fuchsia-300'
                                 : 'text-zinc-600'
                             }`}
                           >
@@ -956,12 +956,12 @@ export default function ProspectionPage() {
 
                     {/* Channel info card */}
                     <div className={`rounded-xl bg-gradient-to-br ${
-                      channel === 'linkedin' ? 'from-blue-500/5 border-blue-500/10' :
-                      'from-orange-500/5 border-orange-500/10'
+                      channel === 'linkedin' ? 'from-cyan-500/5 border-cyan-500/10' :
+                      'from-fuchsia-500/5 border-fuchsia-500/10'
                     } to-transparent border p-4`}>
                       <div className="flex items-center gap-2 mb-3">
-                        {channel === 'linkedin' ? <Mail className="w-4 h-4 text-blue-400" /> :
-                         <Mail className="w-4 h-4 text-orange-400" />}
+                        {channel === 'linkedin' ? <Mail className="w-4 h-4 text-cyan-400" /> :
+                         <Mail className="w-4 h-4 text-fuchsia-400" />}
                         <span className="text-xs font-semibold text-zinc-200">
                           {channel === 'linkedin' ? 'Email LinkedIn + IA' :
                            'Email HTML + IA'}
@@ -969,14 +969,14 @@ export default function ProspectionPage() {
                       </div>
                       <div className="space-y-2 text-xs text-zinc-500">
                         {channel === 'google-maps' && <>
-                          <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">1.</span><span>Smart extraction email depuis le site web</span></div>
-                          <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">2.</span><span>Template HTML pro avec diagnostic et CTA</span></div>
-                          <div className="flex items-start gap-2"><span className="text-orange-400 mt-0.5">3.</span><span>Claude IA personnalise chaque email</span></div>
+                          <div className="flex items-start gap-2"><span className="text-fuchsia-400 mt-0.5">1.</span><span>Smart extraction email depuis le site web</span></div>
+                          <div className="flex items-start gap-2"><span className="text-fuchsia-400 mt-0.5">2.</span><span>Template HTML pro avec diagnostic et CTA</span></div>
+                          <div className="flex items-start gap-2"><span className="text-fuchsia-400 mt-0.5">3.</span><span>Claude IA personnalise chaque email</span></div>
                         </>}
                         {channel === 'linkedin' && <>
-                          <div className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">1.</span><span>Recherche profils LinkedIn par niche/ville</span></div>
-                          <div className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">2.</span><span>Email personnalisé par Claude IA</span></div>
-                          <div className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">3.</span><span>Template orienté crédibilité professionnelle</span></div>
+                          <div className="flex items-start gap-2"><span className="text-cyan-400 mt-0.5">1.</span><span>Recherche profils LinkedIn par niche/ville</span></div>
+                          <div className="flex items-start gap-2"><span className="text-cyan-400 mt-0.5">2.</span><span>Email personnalisé par Claude IA</span></div>
+                          <div className="flex items-start gap-2"><span className="text-cyan-400 mt-0.5">3.</span><span>Template orienté crédibilité professionnelle</span></div>
                         </>}
                       </div>
                     </div>
@@ -991,10 +991,10 @@ export default function ProspectionPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
-            { label: 'Contactés', value: totalLeads, icon: Users, color: 'text-orange-400', bg: 'from-orange-500/5' },
-            { label: 'En attente', value: nouveaux, icon: Clock, color: 'text-blue-400', bg: 'from-blue-500/5' },
+            { label: 'Contactés', value: totalLeads, icon: Users, color: 'text-fuchsia-400', bg: 'from-fuchsia-500/5' },
+            { label: 'En attente', value: nouveaux, icon: Clock, color: 'text-cyan-400', bg: 'from-cyan-500/5' },
             { label: 'Taux réponse', value: `${tauxReponse}%`, icon: TrendingUp, color: 'text-emerald-400', bg: 'from-emerald-500/5' },
-            { label: 'RDV pris', value: rdvPris, icon: Calendar, color: 'text-violet-400', bg: 'from-violet-500/5' },
+            { label: 'RDV pris', value: rdvPris, icon: Calendar, color: 'text-fuchsia-400', bg: 'from-fuchsia-500/5' },
             { label: 'Pipeline', value: pipeline > 0 ? `${Math.round(pipeline / 1000)}k€` : '—', icon: Euro, color: 'text-amber-400', bg: 'from-amber-500/5' },
           ].map((stat, i) => (
             <div key={i} className={`rounded-xl border border-zinc-800/60 bg-gradient-to-br ${stat.bg} to-zinc-900/50 p-4 hover:border-zinc-700/60 transition-colors`}>
@@ -1013,7 +1013,7 @@ export default function ProspectionPage() {
             onClick={() => setActiveTab('campagne')}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'campagne'
-                ? 'border-orange-400 text-orange-300'
+                ? 'border-fuchsia-400 text-fuchsia-300'
                 : 'border-transparent text-zinc-500 hover:text-zinc-300'
             }`}
           >
@@ -1024,7 +1024,7 @@ export default function ProspectionPage() {
             onClick={() => setActiveTab('historique')}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'historique'
-                ? 'border-orange-400 text-orange-300'
+                ? 'border-fuchsia-400 text-fuchsia-300'
                 : 'border-transparent text-zinc-500 hover:text-zinc-300'
             }`}
           >
@@ -1043,7 +1043,7 @@ export default function ProspectionPage() {
             {sourceCountGMB > 0 && (
               <button
                 onClick={() => setSourceFilter(sourceFilter === 'GMB' ? null : 'GMB')}
-                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'GMB' ? 'bg-orange-500/20 text-orange-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'GMB' ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 <MapPin className="w-3 h-3" /> GMB ({sourceCountGMB})
               </button>
@@ -1051,7 +1051,7 @@ export default function ProspectionPage() {
             {sourceCountIG > 0 && (
               <button
                 onClick={() => setSourceFilter(sourceFilter === 'Instagram' ? null : 'Instagram')}
-                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'Instagram' ? 'bg-pink-500/20 text-pink-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'Instagram' ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 <Instagram className="w-3 h-3" /> IG ({sourceCountIG})
               </button>
@@ -1059,7 +1059,7 @@ export default function ProspectionPage() {
             {sourceCountLI > 0 && (
               <button
                 onClick={() => setSourceFilter(sourceFilter === 'LinkedIn' ? null : 'LinkedIn')}
-                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'LinkedIn' ? 'bg-blue-500/20 text-blue-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${sourceFilter === 'LinkedIn' ? 'bg-cyan-500/20 text-cyan-300' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 <Linkedin className="w-3 h-3" /> LI ({sourceCountLI})
               </button>
@@ -1069,9 +1069,9 @@ export default function ProspectionPage() {
 
         {/* IG Leads Panel — visible uniquement quand canal Instagram */}
         {activeTab === 'campagne' && channel === 'instagram' && (
-        <div className="rounded-xl border border-pink-500/20 bg-zinc-900/50">
+        <div className="rounded-xl border border-fuchsia-500/20 bg-zinc-900/50">
           <div className="px-4 py-3 border-b border-zinc-800/50 flex items-center gap-2">
-            <Instagram className="w-4 h-4 text-pink-400" />
+            <Instagram className="w-4 h-4 text-fuchsia-400" />
             <span className="text-sm font-semibold text-zinc-100">Leads Instagram</span>
             <div className="ml-auto flex items-center gap-1">
               {(['dmed', 'qualified', 'rejected'] as const).map(tab => {
@@ -1081,12 +1081,12 @@ export default function ProspectionPage() {
                 const label = tab === 'dmed' ? 'DMs envoyés' : tab === 'qualified' ? 'Qualifiés' : 'Rejetés/DM';
                 return (
                   <button key={tab} onClick={() => setIgLeadsTab(tab)}
-                    className={`text-xs px-2.5 py-1 rounded-full transition-colors ${igLeadsTab === tab ? 'bg-pink-500/20 text-pink-300' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                    className={`text-xs px-2.5 py-1 rounded-full transition-colors ${igLeadsTab === tab ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'text-zinc-500 hover:text-zinc-300'}`}>
                     {label} ({count})
                   </button>
                 );
               })}
-              <button onClick={fetchIGLeads} className="p-1 text-zinc-600 hover:text-pink-400 transition-colors ml-1" title="Actualiser">
+              <button onClick={fetchIGLeads} className="p-1 text-zinc-600 hover:text-fuchsia-400 transition-colors ml-1" title="Actualiser">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1103,7 +1103,7 @@ export default function ProspectionPage() {
                 {igLeads.dmed.map((lead: any) => (
                   <div key={lead.id} className="grid grid-cols-[1.5fr_1fr_0.7fr_0.8fr_1fr_auto] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors">
                     <a href={`https://instagram.com/${lead.ig_handle}`} target="_blank" rel="noopener noreferrer"
-                      className="text-sm font-medium text-pink-400 hover:text-pink-300 truncate">
+                      className="text-sm font-medium text-fuchsia-400 hover:text-fuchsia-300 truncate">
                       @{lead.ig_handle}
                     </a>
                     <span className="text-xs text-zinc-400">{lead.ig_followers ? lead.ig_followers.toLocaleString('fr-FR') : '—'}</span>
@@ -1113,7 +1113,7 @@ export default function ProspectionPage() {
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
                       lead.ig_dm_state === 'WAITING_REPLY' ? 'bg-amber-500/10 text-amber-400' :
-                      lead.ig_dm_state === 'FOLLOWUP_SENT' ? 'bg-blue-500/10 text-blue-400' :
+                      lead.ig_dm_state === 'FOLLOWUP_SENT' ? 'bg-cyan-500/10 text-cyan-400' :
                       lead.ig_dm_state === 'CONVERTED' ? 'bg-emerald-500/10 text-emerald-400' :
                       'bg-zinc-800 text-zinc-500'
                     }`}>
@@ -1122,7 +1122,7 @@ export default function ProspectionPage() {
                        lead.ig_dm_state === 'CONVERTED' ? 'Converti' :
                        lead.ig_dm_state}
                     </span>
-                    <button onClick={() => setSelectedLead(lead)} className="p-1.5 text-zinc-600 hover:text-pink-400 transition-colors" title="Voir détails">
+                    <button onClick={() => setSelectedLead(lead)} className="p-1.5 text-zinc-600 hover:text-fuchsia-400 transition-colors" title="Voir détails">
                       <ExternalLink className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -1150,7 +1150,7 @@ export default function ProspectionPage() {
                           @{p.handle}
                         </a>
                         {dmedHandles.has(p.handle?.toLowerCase()) && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-pink-500/10 text-pink-400 shrink-0">DM ✓</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-fuchsia-500/10 text-fuchsia-400 shrink-0">DM ✓</span>
                         )}
                       </div>
                       <span className="text-xs text-zinc-400">{p.followers ? p.followers.toLocaleString('fr-FR') : '—'}</span>
@@ -1180,7 +1180,7 @@ export default function ProspectionPage() {
                         @{p.handle}
                       </a>
                       <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
-                        p.status === 'dm_sent' ? 'bg-pink-500/10 text-pink-400' : 'bg-rose-500/10 text-rose-400'
+                        p.status === 'dm_sent' ? 'bg-fuchsia-500/10 text-fuchsia-400' : 'bg-rose-500/10 text-rose-400'
                       }`}>
                         {p.status === 'dm_sent' ? 'DM envoyé' : 'Rejeté'}
                       </span>
@@ -1206,12 +1206,12 @@ export default function ProspectionPage() {
         {activeTab === 'campagne' && channel !== 'instagram' && (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
           <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
-            <Target className="w-4 h-4 text-orange-400" />
+            <Target className="w-4 h-4 text-fuchsia-400" />
             <span className="text-sm font-semibold text-zinc-100">Leads prospection</span>
             {sourceFilter && <span className={`text-xs px-2 py-0.5 rounded-full ${
-              sourceFilter === 'GMB' ? 'bg-orange-500/10 text-orange-400' :
-              sourceFilter === 'Instagram' ? 'bg-pink-500/10 text-pink-400' :
-              'bg-blue-500/10 text-blue-400'
+              sourceFilter === 'GMB' ? 'bg-fuchsia-500/10 text-fuchsia-400' :
+              sourceFilter === 'Instagram' ? 'bg-fuchsia-500/10 text-fuchsia-400' :
+              'bg-cyan-500/10 text-cyan-400'
             }`}>{sourceFilter}</span>}
             <span className="ml-auto text-xs text-zinc-600">{totalLeads} leads</span>
           </div>
@@ -1223,12 +1223,12 @@ export default function ProspectionPage() {
           ) : displayLeads.length === 0 ? (
             <div className="p-12 text-center">
               <div className={`w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-4 ${
-                sourceFilter === 'Instagram' ? 'bg-pink-500/5 border-pink-500/15' :
-                sourceFilter === 'LinkedIn' ? 'bg-blue-500/5 border-blue-500/15' :
+                sourceFilter === 'Instagram' ? 'bg-fuchsia-500/5 border-fuchsia-500/15' :
+                sourceFilter === 'LinkedIn' ? 'bg-cyan-500/5 border-cyan-500/15' :
                 'bg-zinc-800/50 border-zinc-700/30'
               }`}>
-                {sourceFilter === 'Instagram' ? <Instagram className="w-8 h-8 text-pink-500/40" /> :
-                 sourceFilter === 'LinkedIn' ? <Linkedin className="w-8 h-8 text-blue-500/40" /> :
+                {sourceFilter === 'Instagram' ? <Instagram className="w-8 h-8 text-fuchsia-500/40" /> :
+                 sourceFilter === 'LinkedIn' ? <Linkedin className="w-8 h-8 text-cyan-500/40" /> :
                  <Target className="w-8 h-8 text-zinc-700" />}
               </div>
               <p className="text-sm text-zinc-400 mb-1">
@@ -1244,7 +1244,7 @@ export default function ProspectionPage() {
               </p>
               <button
                 onClick={() => setConfigOpen(true)}
-                className="text-xs px-4 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-300 hover:bg-orange-500/20 transition-colors"
+                className="text-xs px-4 py-2 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-300 hover:bg-fuchsia-500/20 transition-colors"
               >
                 Ouvrir la configuration
               </button>
@@ -1286,9 +1286,9 @@ export default function ProspectionPage() {
 
                       {/* Source badge */}
                       <span className={`text-xs px-2 py-0.5 rounded-full text-center ${
-                        lead.source === 'Instagram' ? 'bg-pink-500/10 text-pink-400' :
-                        lead.source === 'LinkedIn' ? 'bg-blue-500/10 text-blue-400' :
-                        'bg-orange-500/10 text-orange-400'
+                        lead.source === 'Instagram' ? 'bg-fuchsia-500/10 text-fuchsia-400' :
+                        lead.source === 'LinkedIn' ? 'bg-cyan-500/10 text-cyan-400' :
+                        'bg-fuchsia-500/10 text-fuchsia-400'
                       }`}>
                         {lead.source === 'GMB' ? 'Maps' : lead.source}
                       </span>
@@ -1298,7 +1298,7 @@ export default function ProspectionPage() {
                           href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors truncate max-w-[140px]"
+                          className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-colors truncate max-w-[140px]"
                           title={lead.website}
                         >
                           <ExternalLink className="w-3 h-3 shrink-0" />
@@ -1315,7 +1315,7 @@ export default function ProspectionPage() {
                       <div className="flex items-center gap-1 flex-wrap">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           lead.status === 'Signé' ? 'bg-emerald-500/10 text-emerald-400' :
-                          ['Qualifié', 'Discovery fait'].includes(lead.status) ? 'bg-violet-500/10 text-violet-400' :
+                          ['Qualifié', 'Discovery fait'].includes(lead.status) ? 'bg-fuchsia-500/10 text-fuchsia-400' :
                           lead.status === 'Perdu' ? 'bg-rose-500/10 text-rose-400' :
                           'bg-zinc-800 text-zinc-500'
                         }`}>
@@ -1333,7 +1333,7 @@ export default function ProspectionPage() {
                         onClick={() => (hasEmail || hasDM) ? setEmailPreview({ name: lead.company ?? lead.name, notes: lead.notes! }) : null}
                         disabled={!hasEmail && !hasDM}
                         title={hasEmail ? 'Voir l\'email envoyé' : hasDM ? 'Voir le message DM' : 'Aucun message'}
-                        className="p-1.5 text-zinc-600 hover:text-blue-400 disabled:opacity-20 transition-colors"
+                        className="p-1.5 text-zinc-600 hover:text-cyan-400 disabled:opacity-20 transition-colors"
                       >
                         {hasDM && !hasEmail ? <MessageCircle className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
                       </button>
@@ -1342,7 +1342,7 @@ export default function ProspectionPage() {
                         onClick={() => sendManualRelance(lead)}
                         disabled={relancingId === lead.id || !lead.email}
                         title={lead.email ? 'Envoyer relance manuelle' : "Pas d'email"}
-                        className="p-1.5 text-zinc-600 hover:text-orange-400 disabled:opacity-30 transition-colors"
+                        className="p-1.5 text-zinc-600 hover:text-fuchsia-400 disabled:opacity-30 transition-colors"
                       >
                         {relancingId === lead.id
                           ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1362,7 +1362,7 @@ export default function ProspectionPage() {
         {activeTab === 'historique' && (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
             <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-3">
-              <History className="w-4 h-4 text-orange-400" />
+              <History className="w-4 h-4 text-fuchsia-400" />
               <span className="text-sm font-semibold text-zinc-100">Historique prospection</span>
               <span className="text-xs text-zinc-500">Toutes les entreprises contactées</span>
               <div className="ml-auto relative">
@@ -1404,7 +1404,7 @@ export default function ProspectionPage() {
                               </p>
                               <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
                                 lead.status === 'Signé' ? 'bg-emerald-500/10 text-emerald-400' :
-                                ['Qualifié', 'Discovery fait'].includes(lead.status) ? 'bg-violet-500/10 text-violet-400' :
+                                ['Qualifié', 'Discovery fait'].includes(lead.status) ? 'bg-fuchsia-500/10 text-fuchsia-400' :
                                 lead.status === 'Perdu' ? 'bg-rose-500/10 text-rose-400' :
                                 'bg-zinc-800 text-zinc-500'
                               }`}>
@@ -1412,9 +1412,9 @@ export default function ProspectionPage() {
                               </span>
                               <ScoreBadge score={lead.website_score} />
                               <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-                                lead.source === 'Instagram' ? 'bg-pink-500/10 text-pink-400' :
-                                lead.source === 'LinkedIn' ? 'bg-blue-500/10 text-blue-400' :
-                                'bg-orange-500/10 text-orange-400'
+                                lead.source === 'Instagram' ? 'bg-fuchsia-500/10 text-fuchsia-400' :
+                                lead.source === 'LinkedIn' ? 'bg-cyan-500/10 text-cyan-400' :
+                                'bg-fuchsia-500/10 text-fuchsia-400'
                               }`}>
                                 {lead.source === 'GMB' ? 'Maps' : lead.source}
                               </span>
@@ -1425,7 +1425,7 @@ export default function ProspectionPage() {
                                   href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                  className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
                                 >
                                   <ExternalLink className="w-3 h-3" />
                                   <span className="truncate max-w-[200px]">{lead.website.replace(/^https?:\/\/(www\.)?/, '')}</span>
@@ -1448,7 +1448,7 @@ export default function ProspectionPage() {
                             {hasEmail && (
                               <button
                                 onClick={() => setEmailPreview({ name: lead.company ?? lead.name, notes: lead.notes! })}
-                                className="p-1.5 text-zinc-600 hover:text-blue-400 transition-colors"
+                                className="p-1.5 text-zinc-600 hover:text-cyan-400 transition-colors"
                                 title="Voir l'email envoyé"
                               >
                                 <FileText className="w-4 h-4" />
@@ -1494,7 +1494,7 @@ export default function ProspectionPage() {
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-800">
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-orange-400" />
+                <Mail className="w-4 h-4 text-fuchsia-400" />
                 <span className="text-sm font-semibold text-zinc-100">Email envoyé — {emailPreview.name}</span>
               </div>
               <button onClick={() => setEmailPreview(null)} className="text-zinc-500 hover:text-zinc-300">
@@ -1509,11 +1509,11 @@ export default function ProspectionPage() {
                   const dmText = dmSection[1].trim();
                   return (
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-xs text-pink-400 mb-2">
+                      <div className="flex items-center gap-2 text-xs text-fuchsia-400 mb-2">
                         <MessageCircle className="w-4 h-4" />
                         <span className="font-semibold">Message DM Instagram</span>
                       </div>
-                      <div className="rounded-xl bg-gradient-to-br from-pink-500/5 to-purple-500/5 border border-pink-500/20 p-4 text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">
+                      <div className="rounded-xl bg-gradient-to-br from-fuchsia-500/5 to-fuchsia-500/5 border border-fuchsia-500/20 p-4 text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">
                         {dmText.split('---')[0].trim()}
                       </div>
                       <p className="text-xs text-zinc-500">Copiez ce message et envoyez-le manuellement via Instagram DM.</p>
@@ -1581,13 +1581,13 @@ export default function ProspectionPage() {
             className="hidden"
           >
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-800 bg-gradient-to-r from-pink-500/10 to-purple-500/10 shrink-0">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-800 bg-gradient-to-r from-fuchsia-500/10 to-fuchsia-500/10 shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 flex items-center justify-center">
                 <Instagram className="w-4 h-4 text-white" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-zinc-100">Campagne Instagram DM</p>
-                <p className="text-xs text-pink-400">Agent fatah · Bio-Link Gatekeeper · DM IA</p>
+                <p className="text-xs text-fuchsia-400">Agent fatah · Bio-Link Gatekeeper · DM IA</p>
               </div>
               <button onClick={() => setIgPanelOpen(false)} className="ml-auto text-zinc-500 hover:text-zinc-300 transition-colors">
                 <X className="w-5 h-5" />
@@ -1604,13 +1604,13 @@ export default function ProspectionPage() {
                   value={igNiche}
                   onChange={e => setIgNiche(e.target.value)}
                   placeholder="ex: coiffeur, restaurant, artisan..."
-                  className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                  className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-fuchsia-500/50 transition-colors"
                   disabled={igRunning}
                 />
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {['Coiffeurs', 'Restaurants', 'Artisans', 'Centres de beauté', 'Boutiques'].map(n => (
                     <button key={n} onClick={() => setIgNiche(n.toLowerCase())} disabled={igRunning}
-                      className={`text-xs px-2 py-1 rounded-md border transition-colors ${igNiche.toLowerCase() === n.toLowerCase() ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                      className={`text-xs px-2 py-1 rounded-md border transition-colors ${igNiche.toLowerCase() === n.toLowerCase() ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-fuchsia-500/30'}`}>
                       {n}
                     </button>
                   ))}
@@ -1625,13 +1625,13 @@ export default function ProspectionPage() {
                   value={igVille}
                   onChange={e => setIgVille(e.target.value)}
                   placeholder="ex: Paris, Lyon, Genève..."
-                  className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-pink-500/50 transition-colors"
+                  className="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-fuchsia-500/50 transition-colors"
                   disabled={igRunning}
                 />
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {['Paris', 'Lyon', 'Genève', 'Bordeaux', 'Marseille'].map(v => (
                     <button key={v} onClick={() => setIgVille(v)} disabled={igRunning}
-                      className={`text-xs px-2 py-1 rounded-md border transition-colors ${igVille === v ? 'bg-pink-500/20 border-pink-500/40 text-pink-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-pink-500/30'}`}>
+                      className={`text-xs px-2 py-1 rounded-md border transition-colors ${igVille === v ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-300 hover:border-fuchsia-500/30'}`}>
                       {v}
                     </button>
                   ))}
@@ -1641,13 +1641,13 @@ export default function ProspectionPage() {
               {/* Nombre de DMs */}
               <div>
                 <label className="text-xs font-medium text-zinc-400 mb-2 block">
-                  Nombre de DMs qualifiés à envoyer : <span className="text-pink-400 font-semibold">{igCount}</span>
+                  Nombre de DMs qualifiés à envoyer : <span className="text-fuchsia-400 font-semibold">{igCount}</span>
                 </label>
                 <input
                   type="range" min={1} max={20} value={igCount}
                   onChange={e => setIgCount(Number(e.target.value))}
                   disabled={igRunning}
-                  className="w-full accent-pink-500"
+                  className="w-full accent-fuchsia-500"
                 />
                 <div className="flex justify-between text-xs text-zinc-600 mt-1">
                   <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span>
@@ -1667,7 +1667,7 @@ export default function ProspectionPage() {
                 <button
                   onClick={() => setIgDryRun(v => !v)}
                   disabled={igRunning}
-                  className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${igDryRun ? 'bg-zinc-600' : 'bg-pink-500'}`}
+                  className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${igDryRun ? 'bg-zinc-600' : 'bg-fuchsia-500'}`}
                 >
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${igDryRun ? 'left-0.5' : 'left-5'}`} />
                 </button>
@@ -1677,7 +1677,7 @@ export default function ProspectionPage() {
               <button
                 onClick={launchIgCampaign}
                 disabled={!igNiche.trim() || igRunning}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
                 {igRunning
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Campagne en cours...</>
@@ -1692,8 +1692,8 @@ export default function ProspectionPage() {
             <div className="flex-1 overflow-y-auto px-3 py-2">
               {igTimeline.phase === 'idle' && !igRunning ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-8">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-pink-500/10 flex items-center justify-center">
-                    <Instagram className="w-6 h-6 text-pink-500/40" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-500/10 to-fuchsia-500/10 border border-fuchsia-500/10 flex items-center justify-center">
+                    <Instagram className="w-6 h-6 text-fuchsia-500/40" />
                   </div>
                   <div>
                     <p className="text-xs font-medium text-zinc-500">Timeline de campagne</p>

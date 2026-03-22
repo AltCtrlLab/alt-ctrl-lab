@@ -37,17 +37,17 @@ const navSections: NavSection[] = [
     title: 'Pipeline',
     items: [
       { label: 'Leads', href: '/leads', icon: TrendingUp, color: 'text-cyan-400' },
-      { label: 'Projets', href: '/projets', icon: FolderKanban, color: 'text-violet-400' },
+      { label: 'Projets', href: '/projets', icon: FolderKanban, color: 'text-zinc-400' },
       { label: 'Finances', href: '/finances', icon: Wallet, color: 'text-emerald-400' },
-      { label: 'Prospection', href: '/prospection', icon: Target, color: 'text-orange-400' },
-      { label: 'Post-Vente', href: '/postvente', icon: HeartHandshake, color: 'text-pink-400' },
+      { label: 'Prospection', href: '/prospection', icon: Target, color: 'text-zinc-400' },
+      { label: 'Post-Vente', href: '/postvente', icon: HeartHandshake, color: 'text-zinc-400' },
     ],
   },
   {
     title: 'Ops',
     items: [
-      { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-pink-400' },
-      { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-violet-400' },
+      { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-zinc-400' },
+      { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-zinc-400' },
       { label: 'Cockpit Ops', href: '/pil', icon: Terminal, color: 'text-rose-400' },
       { label: 'Historique', href: '/history', icon: History, color: 'text-zinc-400' },
     ],
@@ -56,10 +56,10 @@ const navSections: NavSection[] = [
     title: 'Equipe IA',
     items: [
       { label: 'Portfolio', href: '/portfolio', icon: Briefcase, color: 'text-amber-400' },
-      { label: 'Branding', href: '/branding', icon: Palette, color: 'text-pink-400' },
+      { label: 'Branding', href: '/branding', icon: Palette, color: 'text-zinc-400' },
       { label: 'Web Dev', href: '/web-dev', icon: Code2, color: 'text-emerald-400' },
       { label: 'Marketing', href: '/marketing', icon: Megaphone, color: 'text-amber-400' },
-      { label: 'R&D', href: '/rd', icon: FlaskConical, color: 'text-teal-400' },
+      { label: 'R&D', href: '/rd', icon: FlaskConical, color: 'text-zinc-400' },
     ],
   },
 ];

@@ -54,7 +54,7 @@ export function TokenAnalytics({ isDark }: TokenAnalyticsProps) {
         {[
           { icon: Cpu, label: 'Tokens Entrants', value: (totalIn / 1000).toFixed(1) + 'K', color: 'text-cyan-400' },
           { icon: TrendingUp, label: 'Tokens Sortants', value: (totalOut / 1000).toFixed(1) + 'K', color: 'text-emerald-400' },
-          { icon: BarChart3, label: 'Total', value: (total / 1000).toFixed(1) + 'K', color: 'text-indigo-400' },
+          { icon: BarChart3, label: 'Total', value: (total / 1000).toFixed(1) + 'K', color: 'text-fuchsia-400' },
           { icon: DollarSign, label: 'Coût Estimé', value: '$' + estimatedCost, color: 'text-amber-400' },
         ].map(kpi => (
           <div key={kpi.label} className={`rounded-xl border ${glass} p-4`}>

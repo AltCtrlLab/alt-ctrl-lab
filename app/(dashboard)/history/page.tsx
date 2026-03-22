@@ -20,8 +20,8 @@ const STATUS_ICON: Record<string, { icon: React.ElementType; color: string }> = 
   PENDING: { icon: Clock, color: 'text-amber-400' },
   DIRECTOR_PLANNING: { icon: Loader2, color: 'text-sky-400' },
   EXECUTOR_DRAFTING: { icon: Loader2, color: 'text-sky-400' },
-  DIRECTOR_QA: { icon: Loader2, color: 'text-violet-400' },
-  EXECUTOR_REVISING: { icon: Loader2, color: 'text-violet-400' },
+  DIRECTOR_QA: { icon: Loader2, color: 'text-fuchsia-400' },
+  EXECUTOR_REVISING: { icon: Loader2, color: 'text-fuchsia-400' },
 };
 
 export default function HistoryPage() {

@@ -104,12 +104,12 @@ export default function ContentPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
-          <CalendarDays className="w-5 h-5 text-pink-400" />
+          <CalendarDays className="w-5 h-5 text-fuchsia-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Content Calendar</h1>
           <div className="ml-auto">
             <button
               onClick={() => setBatchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 text-violet-300 rounded-lg text-xs font-medium transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/30 text-fuchsia-300 rounded-lg text-xs font-medium transition-colors"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Batch AI
@@ -124,7 +124,7 @@ export default function ContentPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="w-8 h-8 rounded-full border-2 border-pink-500 border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-fuchsia-500 border-t-transparent animate-spin" />
           </div>
         ) : view === 'kanban' ? (
           <ContentKanban items={items} onSelect={setSelected} onStatusChange={handleStatusChange} />
@@ -142,7 +142,7 @@ export default function ContentPage() {
                         type="checkbox"
                         checked={items.length > 0 && selectedIds.size === items.length}
                         onChange={handleToggleAll}
-                        className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-pink-500 cursor-pointer"
+                        className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-fuchsia-500 cursor-pointer"
                       />
                     </th>
                     <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Titre</th>
@@ -158,14 +158,14 @@ export default function ContentPage() {
                     return (
                       <tr
                         key={item.id}
-                        className={`hover:bg-zinc-800/30 transition-colors ${isChecked ? 'bg-pink-500/5' : ''}`}
+                        className={`hover:bg-zinc-800/30 transition-colors ${isChecked ? 'bg-fuchsia-500/5' : ''}`}
                       >
                         <td className="px-3 py-3">
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleToggle(item.id)}
-                            className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-pink-500 cursor-pointer"
+                            className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-fuchsia-500 cursor-pointer"
                           />
                         </td>
                         <td
@@ -199,7 +199,7 @@ export default function ContentPage() {
 
       {/* Bulk toolbar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-zinc-900/95 border border-pink-500/30 shadow-2xl backdrop-blur-xl">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-zinc-900/95 border border-fuchsia-500/30 shadow-2xl backdrop-blur-xl">
           <span className="text-sm text-zinc-300 font-medium">{selectedIds.size} selectionne{selectedIds.size > 1 ? 's' : ''}</span>
           <select
             value={bulkStatus}
@@ -214,7 +214,7 @@ export default function ContentPage() {
           <button
             onClick={() => bulkStatus && handleBulkStatus(bulkStatus as ContentStatus)}
             disabled={!bulkStatus}
-            className="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors"
           >
             Appliquer
           </button>

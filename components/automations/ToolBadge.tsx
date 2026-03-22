@@ -2,8 +2,8 @@
 import type { AutomationTool } from '@/lib/db/schema_automations';
 
 const META: Record<AutomationTool, { color: string; bg: string }> = {
-  'n8n': { color: 'text-violet-400', bg: 'bg-violet-900/30' },
-  'Make': { color: 'text-orange-400', bg: 'bg-orange-900/30' },
+  'n8n': { color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/30' },
+  'Make': { color: 'text-amber-400', bg: 'bg-amber-900/30' },
   'Zapier': { color: 'text-amber-400', bg: 'bg-amber-900/30' },
   'Custom': { color: 'text-zinc-400', bg: 'bg-zinc-800' },
 };

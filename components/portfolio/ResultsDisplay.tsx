@@ -6,8 +6,8 @@ interface Props {
 
 const COLORS = [
   'text-emerald-400 bg-emerald-900/30',
-  'text-blue-400 bg-blue-900/30',
-  'text-violet-400 bg-violet-900/30',
+  'text-cyan-400 bg-cyan-900/30',
+  'text-fuchsia-400 bg-fuchsia-900/30',
   'text-amber-400 bg-amber-900/30',
 ];
 

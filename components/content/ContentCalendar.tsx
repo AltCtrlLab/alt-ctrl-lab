@@ -55,7 +55,7 @@ export function ContentCalendar({ items, onSelect }: Props) {
           const isToday = new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year;
           return (
             <div key={day} className="bg-zinc-900 h-24 p-1 overflow-hidden">
-              <span className={`text-[10px] font-medium mb-1 inline-block w-5 h-5 flex items-center justify-center rounded-full ${isToday ? 'bg-pink-500 text-white' : 'text-zinc-500'}`}>
+              <span className={`text-[10px] font-medium mb-1 inline-block w-5 h-5 flex items-center justify-center rounded-full ${isToday ? 'bg-fuchsia-500 text-white' : 'text-zinc-500'}`}>
                 {day}
               </span>
               {dayItems.slice(0, 3).map(item => (

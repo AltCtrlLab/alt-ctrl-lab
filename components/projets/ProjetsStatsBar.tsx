@@ -63,8 +63,8 @@ export function ProjetsStatsBar({ stats }: { stats: ProjetsStats | null }) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <StatCard label="Revenus en cours" value={stats.revenueEnCours} suffix=" €" icon={Euro} accent="bg-violet-500/20 text-violet-400" sub="Projets actifs" />
-      <StatCard label="Heures loguées" value={stats.heuresTotales} suffix="h" icon={Clock} accent="bg-blue-500/20 text-blue-400" sub="Projets actifs" />
+      <StatCard label="Revenus en cours" value={stats.revenueEnCours} suffix=" €" icon={Euro} accent="bg-fuchsia-500/20 text-fuchsia-400" sub="Projets actifs" />
+      <StatCard label="Heures loguées" value={stats.heuresTotales} suffix="h" icon={Clock} accent="bg-cyan-500/20 text-cyan-400" sub="Projets actifs" />
       <StatCard label="Projets actifs" value={stats.projetsActifs} icon={FolderKanban} accent="bg-cyan-500/20 text-cyan-400" />
       <StatCard
         label="Marge estimée"

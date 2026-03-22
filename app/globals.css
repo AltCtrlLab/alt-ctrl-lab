@@ -4,11 +4,11 @@
 
 @layer base {
   :root {
-    --accent-300: 165, 180, 252;
-    --accent-400: 129, 140, 248;
-    --accent-500: 99, 102, 241;
-    --accent-600: 79, 70, 229;
-    --accent-glow: rgba(99, 102, 241, 0.5);
+    --accent-300: 232, 121, 249;
+    --accent-400: 217, 70, 239;
+    --accent-500: 192, 38, 211;
+    --accent-600: 162, 28, 175;
+    --accent-glow: rgba(217, 70, 239, 0.5);
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
@@ -98,7 +98,7 @@ html.light .text-zinc-200 { color: #1F2937 !important; }
 html.light .text-zinc-100 { color: #111827 !important; }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.3);
+  background: rgba(217, 70, 239, 0.3);
   color: white;
 }
 
@@ -114,8 +114,8 @@ html.light .text-zinc-100 { color: #111827 !important; }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
-  50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(217, 70, 239, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(217, 70, 239, 0.4); }
 }
 
 @keyframes shimmer {
@@ -137,14 +137,7 @@ html.light .text-zinc-100 { color: #111827 !important; }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.gradient-text-amber {
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  background: linear-gradient(135deg, #d946ef 0%, #22d3ee 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

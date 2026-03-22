@@ -46,14 +46,14 @@ const COLORS: Record<NotificationType, string> = {
   success: 'border-emerald-500/30 bg-emerald-500/10',
   error: 'border-red-500/30 bg-red-500/10',
   warning: 'border-amber-500/30 bg-amber-500/10',
-  info: 'border-blue-500/30 bg-blue-500/10',
+  info: 'border-cyan-500/30 bg-cyan-500/10',
 };
 
 const ICON_COLORS: Record<NotificationType, string> = {
   success: 'text-emerald-400',
   error: 'text-red-400',
   warning: 'text-amber-400',
-  info: 'text-blue-400',
+  info: 'text-cyan-400',
 };
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {

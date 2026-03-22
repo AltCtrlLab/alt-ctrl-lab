@@ -24,18 +24,18 @@ const statusConfig: Record<string, {
   label: string;
 }> = {
   'PENDING': { icon: Clock, color: 'text-white/40', label: 'En attente' },
-  'RUNNING': { icon: Loader2, color: 'text-blue-400', label: 'En cours' },
-  'DIRECTOR_PLANNING': { icon: Brain, color: 'text-purple-400', label: 'Planification' },
+  'RUNNING': { icon: Loader2, color: 'text-cyan-400', label: 'En cours' },
+  'DIRECTOR_PLANNING': { icon: Brain, color: 'text-fuchsia-400', label: 'Planification' },
   'EXECUTING_SUBTASK': { icon: Code2, color: 'text-cyan-400', label: 'Exécution' },
   'EXECUTOR_DRAFTING': { icon: Code2, color: 'text-cyan-400', label: 'Rédaction' },
   'DIRECTOR_QA': { icon: RotateCcw, color: 'text-amber-400', label: 'QA' },
-  'EXECUTOR_REVISING': { icon: RotateCcw, color: 'text-orange-400', label: 'Révision' },
-  'WAR_ROOM_INITIATED': { icon: Brain, color: 'text-indigo-400', label: 'War Room' },
-  'WAR_ROOM_EXPLORATION': { icon: Brain, color: 'text-indigo-400', label: 'Exploration' },
+  'EXECUTOR_REVISING': { icon: RotateCcw, color: 'text-amber-400', label: 'Révision' },
+  'WAR_ROOM_INITIATED': { icon: Brain, color: 'text-fuchsia-400', label: 'War Room' },
+  'WAR_ROOM_EXPLORATION': { icon: Brain, color: 'text-fuchsia-400', label: 'Exploration' },
   'WAR_ROOM_EXPLORATION_DONE': { icon: CheckCircle2, color: 'text-green-400', label: 'Visions générées' },
   'WAR_ROOM_DEBATE': { icon: Zap, color: 'text-amber-400', label: 'Débat' },
   'WAR_ROOM_DEBATE_DONE': { icon: CheckCircle2, color: 'text-green-400', label: 'Évaluations' },
-  'WAR_ROOM_DECISION': { icon: Brain, color: 'text-purple-400', label: 'Décision' },
+  'WAR_ROOM_DECISION': { icon: Brain, color: 'text-fuchsia-400', label: 'Décision' },
   'WAR_ROOM_DECISION_DONE': { icon: CheckCircle2, color: 'text-green-400', label: 'Plan prêt' },
   'COMPLETED': { icon: CheckCircle2, color: 'text-green-400', label: 'Terminé' },
   'FAILED': { icon: XCircle, color: 'text-red-400', label: 'Échec' },
@@ -75,7 +75,7 @@ export function SemanticTimeline() {
       {/* Header */}
       <div className="p-6 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Clock className="w-5 h-5 text-indigo-400" />
+          <Clock className="w-5 h-5 text-fuchsia-400" />
           <h2 className="text-lg font-semibold text-white/90">Timeline Sémantique</h2>
         </div>
 

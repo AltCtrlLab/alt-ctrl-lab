@@ -28,7 +28,7 @@ export function ProgressBar({
     default: 'bg-zinc-700',
     xp: 'bg-gradient-to-r from-amber-500 to-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]',
     health: 'bg-gradient-to-r from-emerald-500 to-emerald-400',
-    premium: 'bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500',
+    premium: 'bg-gradient-to-r from-fuchsia-500 to-fuchsia-400',
   };
   
   const sizes = {

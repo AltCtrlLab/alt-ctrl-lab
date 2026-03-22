@@ -3,8 +3,8 @@ import type { PortfolioProjectType } from '@/lib/db/schema_portfolio';
 
 const META: Record<PortfolioProjectType, { color: string; bg: string }> = {
   'Web': { color: 'text-emerald-400', bg: 'bg-emerald-900/30' },
-  'Branding': { color: 'text-pink-400', bg: 'bg-pink-900/30' },
-  'IA': { color: 'text-violet-400', bg: 'bg-violet-900/30' },
+  'Branding': { color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/30' },
+  'IA': { color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/30' },
   'Marketing': { color: 'text-amber-400', bg: 'bg-amber-900/30' },
 };
 

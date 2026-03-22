@@ -107,7 +107,7 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
               {/* Navigation */}
               <section>
                 <div className="flex items-center gap-2 mb-3">
-                  <Compass className="w-4 h-4 text-violet-400" />
+                  <Compass className="w-4 h-4 text-fuchsia-400" />
                   <h3 className={`text-sm font-semibold ${isDark ? 'text-zinc-200' : 'text-neutral-700'}`}>Navigation</h3>
                 </div>
                 <div className="space-y-1.5">

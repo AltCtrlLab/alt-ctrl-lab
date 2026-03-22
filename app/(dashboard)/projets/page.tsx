@@ -156,7 +156,7 @@ export default function ProjetsPage() {
         {/* Content */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="w-8 h-8 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-fuchsia-500 border-t-transparent animate-spin" />
           </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>

@@ -159,7 +159,7 @@ const MissionControl: React.FC<MissionControlProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             {agents.map(agent => (
               <div key={agent.id} className={`w-3 h-3 rounded-full ${
-                agent.type === 'director' ? 'bg-indigo-500' : 'bg-emerald-500'
+                agent.type === 'director' ? 'bg-fuchsia-500' : 'bg-emerald-500'
               }`} title={`${agent.name} (${agent.role})`} />
             ))}
           </div>

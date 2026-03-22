@@ -63,7 +63,7 @@ function LoginForm() {
     <div className={`min-h-screen flex items-center justify-center px-4 ${isDark ? 'bg-zinc-950' : 'bg-zinc-50'}`}>
       {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-10 ${isDark ? 'bg-violet-600' : 'bg-violet-300'}`} />
+        <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-10 ${isDark ? 'bg-fuchsia-600' : 'bg-fuchsia-300'}`} />
         <div className={`absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full blur-3xl opacity-8 ${isDark ? 'bg-fuchsia-700' : 'bg-fuchsia-200'}`} />
       </div>
 
@@ -152,8 +152,8 @@ function LoginForm() {
               type="submit"
               disabled={loading || !username.trim() || !password}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white
-                bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500
-                disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-violet-900/30"
+                bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-400
+                disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-fuchsia-900/30"
             >
               {loading ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Connexion...</>

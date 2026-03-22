@@ -23,11 +23,11 @@ function formatDateTime(ts: number): string {
 export function ActivityTimeline({ lead }: { lead: Lead }) {
   const events: TimelineEvent[] = [];
 
-  if (lead.createdAt) events.push({ label: 'Lead créé', date: lead.createdAt as number, icon: UserPlus, color: 'text-blue-400 bg-blue-500/15 border-blue-500/30' });
+  if (lead.createdAt) events.push({ label: 'Lead créé', date: lead.createdAt as number, icon: UserPlus, color: 'text-fuchsia-400 bg-fuchsia-500/15 border-fuchsia-500/30' });
   if (lead.discoveryCallAt) events.push({ label: 'Discovery Call', date: lead.discoveryCallAt as number, icon: Phone, color: 'text-cyan-400 bg-cyan-500/15 border-cyan-500/30' });
-  if (lead.propositionSentAt) events.push({ label: 'Proposition envoyée', date: lead.propositionSentAt as number, icon: Send, color: 'text-violet-400 bg-violet-500/15 border-violet-500/30' });
+  if (lead.propositionSentAt) events.push({ label: 'Proposition envoyée', date: lead.propositionSentAt as number, icon: Send, color: 'text-fuchsia-400 bg-fuchsia-500/15 border-fuchsia-500/30' });
   if (lead.relance1SentAt) events.push({ label: 'Relance 1 envoyée', date: lead.relance1SentAt as number, icon: Bell, color: 'text-amber-400 bg-amber-500/15 border-amber-500/30' });
-  if (lead.relance2SentAt) events.push({ label: 'Relance 2 envoyée', date: lead.relance2SentAt as number, icon: BellRing, color: 'text-orange-400 bg-orange-500/15 border-orange-500/30' });
+  if (lead.relance2SentAt) events.push({ label: 'Relance 2 envoyée', date: lead.relance2SentAt as number, icon: BellRing, color: 'text-amber-400 bg-amber-500/15 border-amber-500/30' });
   if (lead.signedAt) events.push({ label: 'Signé ✓', date: lead.signedAt as number, icon: CheckCircle2, color: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30' });
 
   events.sort((a, b) => a.date - b.date);

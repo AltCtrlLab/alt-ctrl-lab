@@ -19,10 +19,10 @@ const statusConfig: Record<Status, { label: string; bgColor: string; textColor: 
   },
   running: {
     label: 'En cours',
-    bgColor: 'bg-blue-950/50',
-    textColor: 'text-blue-400',
-    dotColor: 'bg-blue-500',
-    ringColor: 'ring-blue-500/20',
+    bgColor: 'bg-cyan-950/50',
+    textColor: 'text-cyan-400',
+    dotColor: 'bg-cyan-500',
+    ringColor: 'ring-cyan-500/20',
   },
   completed: {
     label: 'Terminé',

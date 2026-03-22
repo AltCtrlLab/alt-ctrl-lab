@@ -70,7 +70,7 @@ export function TimeLogPanel({ projectId, onHoursUpdated }: TimeLogPanelProps) {
     onHoursUpdated?.();
   };
 
-  const inputCls = "w-full px-3 py-2 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all";
+  const inputCls = "w-full px-3 py-2 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
 
   return (
     <div className="space-y-4">
@@ -85,7 +85,7 @@ export function TimeLogPanel({ projectId, onHoursUpdated }: TimeLogPanelProps) {
         </p>
         <button
           onClick={() => setShowForm(f => !f)}
-          className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+          className="flex items-center gap-1 text-xs text-fuchsia-400 hover:text-fuchsia-300 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Loguer
@@ -135,7 +135,7 @@ export function TimeLogPanel({ projectId, onHoursUpdated }: TimeLogPanelProps) {
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-xs bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-1.5 text-xs bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-lg transition-all disabled:opacity-50"
             >
               {submitting && <Loader2 className="w-3 h-3 animate-spin" />}
               Enregistrer

@@ -54,7 +54,7 @@ export function LeadsToolbar({
     onSearchChange('');
   };
 
-  const selectCls = 'text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-violet-500/50 cursor-pointer';
+  const selectCls = 'text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-fuchsia-500/50 cursor-pointer';
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -66,7 +66,7 @@ export function LeadsToolbar({
           value={search}
           onChange={e => onSearchChange(e.target.value)}
           placeholder="Chercher un lead..."
-          className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
+          className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
         />
       </div>
 
@@ -133,7 +133,7 @@ export function LeadsToolbar({
       {/* New lead */}
       <button
         onClick={onNewLead}
-        className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-sm font-medium rounded-lg transition-colors"
       >
         <Plus className="w-4 h-4" />
         Nouveau lead

@@ -169,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     relative group w-full flex items-center gap-3 rounded-xl transition-all duration-200
                     ${isExpanded ? 'px-3 py-2' : 'justify-center py-2.5'}
                     ${isActive
-                      ? isDark ? 'bg-white/[0.08] text-white' : 'bg-blue-50 text-blue-700'
+                      ? isDark ? 'bg-white/[0.08] text-white' : 'bg-fuchsia-50 text-fuchsia-700'
                       : isDark ? 'text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800'
                     }
                   `}
@@ -177,7 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {isActive && (
                     <motion.div
                       layoutId="sidebarActive"
-                      className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full ${isDark ? 'bg-[rgb(var(--accent-500))]' : 'bg-blue-600'}`}
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full ${isDark ? 'bg-[rgb(var(--accent-500))]' : 'bg-fuchsia-600'}`}
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -222,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
         <div className={`${isExpanded ? 'flex items-center gap-3 px-2 py-2' : 'flex justify-center py-1'}`}>
           <div className="relative">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 flex items-center justify-center">
               <span className="text-white text-[10px] font-bold">CEO</span>
             </div>
             <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 ${isDark ? 'bg-neutral-950' : 'bg-[#F4F5F7]'} rounded-full flex items-center justify-center`}>

@@ -80,9 +80,9 @@ const getStatusConfig = (status: string, qaResult?: string, isDark?: boolean) =>
     default:
       return {
         icon: Activity,
-        color: isDark ? 'text-blue-400' : 'text-blue-600',
-        bg: isDark ? 'bg-blue-500/10' : 'bg-blue-50',
-        border: isDark ? 'border-blue-500/30' : 'border-blue-200',
+        color: isDark ? 'text-cyan-400' : 'text-cyan-600',
+        bg: isDark ? 'bg-cyan-500/10' : 'bg-cyan-50',
+        border: isDark ? 'border-cyan-500/30' : 'border-cyan-200',
         label: 'En cours',
       };
   }
@@ -242,8 +242,8 @@ export function AgentTimeline({ isDark, agentId }: AgentTimelineProps) {
                           <div
                             className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono ${
                               isDark
-                                ? 'bg-purple-500/10 text-purple-400 border-purple-500/30'
-                                : 'bg-purple-50 text-purple-600 border-purple-200'
+                                ? 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/30'
+                                : 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200'
                             } border`}
                           >
                             <GitBranch size={10} />

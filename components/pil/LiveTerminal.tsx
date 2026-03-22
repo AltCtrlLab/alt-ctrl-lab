@@ -25,7 +25,7 @@ export function LiveTerminal() {
   const statusColor = (s: string) => {
     if (s.includes('COMPLETED')) return 'text-emerald-400';
     if (s.includes('FAILED') || s.includes('ERROR')) return 'text-red-400';
-    if (s.includes('WAR_ROOM')) return 'text-indigo-400';
+    if (s.includes('WAR_ROOM')) return 'text-fuchsia-400';
     if (s.includes('QA')) return 'text-amber-400';
     if (s.includes('RUNNING') || s.includes('EXECUTING') || s.includes('DRAFTING')) return 'text-cyan-400';
     return 'text-neutral-500';

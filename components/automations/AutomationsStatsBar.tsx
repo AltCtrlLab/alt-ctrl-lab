@@ -12,8 +12,8 @@ interface AutomationsStats {
 export function AutomationsStatsBar({ stats }: { stats: AutomationsStats | null }) {
   const items = [
     { label: 'Actives', value: stats?.totalActif ?? '—', icon: Zap, color: 'text-emerald-400' },
-    { label: 'Taux succès', value: stats ? `${stats.tauxSucces}%` : '—', icon: CheckCircle2, color: 'text-blue-400' },
-    { label: 'Exécutions', value: stats?.execsMois ?? '—', icon: Activity, color: 'text-violet-400' },
+    { label: 'Taux succès', value: stats ? `${stats.tauxSucces}%` : '—', icon: CheckCircle2, color: 'text-cyan-400' },
+    { label: 'Exécutions', value: stats?.execsMois ?? '—', icon: Activity, color: 'text-fuchsia-400' },
     { label: 'En erreur', value: stats?.enErreur ?? '—', icon: AlertTriangle, color: stats && stats.enErreur > 0 ? 'text-rose-400' : 'text-zinc-500' },
   ];
 

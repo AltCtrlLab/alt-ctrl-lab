@@ -16,10 +16,10 @@ interface WarRoomReplayProps {
 }
 
 const PHASE_COLORS: Record<string, string> = {
-  WAR_ROOM_STARTED: 'bg-indigo-500',
+  WAR_ROOM_STARTED: 'bg-fuchsia-500',
   WAR_ROOM_EXPLORATION: 'bg-cyan-500',
   WAR_ROOM_DEBATE: 'bg-amber-500',
-  WAR_ROOM_DECISION: 'bg-purple-500',
+  WAR_ROOM_DECISION: 'bg-fuchsia-500',
   WAR_ROOM_EXECUTION: 'bg-emerald-500',
   WAR_ROOM_COMPLETE: 'bg-green-500',
   WAR_ROOM_FAILED: 'bg-red-500',
@@ -103,7 +103,7 @@ export function WarRoomReplay({ isDark }: WarRoomReplayProps) {
               </button>
               <button
                 onClick={() => setPlaying(!playing)}
-                className="p-3 rounded-full bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 transition-colors"
+                className="p-3 rounded-full bg-fuchsia-500/20 text-fuchsia-400 hover:bg-fuchsia-500/30 transition-colors"
               >
                 {playing ? <Pause size={18} /> : <Play size={18} />}
               </button>

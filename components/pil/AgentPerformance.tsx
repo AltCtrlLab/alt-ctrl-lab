@@ -220,7 +220,7 @@ export function AgentPerformance({ isDark, agentId }: AgentPerformanceProps) {
         <h2
           className={`${t.textHeading} text-2xl font-bold tracking-tight flex items-center gap-3`}
         >
-          <Activity className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+          <Activity className={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
           {agentName}
         </h2>
         <p className={`${t.textMuted} text-sm mt-1`}>
@@ -372,7 +372,7 @@ export function AgentPerformance({ isDark, agentId }: AgentPerformanceProps) {
                   })
                   .join(' ')}
                 fill="none"
-                stroke={isDark ? '#60a5fa' : '#3b82f6'}
+                stroke={isDark ? '#22d3ee' : '#06b6d4'}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -388,7 +388,7 @@ export function AgentPerformance({ isDark, agentId }: AgentPerformanceProps) {
                     cx={x}
                     cy={y}
                     r="1.5"
-                    fill={isDark ? '#60a5fa' : '#3b82f6'}
+                    fill={isDark ? '#22d3ee' : '#06b6d4'}
                   />
                 );
               })}
@@ -432,8 +432,8 @@ export function AgentPerformance({ isDark, agentId }: AgentPerformanceProps) {
                   className={`h-full rounded-full ${
                     comparison.tokensDiff >= 0
                       ? isDark
-                        ? 'bg-blue-500'
-                        : 'bg-blue-600'
+                        ? 'bg-cyan-500'
+                        : 'bg-cyan-600'
                       : isDark
                       ? 'bg-emerald-500'
                       : 'bg-emerald-600'

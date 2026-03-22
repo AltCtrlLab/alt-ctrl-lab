@@ -84,7 +84,7 @@ function StepCircle({ n, active, done }: { n: number; active: boolean; done: boo
     </div>
   );
   if (active) return (
-    <div className="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-pink-500/30">
+    <div className="w-6 h-6 rounded-full bg-fuchsia-500 flex items-center justify-center shrink-0 shadow-lg shadow-fuchsia-500/30">
       <span className="text-[10px] font-bold text-white">{n}</span>
     </div>
   );
@@ -98,7 +98,7 @@ function StepCircle({ n, active, done }: { n: number; active: boolean; done: boo
 function StatusPill({ text, variant }: { text: string; variant: 'active' | 'done' | 'idle' }) {
   const cls =
     variant === 'done' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-    : variant === 'active' ? 'bg-pink-500/10 text-pink-400 border-pink-500/20 animate-pulse'
+    : variant === 'active' ? 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20 animate-pulse'
     : 'bg-zinc-800/60 text-zinc-600 border-zinc-700/30';
   return (
     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${cls}`}>{text}</span>
@@ -163,7 +163,7 @@ export function IGCampaignTimeline({ data, running }: Props) {
             <Search className="w-3 h-3 text-zinc-600 shrink-0" />
             <span className="text-[11px] text-zinc-500 font-mono">"{data.searchQuery}"</span>
             {data.searchCount !== undefined && (
-              <span className="text-[11px] text-pink-400 font-semibold">→ {data.searchCount} trouvés</span>
+              <span className="text-[11px] text-fuchsia-400 font-semibold">→ {data.searchCount} trouvés</span>
             )}
           </motion.div>
         )}
@@ -265,7 +265,7 @@ export function IGCampaignTimeline({ data, running }: Props) {
                   <div className={`flex items-center gap-2 px-2.5 py-1.5 border-b border-zinc-800/60 ${
                     dm.status === 'sent' ? 'bg-emerald-500/5'
                     : dm.status === 'failed' ? 'bg-rose-500/5'
-                    : dm.status === 'preview' ? 'bg-pink-500/5'
+                    : dm.status === 'preview' ? 'bg-fuchsia-500/5'
                     : ''
                   }`}>
                     {dm.status === 'sent'
@@ -273,8 +273,8 @@ export function IGCampaignTimeline({ data, running }: Props) {
                       : dm.status === 'failed'
                       ? <XCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                       : dm.status === 'preview'
-                      ? <CheckCircle2 className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                      : <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin shrink-0" />
+                      ? <CheckCircle2 className="w-3.5 h-3.5 text-fuchsia-400 shrink-0" />
+                      : <Loader2 className="w-3.5 h-3.5 text-fuchsia-400 animate-spin shrink-0" />
                     }
                     <span className="text-[11px] font-mono font-semibold flex-1 text-zinc-200 truncate">
                       @{dm.handle}
@@ -284,7 +284,7 @@ export function IGCampaignTimeline({ data, running }: Props) {
                         href={dm.profileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 text-zinc-600 hover:text-pink-400 transition-colors"
+                        className="shrink-0 text-zinc-600 hover:text-fuchsia-400 transition-colors"
                       >
                         <ExternalLink className="w-3 h-3" />
                       </a>
@@ -322,7 +322,7 @@ export function IGCampaignTimeline({ data, running }: Props) {
               >
                 <Clock className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
                 <span className="text-[11px] text-zinc-600">Prochain DM dans</span>
-                <span className="text-[11px] font-mono font-bold text-pink-400 tabular-nums">{countdown}s</span>
+                <span className="text-[11px] font-mono font-bold text-fuchsia-400 tabular-nums">{countdown}s</span>
               </motion.div>
             )}
           </div>
@@ -338,15 +338,15 @@ export function IGCampaignTimeline({ data, running }: Props) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mx-1 px-3 py-3 rounded-xl bg-gradient-to-br from-pink-500/5 to-purple-500/5 border border-pink-500/10"
+              className="mx-1 px-3 py-3 rounded-xl bg-gradient-to-br from-fuchsia-500/5 to-fuchsia-500/5 border border-fuchsia-500/10"
             >
               <div className="flex items-center gap-1.5 mb-2">
-                <Sparkles className="w-3 h-3 text-pink-400" />
+                <Sparkles className="w-3 h-3 text-fuchsia-400" />
                 <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Résumé</span>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl font-bold text-pink-400 tabular-nums">{data.summary.sent}</span>
+                  <span className="text-xl font-bold text-fuchsia-400 tabular-nums">{data.summary.sent}</span>
                   <span className="text-[11px] text-zinc-500">DMs envoyés</span>
                 </div>
                 <span className="text-zinc-700">·</span>

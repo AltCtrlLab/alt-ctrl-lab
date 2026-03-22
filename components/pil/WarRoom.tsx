@@ -37,9 +37,9 @@ const getStatusBadge = (status: string, isDark: boolean) => {
       return <span className={`px-2 py-0.5 text-[10px] uppercase tracking-widest font-mono rounded border ${isDark ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-100 text-rose-700 border-rose-200'}`}>[REJECTED]</span>;
     case 'EXECUTING':
     case 'EXECUTOR_SWARMING':
-      return <span className={`px-2 py-0.5 text-[10px] uppercase tracking-widest font-mono rounded border ${isDark ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.2)]' : 'bg-blue-100 text-blue-700 border-blue-200 shadow-sm'}`}>[SWARMING]</span>;
+      return <span className={`px-2 py-0.5 text-[10px] uppercase tracking-widest font-mono rounded border ${isDark ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 shadow-[0_0_10px_rgba(59,130,246,0.2)]' : 'bg-cyan-100 text-cyan-700 border-cyan-200 shadow-sm'}`}>[SWARMING]</span>;
     case 'EXECUTOR_SYNTHESIZING':
-      return <span className={`px-2 py-0.5 text-[10px] uppercase tracking-widest font-mono rounded border ${isDark ? 'bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-purple-100 text-purple-700 border-purple-200 shadow-sm'}`}>[SYNTHESIZING]</span>;
+      return <span className={`px-2 py-0.5 text-[10px] uppercase tracking-widest font-mono rounded border ${isDark ? 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200 shadow-sm'}`}>[SYNTHESIZING]</span>;
     default:
       return <span className={`px-2 py-0.5 text-[10px] uppercase tracking-widest font-mono rounded border ${isDark ? 'bg-neutral-500/10 text-neutral-400 border-neutral-500/20' : 'bg-neutral-100 text-neutral-600 border-neutral-200'}`}>[PENDING]</span>;
   }
@@ -69,7 +69,7 @@ export const WarRoom: React.FC<WarRoomProps> = ({
       className={`flex-1 flex flex-col overflow-hidden relative h-full backdrop-blur-xl rounded-3xl shadow-2xl border transition-all duration-500 ${t.glass}`}
     >
       {/* Ambient top gradient */}
-      <div className={`absolute top-0 w-full h-32 bg-gradient-to-b ${isDark ? 'from-blue-900/10' : 'from-blue-100/30'} to-transparent pointer-events-none transition-colors duration-500`} />
+      <div className={`absolute top-0 w-full h-32 bg-gradient-to-b ${isDark ? 'from-cyan-900/10' : 'from-cyan-100/30'} to-transparent pointer-events-none transition-colors duration-500`} />
       
       {/* Header */}
       <div className={`px-5 py-4 border-b ${t.borderLight} flex flex-col gap-2 relative z-10`}>
@@ -78,7 +78,7 @@ export const WarRoom: React.FC<WarRoomProps> = ({
             <TerminalSquare size={16} className={t.textMuted} />
             QA Loop
             {swarmStatus?.active && (
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-mono ${isDark ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'} animate-pulse`}>
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-mono ${isDark ? 'bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30' : 'bg-fuchsia-100 text-fuchsia-700 border border-fuchsia-200'} animate-pulse`}>
                 ⚡ SWARM {swarmStatus.workers} workers
               </span>
             )}
@@ -91,7 +91,7 @@ export const WarRoom: React.FC<WarRoomProps> = ({
         </div>
         
         <div className={`mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-mono text-[11px] w-fit ${isDark ? 'bg-neutral-900/50 border-white/5 text-neutral-300' : 'bg-white/80 border-neutral-200 text-neutral-700'}`}>
-          <span className={isDark ? "text-blue-400" : "text-blue-600"}>Matin</span>
+          <span className={isDark ? "text-cyan-400" : "text-cyan-600"}>Matin</span>
           <span className="text-yellow-500">⚡</span>
           <span>Banna</span>
           <span className={t.textMuted}>::</span>
@@ -127,7 +127,7 @@ export const WarRoom: React.FC<WarRoomProps> = ({
         {/* Cursor */}
         <div className={`flex items-center gap-2 ${t.textMuted} mt-6 pl-2`}>
           <span>{'>'}</span>
-          <div className="w-2 h-3 bg-blue-500 animate-pulse" />
+          <div className="w-2 h-3 bg-cyan-500 animate-pulse" />
         </div>
       </div>
     </motion.div>

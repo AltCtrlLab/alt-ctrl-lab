@@ -109,7 +109,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
             <select
               value={selectedService}
               onChange={(e) => setSelectedService(e.target.value as ServiceId)}
-              className="w-full appearance-none bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer transition-all hover:border-neutral-700"
+              className="w-full appearance-none bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent cursor-pointer transition-all hover:border-neutral-700"
             >
               {SERVICES.map((service) => (
                 <option key={service.id} value={service.id}>
@@ -153,7 +153,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
               ? "Décrivez votre projet complet..."
               : `Décrivez ce que vous attendez du service ${selectedServiceData?.name}...`
             }
-            className="w-full h-32 bg-neutral-950 border border-neutral-800 rounded-lg p-3 text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all"
+            className="w-full h-32 bg-neutral-950 border border-neutral-800 rounded-lg p-3 text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent resize-none transition-all"
             disabled={isLoading}
           />
         </div>
@@ -191,7 +191,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
           whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={isLoading || !brief.trim()}
-          className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
+          className="w-full py-3 px-4 bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-400 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-500/20"
         >
           {isLoading ? (
             <>

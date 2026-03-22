@@ -12,12 +12,12 @@ interface SettingsPanelProps {
 }
 
 const ACCENT_OPTIONS: { id: AccentColor; label: string; tw: string }[] = [
-  { id: 'indigo', label: 'Indigo', tw: 'bg-indigo-500' },
+  { id: 'indigo', label: 'Fuchsia', tw: 'bg-fuchsia-500' },
   { id: 'emerald', label: 'Emerald', tw: 'bg-emerald-500' },
   { id: 'amber', label: 'Amber', tw: 'bg-amber-500' },
   { id: 'rose', label: 'Rose', tw: 'bg-rose-500' },
   { id: 'cyan', label: 'Cyan', tw: 'bg-cyan-500' },
-  { id: 'violet', label: 'Violet', tw: 'bg-violet-500' },
+  { id: 'violet', label: 'Violet', tw: 'bg-fuchsia-500' },
 ];
 
 const TEAMS = [

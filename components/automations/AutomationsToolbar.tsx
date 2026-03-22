@@ -19,7 +19,7 @@ export function AutomationsToolbar({ filterStatus, onFilterStatus, onCreate }: P
         ))}
       </div>
       <button onClick={onCreate}
-        className="flex items-center gap-2 px-3 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-sm font-medium transition-colors">
+        className="flex items-center gap-2 px-3 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-lg text-sm font-medium transition-colors">
         <Plus className="w-4 h-4" /> Nouvelle automation
       </button>
     </div>

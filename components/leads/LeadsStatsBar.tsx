@@ -84,9 +84,9 @@ export function LeadsStatsBar({ stats }: LeadsStatsBarProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-      <StatCard label="Total leads" value={stats.totalLeads} icon={Users} accent="bg-blue-500/20 text-blue-400" />
+      <StatCard label="Total leads" value={stats.totalLeads} icon={Users} accent="bg-fuchsia-500/20 text-fuchsia-400" />
       <StatCard label="Taux de conversion" value={stats.tauxConversion} suffix="%" icon={TrendingUp} accent="bg-emerald-500/20 text-emerald-400" sub="Leads → Signés" />
-      <StatCard label="Panier moyen" value={stats.panierMoyen} suffix=" €" icon={Euro} accent="bg-violet-500/20 text-violet-400" sub="Sur leads signés" />
+      <StatCard label="Panier moyen" value={stats.panierMoyen} suffix=" €" icon={Euro} accent="bg-zinc-500/20 text-zinc-400" sub="Sur leads signés" />
       <StatCard label="Délai moyen" value={stats.delaiMoyenJours} suffix="j" icon={Clock} accent="bg-amber-500/20 text-amber-400" sub="Lead → Signé" />
       <StatCard label="Relances en retard" value={stats.overdueRelances} icon={AlertTriangle} accent="bg-rose-500/20 text-rose-400" alert />
     </div>

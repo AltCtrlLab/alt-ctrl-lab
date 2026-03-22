@@ -38,7 +38,7 @@ const getTheme = (isDark: boolean) => ({
   textHeading: isDark ? 'text-neutral-100' : 'text-neutral-900',
   borderLight: isDark ? 'border-white/[0.05]' : 'border-neutral-200/60',
   cardBg: isDark ? 'bg-black/20' : 'bg-white/50',
-  ambient: isDark ? 'bg-blue-900/10' : 'bg-blue-400/5',
+  ambient: isDark ? 'bg-cyan-900/10' : 'bg-cyan-400/5',
 });
 
 // XP Ring Component
@@ -82,13 +82,13 @@ const agents = [
     id: 'musawwir', name: 'Musawwir', role: 'Chef de Branding',
     bio: 'Création d\'identités visuelles et DA.', icon: '🎨',
     level: 42, xpProgress: 65, successRate: 92.4, tokens: '2.1M',
-    perks: ['Visuel Zero-Shot', 'Psychologie Couleur'], color: 'text-purple-500', shadow: 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]'
+    perks: ['Visuel Zero-Shot', 'Psychologie Couleur'], color: 'text-fuchsia-500', shadow: 'drop-shadow-[0_0_8px_rgba(217,70,239,0.5)]'
   },
   {
     id: 'matin', name: 'Matin', role: 'Ingénieur Web Principal',
     bio: 'Architecture frontend et performance.', icon: '💻',
     level: 56, xpProgress: 88, successRate: 96.1, tokens: '4.8M',
-    perks: ['Refactoring Code+', 'Auto-Réparation'], color: 'text-blue-500', shadow: 'drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+    perks: ['Refactoring Code+', 'Auto-Réparation'], color: 'text-cyan-500', shadow: 'drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]'
   },
   {
     id: 'fatah', name: 'Fatah', role: 'Croissance & Marketing',
@@ -135,7 +135,7 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
       >
         <div>
           <h1 className={`${t.textHeading} text-2xl font-semibold tracking-tight flex items-center gap-3`}>
-            <BrainCircuit className={isDark ? "text-blue-500" : "text-blue-600"} /> 
+            <BrainCircuit className={isDark ? "text-cyan-500" : "text-cyan-600"} /> 
             Evolution Synaptique
           </h1>
           <p className={`${t.textMuted} text-sm mt-1`}>Supervision du Roster et fine-tuning par renforcement positif.</p>
@@ -213,7 +213,7 @@ export const TeamRoster: React.FC<TeamRosterProps> = ({
 
               <div className={`${t.cardBg} rounded-xl p-3 border ${t.borderLight} flex flex-col gap-1 shadow-sm`}>
                 <div className={`flex items-center gap-1.5 ${t.textMuted} text-xs font-mono`}>
-                  <TrendingUp size={12} className={isDark ? "text-blue-500" : "text-blue-600"} />
+                  <TrendingUp size={12} className={isDark ? "text-cyan-500" : "text-cyan-600"} />
                   Tokens
                 </div>
                 <div className={`text-lg font-semibold ${t.textHeading} tracking-tight`}>{agent.tokens}</div>

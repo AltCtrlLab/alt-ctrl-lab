@@ -34,7 +34,7 @@ export function KanbanColumn({ status, leads, onCardClick, onDrop }: KanbanColum
     <div
       className={`flex-shrink-0 w-[260px] flex flex-col rounded-xl border transition-all duration-200 ${
         isDragOver
-          ? 'border-violet-500/50 bg-violet-500/5'
+          ? 'border-fuchsia-500/50 bg-fuchsia-500/5'
           : 'border-zinc-800 bg-zinc-900/50'
       }`}
       onDragOver={handleDragOver}

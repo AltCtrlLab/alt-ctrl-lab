@@ -40,9 +40,9 @@ export function MorningBriefing() {
   if (!showBriefing && !data) return null;
   if (loading) {
     return (
-      <div className="rounded-xl border border-amber-500/20 bg-amber-950/10 p-4">
+      <div className="rounded-xl border border-fuchsia-500/15 bg-fuchsia-950/10 p-4">
         <div className="flex items-center gap-2">
-          <Sun className="w-4 h-4 text-amber-400 animate-pulse" />
+          <Sun className="w-4 h-4 text-fuchsia-400 animate-pulse" />
           <span className="text-sm text-zinc-400">Génération du Morning Briefing...</span>
         </div>
       </div>
@@ -55,13 +55,13 @@ export function MorningBriefing() {
   const totalActions = totalUrgent + (data.recommended?.length ?? 0) + (data.today?.length ?? 0);
 
   return (
-    <div className="rounded-xl border border-amber-500/20 bg-amber-950/10">
+    <div className="rounded-xl border border-fuchsia-500/15 bg-fuchsia-950/10">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-4 py-3"
       >
         <div className="flex items-center gap-2">
-          <Sun className="w-4 h-4 text-amber-400" />
+          <Sun className="w-4 h-4 text-fuchsia-400" />
           <span className="text-sm font-semibold text-zinc-100">Morning Briefing</span>
           {totalUrgent > 0 && (
             <span className="text-xs bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded">
@@ -129,13 +129,13 @@ export function MorningBriefing() {
               {data.today?.length > 0 && (
                 <div>
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
-                    <span className="text-xs font-semibold text-blue-400">Aujourd'hui</span>
+                    <CalendarDays className="w-3.5 h-3.5 text-cyan-400" />
+                    <span className="text-xs font-semibold text-cyan-400">Aujourd'hui</span>
                   </div>
                   <ul className="space-y-1">
                     {data.today.map((item, i) => (
                       <li key={i} className="text-xs text-zinc-300 flex items-start gap-1.5">
-                        <span className="text-blue-400 mt-0.5">•</span>
+                        <span className="text-cyan-400 mt-0.5">•</span>
                         {item}
                       </li>
                     ))}

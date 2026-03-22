@@ -82,7 +82,7 @@ export function ContentFormModal({ onClose, onCreated }: Props) {
           {field('CTA', 'cta')}
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onClose} className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm">Annuler</button>
-            <button type="submit" disabled={saving} className="flex-1 px-3 py-2 bg-pink-600 hover:bg-pink-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
+            <button type="submit" disabled={saving} className="flex-1 px-3 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
               {saving ? 'Création...' : 'Créer'}
             </button>
           </div>

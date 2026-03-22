@@ -10,8 +10,8 @@ interface ProjectsTimelineProps {
 
 const TYPE_BAR_COLOR: Record<ProjectType, string> = {
   Web: 'bg-cyan-500/70 border-cyan-500',
-  Branding: 'bg-pink-500/70 border-pink-500',
-  IA: 'bg-violet-500/70 border-violet-500',
+  Branding: 'bg-fuchsia-500/70 border-fuchsia-500',
+  IA: 'bg-fuchsia-500/70 border-fuchsia-500',
   Marketing: 'bg-amber-500/70 border-amber-500',
 };
 
@@ -81,10 +81,10 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
         {/* Today marker */}
         {todayPct > 0 && todayPct < 100 && (
           <div
-            className="absolute top-0 h-full border-l-2 border-violet-500/60 flex items-center"
+            className="absolute top-0 h-full border-l-2 border-fuchsia-500/60 flex items-center"
             style={{ left: `${todayPct}%` }}
           >
-            <span className="ml-1 text-[9px] font-semibold text-violet-400 whitespace-nowrap">Aujourd'hui</span>
+            <span className="ml-1 text-[9px] font-semibold text-fuchsia-400 whitespace-nowrap">Aujourd'hui</span>
           </div>
         )}
       </div>
@@ -94,7 +94,7 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
         {/* Today vertical line through bars */}
         {todayPct > 0 && todayPct < 100 && (
           <div
-            className="absolute top-0 bottom-0 w-px bg-violet-500/30 pointer-events-none"
+            className="absolute top-0 bottom-0 w-px bg-fuchsia-500/30 pointer-events-none"
             style={{ left: `calc(${todayPct}% + 1rem)` }}
           />
         )}
@@ -140,8 +140,8 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
           );
         })}
         <div className="flex items-center gap-1.5 ml-auto">
-          <span className="w-2.5 h-2.5 border-l-2 border-violet-500" />
-          <span className="text-[10px] text-violet-400">Aujourd'hui</span>
+          <span className="w-2.5 h-2.5 border-l-2 border-fuchsia-500" />
+          <span className="text-[10px] text-fuchsia-400">Aujourd'hui</span>
         </div>
       </div>
     </div>

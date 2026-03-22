@@ -213,7 +213,7 @@ export default function LeadsPage() {
         {/* Content */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="w-8 h-8 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-fuchsia-500 border-t-transparent animate-spin" />
           </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
@@ -244,7 +244,7 @@ export default function LeadsPage() {
 
       {/* Bulk toolbar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-zinc-900/95 border border-violet-500/30 shadow-2xl backdrop-blur-xl">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-zinc-900/95 border border-fuchsia-500/30 shadow-2xl backdrop-blur-xl">
           <span className="text-sm text-zinc-300 font-medium">{selectedIds.size} selectionne{selectedIds.size > 1 ? 's' : ''}</span>
           <select
             value={bulkStatus}
@@ -259,7 +259,7 @@ export default function LeadsPage() {
           <button
             onClick={() => bulkStatus && handleBulkStatus(bulkStatus as LeadStatus)}
             disabled={!bulkStatus}
-            className="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-40 text-white text-xs font-medium rounded-lg transition-colors"
           >
             Appliquer
           </button>

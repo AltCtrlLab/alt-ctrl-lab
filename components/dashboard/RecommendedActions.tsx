@@ -130,7 +130,7 @@ export function RecommendedActions() {
     return (
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Zap className="w-4 h-4 text-violet-400 animate-pulse" />
+          <Zap className="w-4 h-4 text-fuchsia-400 animate-pulse" />
           <span className="text-sm text-zinc-400">Chargement des recommandations...</span>
         </div>
         <div className="space-y-2">
@@ -144,10 +144,10 @@ export function RecommendedActions() {
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-violet-400" />
+          <Zap className="w-4 h-4 text-fuchsia-400" />
           <span className="text-sm font-semibold text-zinc-100">Actions recommandées</span>
           {actions.length > 0 && (
-            <span className="text-xs bg-violet-500/10 text-violet-400 px-1.5 py-0.5 rounded">
+            <span className="text-xs bg-fuchsia-500/10 text-fuchsia-400 px-1.5 py-0.5 rounded">
               {actions.length}
             </span>
           )}

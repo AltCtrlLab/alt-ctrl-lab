@@ -17,7 +17,7 @@ function fmt(n: number) {
 export function FinancesStatsBar({ stats }: { stats: FinancesStats | null }) {
   const items = [
     { label: 'CA encaissé', value: stats ? fmt(stats.caEncaisse) : '—', icon: Euro, color: 'text-emerald-400' },
-    { label: 'CA en attente', value: stats ? fmt(stats.caEnAttente) : '—', icon: Clock, color: 'text-blue-400' },
+    { label: 'CA en attente', value: stats ? fmt(stats.caEnAttente) : '—', icon: Clock, color: 'text-cyan-400' },
     { label: 'Dépenses / mois', value: stats ? fmt(stats.depensesMois) : '—', icon: TrendingDown, color: 'text-amber-400' },
     { label: 'Marge nette', value: stats ? fmt(stats.margeNette) : '—', icon: Euro, color: stats && stats.margeNette >= 0 ? 'text-emerald-400' : 'text-rose-400' },
   ];

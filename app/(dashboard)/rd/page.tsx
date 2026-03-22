@@ -44,31 +44,31 @@ interface Stats { discoveries: number; innovations: number; patterns: number; in
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TOPICS = [
-  { id: 'instagram-acquisition', label: 'Acquisition Instagram', icon: '📸', color: 'text-pink-400 bg-pink-500/10 border-pink-500/30' },
-  { id: 'dm-copywriting', label: 'Copywriting DM', icon: '✍️', color: 'text-violet-400 bg-violet-500/10 border-violet-500/30' },
-  { id: 'conversion-funnel', label: 'Tunnel de conversion', icon: '🎯', color: 'text-orange-400 bg-orange-500/10 border-orange-500/30' },
-  { id: 'internal-analysis', label: 'Opérations internes', icon: '⚙️', color: 'text-blue-400 bg-blue-500/10 border-blue-500/30' },
+  { id: 'instagram-acquisition', label: 'Acquisition Instagram', icon: '📸', color: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/30' },
+  { id: 'dm-copywriting', label: 'Copywriting DM', icon: '✍️', color: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/30' },
+  { id: 'conversion-funnel', label: 'Tunnel de conversion', icon: '🎯', color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
+  { id: 'internal-analysis', label: 'Opérations internes', icon: '⚙️', color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30' },
 ];
 
 const PIPELINE_STEPS = [
-  { id: 'scout', label: 'Scout', desc: 'Scrape les sources tech', icon: Telescope, color: 'text-blue-400', accent: 'border-blue-500/30 bg-blue-500/5' },
-  { id: 'elevate', label: 'Élever', desc: 'Mutation IA Top 1%', icon: TrendingUp, color: 'text-violet-400', accent: 'border-violet-500/30 bg-violet-500/5' },
+  { id: 'scout', label: 'Scout', desc: 'Scrape les sources tech', icon: Telescope, color: 'text-cyan-400', accent: 'border-cyan-500/30 bg-cyan-500/5' },
+  { id: 'elevate', label: 'Élever', desc: 'Mutation IA Top 1%', icon: TrendingUp, color: 'text-fuchsia-400', accent: 'border-fuchsia-500/30 bg-fuchsia-500/5' },
   { id: 'analyze', label: 'Analyser', desc: 'Patterns & tendances', icon: Brain, color: 'text-emerald-400', accent: 'border-emerald-500/30 bg-emerald-500/5' },
 ];
 
 const COMPLEXITY_COLOR: Record<string, string> = {
   trivial: 'text-emerald-400 bg-emerald-500/10',
-  easy: 'text-blue-400 bg-blue-500/10',
+  easy: 'text-cyan-400 bg-cyan-500/10',
   medium: 'text-amber-400 bg-amber-500/10',
-  hard: 'text-orange-400 bg-orange-500/10',
+  hard: 'text-amber-400 bg-amber-500/10',
   epic: 'text-rose-400 bg-rose-500/10',
 };
 const STATUS_COLOR: Record<string, string> = {
   proposed: 'text-amber-400 bg-amber-500/10',
-  ceo_review: 'text-violet-400 bg-violet-500/10',
+  ceo_review: 'text-fuchsia-400 bg-fuchsia-500/10',
   approved: 'text-emerald-400 bg-emerald-500/10',
-  in_progress: 'text-blue-400 bg-blue-500/10',
-  implemented: 'text-teal-400 bg-teal-500/10',
+  in_progress: 'text-cyan-400 bg-cyan-500/10',
+  implemented: 'text-cyan-400 bg-cyan-500/10',
   rejected: 'text-rose-400 bg-rose-500/10',
 };
 const STATUS_LABEL: Record<string, string> = {
@@ -81,7 +81,7 @@ const PLATFORM_ICON: Record<string, string> = {
 };
 const TREND_COLOR: Record<string, string> = {
   rising: 'text-emerald-400 bg-emerald-500/10',
-  stable: 'text-blue-400 bg-blue-500/10',
+  stable: 'text-cyan-400 bg-cyan-500/10',
   declining: 'text-rose-400 bg-rose-500/10',
 };
 
@@ -131,8 +131,8 @@ function InnovationModal({ innovation, onClose, onApprove, onReject }: {
           <button onClick={onClose} className="p-1.5 text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"><X className="w-4 h-4" /></button>
         </div>
         {innovation.altCtrlMutation && (
-          <div className="mb-4 p-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
-            <p className="text-xs font-semibold text-violet-400 mb-1">Mutation AltCtrl.Lab</p>
+          <div className="mb-4 p-3 rounded-xl bg-fuchsia-500/5 border border-fuchsia-500/20">
+            <p className="text-xs font-semibold text-fuchsia-400 mb-1">Mutation AltCtrl.Lab</p>
             <p className="text-sm text-zinc-300 leading-relaxed">{innovation.altCtrlMutation}</p>
           </div>
         )}
@@ -390,8 +390,8 @@ export default function RDPage() {
 
   const priorityBg = (p: number) =>
     p >= 8 ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
-    p >= 5 ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' :
-             'bg-blue-500/20 text-blue-400 border-blue-500/30';
+    p >= 5 ? 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30' :
+             'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
 
   const statusBadge = (ins: BusinessInsight) => {
     if (ins.rejected || ins.status === 'rejected') return { label: 'Rejeté', cls: 'bg-zinc-800/80 text-zinc-500' };
@@ -444,15 +444,15 @@ export default function RDPage() {
           </div>
 
           {/* Recommandation */}
-          <div className="rounded-xl bg-violet-500/5 border border-violet-500/20 p-4">
+          <div className="rounded-xl bg-fuchsia-500/5 border border-fuchsia-500/20 p-4">
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5 text-violet-400" />
-                <span className="text-xs font-semibold text-violet-400 uppercase tracking-wide">Recommandation AltCtrl.Lab</span>
+                <Target className="w-3.5 h-3.5 text-fuchsia-400" />
+                <span className="text-xs font-semibold text-fuchsia-400 uppercase tracking-wide">Recommandation AltCtrl.Lab</span>
               </div>
               <button
                 onClick={() => handleCopyReco(selectedInsight.id, selectedInsight.recommendation)}
-                className="flex items-center gap-1 text-xs text-zinc-500 hover:text-violet-400 transition-colors"
+                className="flex items-center gap-1 text-xs text-zinc-500 hover:text-fuchsia-400 transition-colors"
               >
                 {copiedId === selectedInsight.id ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 {copiedId === selectedInsight.id ? 'Copié' : 'Copier'}
@@ -500,7 +500,7 @@ export default function RDPage() {
           <button
             onClick={() => handleCreateTask(selectedInsight)}
             disabled={creatingTask}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
           >
             {creatingTask ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             Créer une tâche War Room
@@ -550,8 +550,8 @@ export default function RDPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: 'Insights métier', value: stats.insights, icon: Lightbulb, color: 'text-amber-400', accent: 'from-amber-500/5' },
-            { label: 'Innovations', value: stats.innovations, icon: Zap, color: 'text-violet-400', accent: 'from-violet-500/5' },
-            { label: 'Découvertes', value: stats.discoveries, icon: Telescope, color: 'text-blue-400', accent: 'from-blue-500/5' },
+            { label: 'Innovations', value: stats.innovations, icon: Zap, color: 'text-fuchsia-400', accent: 'from-fuchsia-500/5' },
+            { label: 'Découvertes', value: stats.discoveries, icon: Telescope, color: 'text-cyan-400', accent: 'from-cyan-500/5' },
             { label: 'Patterns', value: stats.patterns, icon: GitBranch, color: 'text-emerald-400', accent: 'from-emerald-500/5' },
           ].map((kpi, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
@@ -569,13 +569,13 @@ export default function RDPage() {
         <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-violet-400" />
+              <Activity className="w-4 h-4 text-fuchsia-400" />
               Pipeline R&amp;D
             </h2>
             <button
               onClick={() => runAction('pipeline')}
               disabled={running}
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
             >
               {running && activeAction === 'pipeline' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
               Pipeline complet
@@ -618,7 +618,7 @@ export default function RDPage() {
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className="rounded-2xl border border-zinc-700/40 bg-zinc-900/50 overflow-hidden">
               <div className="px-4 py-2.5 border-b border-zinc-800/40 flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${running ? 'bg-violet-400 animate-pulse' : 'bg-zinc-600'}`} />
+                <div className={`w-2 h-2 rounded-full ${running ? 'bg-fuchsia-400 animate-pulse' : 'bg-zinc-600'}`} />
                 <span className="text-xs font-semibold text-zinc-300">
                   {running ? 'Pipeline en cours...' : 'Dernière exécution'}
                 </span>
@@ -631,14 +631,14 @@ export default function RDPage() {
                   <motion.div key={s.id + i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
                       s.status === 'done' ? 'bg-emerald-500/5 border-emerald-500/15' :
-                      s.status === 'running' ? 'bg-violet-500/5 border-violet-500/20' :
+                      s.status === 'running' ? 'bg-fuchsia-500/5 border-fuchsia-500/20' :
                       s.status === 'warn' ? 'bg-amber-500/5 border-amber-500/15' :
                       s.status === 'error' ? 'bg-rose-500/5 border-rose-500/15' :
                       'bg-zinc-800/20 border-zinc-800/40'
                     }`}>
                     <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center">
                       {s.status === 'done' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                      {s.status === 'running' && <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />}
+                      {s.status === 'running' && <Loader2 className="w-4 h-4 text-fuchsia-400 animate-spin" />}
                       {s.status === 'warn' && <AlertCircle className="w-4 h-4 text-amber-400" />}
                       {s.status === 'error' && <AlertCircle className="w-4 h-4 text-rose-400" />}
                       {s.status === 'pending' && <Clock className="w-4 h-4 text-zinc-600" />}
@@ -646,7 +646,7 @@ export default function RDPage() {
                     <div className="flex-1 min-w-0">
                       <span className={`text-sm font-medium ${
                         s.status === 'done' ? 'text-emerald-300' :
-                        s.status === 'running' ? 'text-violet-300' :
+                        s.status === 'running' ? 'text-fuchsia-300' :
                         s.status === 'warn' ? 'text-amber-300' :
                         s.status === 'error' ? 'text-rose-300' : 'text-zinc-500'
                       }`}>{s.label}</span>
@@ -661,7 +661,7 @@ export default function RDPage() {
                 ))}
                 {running && pipelineSteps.length === 0 && (
                   <div className="flex items-center gap-3 px-3 py-2.5">
-                    <Loader2 className="w-4 h-4 text-violet-400 animate-spin shrink-0" />
+                    <Loader2 className="w-4 h-4 text-fuchsia-400 animate-spin shrink-0" />
                     <span className="text-sm text-zinc-400">Démarrage...</span>
                   </div>
                 )}
@@ -680,11 +680,11 @@ export default function RDPage() {
           ] as const).map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.id ? 'border-violet-400 text-violet-300' : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                activeTab === tab.id ? 'border-fuchsia-400 text-fuchsia-300' : 'border-transparent text-zinc-500 hover:text-zinc-300'
               }`}>
               <tab.icon className="w-3.5 h-3.5" />
               {tab.label}
-              {tab.count > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-violet-500/20 text-violet-300' : 'bg-zinc-800 text-zinc-500'}`}>{tab.count}</span>}
+              {tab.count > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'bg-zinc-800 text-zinc-500'}`}>{tab.count}</span>}
             </button>
           ))}
         </div>
@@ -787,7 +787,7 @@ export default function RDPage() {
                       className={`relative rounded-xl border p-4 cursor-pointer transition-all group ${
                         isRejected ? 'opacity-40 border-zinc-800/30 bg-zinc-900/20' :
                         isApplied ? 'border-emerald-500/20 bg-emerald-500/3 hover:border-emerald-500/30' :
-                        'border-zinc-800/60 bg-zinc-900/40 hover:border-violet-500/30 hover:bg-zinc-900/60'
+                        'border-zinc-800/60 bg-zinc-900/40 hover:border-fuchsia-500/30 hover:bg-zinc-900/60'
                       }`}>
                       {/* New dot */}
                       {isNew && (
@@ -818,7 +818,7 @@ export default function RDPage() {
                             <span className="text-xs text-zinc-600">{new Date(insight.createdAt).toLocaleDateString('fr-FR')}</span>
                             <button
                               onClick={e => { e.stopPropagation(); handleOpenInsight(insight); }}
-                              className="flex items-center gap-1 text-xs text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="flex items-center gap-1 text-xs text-fuchsia-400 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <BookOpen className="w-3 h-3" /> Lire
                             </button>
@@ -859,7 +859,7 @@ export default function RDPage() {
                 return (
                   <button key={f} onClick={() => setInnovFilter(f)}
                     className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
-                      innovFilter === f ? 'bg-violet-500/20 text-violet-300' : 'text-zinc-500 hover:text-zinc-300'
+                      innovFilter === f ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'text-zinc-500 hover:text-zinc-300'
                     }`}>
                     {STATUS_LABEL[f] || f} ({count})
                   </button>
@@ -872,7 +872,7 @@ export default function RDPage() {
                 <p className="text-sm text-zinc-400 mb-1">Aucune innovation</p>
                 <p className="text-xs text-zinc-600 mb-4">Lance le pipeline pour découvrir et élever des innovations.</p>
                 <button onClick={() => runAction('pipeline')} disabled={running}
-                  className="text-xs px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg transition-colors">
+                  className="text-xs px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white rounded-lg transition-colors">
                   Lancer le pipeline
                 </button>
               </div>
@@ -882,11 +882,11 @@ export default function RDPage() {
                   const tags: string[] = (() => { try { return JSON.parse(innov.tags || '[]'); } catch { return []; } })();
                   return (
                     <motion.button key={innov.id} layout onClick={() => setSelectedInnovation(innov)}
-                      className="text-left p-4 rounded-xl border border-zinc-800/60 bg-zinc-900/40 hover:border-violet-500/30 hover:bg-zinc-900/60 transition-all group">
+                      className="text-left p-4 rounded-xl border border-zinc-800/60 bg-zinc-900/40 hover:border-fuchsia-500/30 hover:bg-zinc-900/60 transition-all group">
                       <div className="flex items-start gap-3 mb-3">
                         <ScoreRing score={innov.opportunityScore} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-zinc-200 leading-snug group-hover:text-violet-200 transition-colors line-clamp-2">{innov.title}</p>
+                          <p className="text-sm font-semibold text-zinc-200 leading-snug group-hover:text-fuchsia-200 transition-colors line-clamp-2">{innov.title}</p>
                           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                             {innov.status && <span className={`text-xs px-1.5 py-0.5 rounded-full ${STATUS_COLOR[innov.status] || 'bg-zinc-800 text-zinc-500'}`}>{STATUS_LABEL[innov.status] || innov.status}</span>}
                             {innov.implementationComplexity && <span className={`text-xs px-1.5 py-0.5 rounded-full ${COMPLEXITY_COLOR[innov.implementationComplexity] || ''}`}>{innov.implementationComplexity}</span>}
@@ -915,7 +915,7 @@ export default function RDPage() {
                 <p className="text-sm text-zinc-400 mb-1">Aucune découverte</p>
                 <p className="text-xs text-zinc-600 mb-4">Lance le Scout pour scraper ProductHunt, GitHub, HackerNews.</p>
                 <button onClick={() => runAction('scout')} disabled={running}
-                  className="text-xs px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors">
+                  className="text-xs px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg transition-colors">
                   Lancer Scout
                 </button>
               </div>
@@ -935,14 +935,14 @@ export default function RDPage() {
                         {PLATFORM_ICON[d.sourcePlatform] || '🔗'} {d.sourcePlatform}
                       </span>
                       <a href={d.sourceUrl} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 truncate" title={d.sourceUrl}>
+                        className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 truncate" title={d.sourceUrl}>
                         <ExternalLink className="w-3 h-3 shrink-0" />
                         <span className="truncate">{d.sourceUrl.replace(/^https?:\/\/(www\.)?/, '')}</span>
                       </a>
                       <span className="text-xs text-zinc-500">{d.engagementScore != null ? Math.round(d.engagementScore * 100) + '%' : '—'}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
                         d.status === 'elevated' ? 'bg-emerald-500/10 text-emerald-400' :
-                        d.status === 'analyzing' ? 'bg-blue-500/10 text-blue-400' :
+                        d.status === 'analyzing' ? 'bg-cyan-500/10 text-cyan-400' :
                         d.status === 'rejected' ? 'bg-rose-500/10 text-rose-400' :
                         'bg-zinc-800 text-zinc-500'
                       }`}>{d.status}</span>

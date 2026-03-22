@@ -205,11 +205,11 @@ export default function MarketingPage() {
           ) : (
             <div className="space-y-3">
               {activeTasks.map(task => (
-                <div key={task.id} className="bg-blue-500/[0.08] border border-blue-500/25 rounded-2xl p-4 space-y-2">
+                <div key={task.id} className="bg-cyan-500/[0.08] border border-cyan-500/25 rounded-2xl p-4 space-y-2">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-blue-400 flex-shrink-0" />
-                      <span className="text-sm font-medium text-blue-300">{STAGE_LABELS[task.status] ?? task.status}</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-cyan-400 flex-shrink-0" />
+                      <span className="text-sm font-medium text-cyan-300">{STAGE_LABELS[task.status] ?? task.status}</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-zinc-500 flex-shrink-0">
                       <Clock className="w-3 h-3" />

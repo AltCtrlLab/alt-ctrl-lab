@@ -88,7 +88,7 @@ export const OpsHeader: React.FC<OpsHeaderProps> = ({
             <button key={service.id} onClick={() => setSelectedService(service.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-medium transition-all duration-300 whitespace-nowrap
                 ${isActive
-                  ? (isDark ? 'bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] border border-white/10' : 'bg-white text-blue-600 shadow-sm border border-neutral-200')
+                  ? (isDark ? 'bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] border border-white/10' : 'bg-white text-cyan-600 shadow-sm border border-neutral-200')
                   : `${t.textMuted} hover:${t.textMain} ${t.glassHover} border border-transparent`}`}
             >
               <span className="opacity-80">{service.icon}</span>
@@ -170,13 +170,13 @@ export const OpsHeader: React.FC<OpsHeaderProps> = ({
         className={`px-5 py-3 backdrop-blur-xl rounded-full shadow-2xl border transition-all duration-500 ${t.glass} flex items-center gap-4`}
       >
         <div className="flex flex-col">
-          <span className={`text-[10px] font-mono uppercase tracking-widest ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Charge Système</span>
+          <span className={`text-[10px] font-mono uppercase tracking-widest ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>Charge Système</span>
           <span className={`text-sm font-semibold font-mono ${t.textMain}`}>{systemLoad}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full border border-blue-500/30 flex items-center justify-center relative">
-            <div className="absolute inset-0 rounded-full border-t-2 border-blue-500 animate-[spin_3s_linear_infinite]" />
-            <Cpu size={14} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+          <div className="w-8 h-8 rounded-full border border-cyan-500/30 flex items-center justify-center relative">
+            <div className="absolute inset-0 rounded-full border-t-2 border-cyan-500 animate-[spin_3s_linear_infinite]" />
+            <Cpu size={14} className={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
           </div>
           {isConnected ? <Wifi size={14} className="text-emerald-500" /> : <WifiOff size={14} className="text-rose-500" />}
         </div>

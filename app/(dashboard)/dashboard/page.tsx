@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   RefreshCw, ExternalLink, TrendingUp, CheckCircle2, Clock, Zap,
   Beaker, AlertCircle, ArrowRight, Newspaper, Activity, BarChart3,
@@ -69,10 +69,53 @@ function formatDate(): string {
 }
 
 const SOURCE_COLORS: Record<string, string> = {
-  le_monde: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  bfm_tv: 'bg-red-500/20 text-red-300 border-red-500/30',
-  bbc_news: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-  the_guardian: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  le_monde: 'bg-zinc-800 text-zinc-400 border-zinc-700',
+  bfm_tv: 'bg-zinc-800 text-zinc-400 border-zinc-700',
+  bbc_news: 'bg-zinc-800 text-zinc-400 border-zinc-700',
+  the_guardian: 'bg-zinc-800 text-zinc-400 border-zinc-700',
+};
+
+// ─── Animation variants ──────────────────────────────────────────────────────
+
+const pageVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+  },
+};
+
+const statCardVariants = {
+  hidden: { opacity: 0, scale: 0.95, y: 8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { type: 'spring', damping: 20, stiffness: 300 },
+  },
+};
+
+const newsItemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', damping: 20, stiffness: 300 },
+  },
+};
+
+const staticVariants = {
+  hidden: {},
+  visible: {},
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -86,9 +129,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08 }}
+      variants={newsItemVariants}
       className={`group block rounded-xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 overflow-hidden ${isFeatured ? 'col-span-2' : ''}`}
     >
       {item.imageUrl && (
@@ -144,7 +185,10 @@ function StatCard({ label, value, sub, icon: Icon, color, href }: {
   href?: string;
 }) {
   const content = (
-    <div className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all duration-200">
+    <motion.div
+      variants={statCardVariants}
+      className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all duration-200"
+    >
       <div className={`flex-shrink-0 p-2.5 rounded-lg ${color}`}>
         <Icon className="w-4 h-4" />
       </div>
@@ -154,7 +198,7 @@ function StatCard({ label, value, sub, icon: Icon, color, href }: {
         {sub && <p className="text-[10px] text-zinc-600 mt-0.5">{sub}</p>}
       </div>
       {href && <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 ml-auto transition-colors" />}
-    </div>
+    </motion.div>
   );
 
   if (href) return <Link href={href as any}>{content}</Link>;
@@ -191,6 +235,7 @@ function QuickAction({ label, description, href, icon: Icon, accent }: {
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const prefersReduced = useReducedMotion();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -304,7 +349,7 @@ export default function DashboardPage() {
       <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 rounded bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 flex items-center justify-center">
               <span className="text-[10px] font-black text-white">AC</span>
             </div>
             <span className="text-sm font-semibold text-zinc-200">Alt Ctrl Lab</span>
@@ -330,10 +375,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <motion.div
+        variants={prefersReduced ? staticVariants : pageVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto px-6 py-8 space-y-8"
+      >
 
         {/* ── Intelligence Layer ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <motion.div variants={sectionVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
             <MorningBriefingWidget />
             <RevenueIntelligenceWidget />
@@ -341,12 +391,11 @@ export default function DashboardPage() {
           <div>
             <RecommendedActionsWidget />
           </div>
-        </div>
+        </motion.div>
 
         {/* ── Hero greeting ── */}
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={sectionVariants}
           className="flex items-end justify-between"
         >
           <div>
@@ -358,7 +407,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/pil" className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg transition-colors">
+            <Link href="/pil" className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-sm font-medium rounded-lg transition-colors">
               <Play className="w-3.5 h-3.5" />
               Lancer une mission
             </Link>
@@ -366,12 +415,12 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* ── Stats row ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <motion.div variants={sectionVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard
             label="Missions actives"
             value={stats?.activeTasks ?? '—'}
             icon={Activity}
-            color="bg-violet-500/20 text-violet-400"
+            color="bg-fuchsia-500/10 text-fuchsia-400"
             href="/pil"
           />
           <StatCard
@@ -386,7 +435,7 @@ export default function DashboardPage() {
             value={stats?.pendingInnovations ?? '—'}
             sub="En attente de décision"
             icon={Beaker}
-            color="bg-amber-500/20 text-amber-400"
+            color="bg-zinc-800 text-zinc-300"
             href="/rd"
           />
           <StatCard
@@ -394,12 +443,12 @@ export default function DashboardPage() {
             value={stats ? `${stats.successRate}%` : '—'}
             sub="Sur toutes les missions"
             icon={TrendingUp}
-            color="bg-blue-500/20 text-blue-400"
+            color="bg-cyan-500/10 text-cyan-400"
           />
-        </div>
+        </motion.div>
 
         {/* ── Main content grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div variants={sectionVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* News — 2/3 width */}
           <div className="lg:col-span-2 space-y-4">
@@ -431,22 +480,25 @@ export default function DashboardPage() {
                 <p className="text-sm text-zinc-500">Aucune actualité disponible</p>
                 <button
                   onClick={handleRefreshNews}
-                  className="mt-3 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                  className="mt-3 text-xs text-fuchsia-400 hover:text-fuchsia-300 transition-colors"
                 >
                   Récupérer les actus →
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {/* Featured */}
+              <motion.div
+                variants={{ visible: { transition: { staggerChildren: 0.04 } } }}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-2 gap-3"
+              >
                 {featuredNews.map((item, i) => (
                   <NewsCard key={item.id} item={item} index={i} />
                 ))}
-                {/* Grid */}
                 {gridNews.map((item, i) => (
                   <NewsCard key={item.id} item={item} index={i + 1} />
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
 
@@ -465,21 +517,21 @@ export default function DashboardPage() {
                   description="Lancer une nouvelle mission"
                   href="/pil"
                   icon={Play}
-                  accent="bg-violet-500/20 text-violet-400"
+                  accent="bg-fuchsia-500/10 text-fuchsia-400"
                 />
                 <QuickAction
                   label="Kanban Board"
                   description="Suivre les tâches en cours"
                   href="/pil"
                   icon={BarChart3}
-                  accent="bg-blue-500/20 text-blue-400"
+                  accent="bg-zinc-800 text-zinc-300"
                 />
                 <QuickAction
                   label="Labo R&D"
                   description="Innovations et découvertes"
                   href="/rd"
                   icon={Beaker}
-                  accent="bg-amber-500/20 text-amber-400"
+                  accent="bg-zinc-800 text-zinc-300"
                 />
                 <QuickAction
                   label="Historique"
@@ -527,8 +579,8 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

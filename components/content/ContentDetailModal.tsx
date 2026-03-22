@@ -52,7 +52,7 @@ export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
           <div className="flex items-center gap-2 mb-4">
             <ContentStatusBadge status={status} />
             <span className="text-xs text-zinc-500">{item.type}</span>
-            {item.agent !== 'manuel' && <span className="text-xs text-violet-400">{item.agent}</span>}
+            {item.agent !== 'manuel' && <span className="text-xs text-fuchsia-400">{item.agent}</span>}
           </div>
 
           <div className="flex gap-1 mb-4 bg-zinc-800 rounded-lg p-1">

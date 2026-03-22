@@ -43,8 +43,8 @@ export function StatsOverview({
       label: 'Temps Moyen',
       value: avgResponseTime,
       icon: TrendingUp,
-      color: 'text-violet-400',
-      bgColor: 'bg-violet-500/10',
+      color: 'text-fuchsia-400',
+      bgColor: 'bg-fuchsia-500/10',
     },
   ];
 

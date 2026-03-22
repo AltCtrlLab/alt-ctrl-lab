@@ -11,12 +11,12 @@ interface Agent {
 }
 
 const AGENTS: Agent[] = [
-  { id: 'abdulhakim', name: 'AbdulHakim', role: 'CEO/Superviseur', emoji: '👔', color: '#4F46E5' },
-  { id: 'musawwir', name: 'Musawwir', role: 'DA Senior (Directeur Création)', emoji: '🎨', color: '#EC4899' },
+  { id: 'abdulhakim', name: 'AbdulHakim', role: 'CEO/Superviseur', emoji: '👔', color: '#D946EF' },
+  { id: 'musawwir', name: 'Musawwir', role: 'DA Senior (Directeur Création)', emoji: '🎨', color: '#D946EF' },
   { id: 'matin', name: 'Matin', role: 'Lead Dev (Directeur Technique)', emoji: '💻', color: '#10B981' },
   { id: 'fatah', name: 'Fatah', role: 'CGO (Directeur Growth)', emoji: '📈', color: '#F59E0B' },
   { id: 'hasib', name: 'Hasib', role: 'Architect (Directeur Data)', emoji: '⚙️', color: '#6B7280' },
-  { id: 'raqim', name: 'Raqim', role: 'Exécutant Création (UI)', emoji: '🖌️', color: '#EC4899' },
+  { id: 'raqim', name: 'Raqim', role: 'Exécutant Création (UI)', emoji: '🖌️', color: '#D946EF' },
   { id: 'banna', name: 'Banna', role: 'Exécutant Dev (Code)', emoji: '🔧', color: '#10B981' },
   { id: 'khatib', name: 'Khatib', role: 'Exécutant Copy (Marketing)', emoji: '✍️', color: '#F59E0B' },
   { id: 'sani', name: 'Sani', role: 'Exécutant Data (Automations)', emoji: '🔌', color: '#6B7280' },
@@ -149,7 +149,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
         <div className="flex items-center justify-between p-4 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-              useSupervisor ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-zinc-700'
+              useSupervisor ? 'bg-gradient-to-br from-fuchsia-500 to-fuchsia-600' : 'bg-zinc-700'
             }`}>
               <span className="text-2xl">{useSupervisor ? '🧠' : '🎯'}</span>
             </div>
@@ -171,7 +171,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
               setSelectedAgent(null);
             }}
             className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${
-              useSupervisor ? 'bg-indigo-600' : 'bg-zinc-600'
+              useSupervisor ? 'bg-fuchsia-600' : 'bg-zinc-600'
             }`}
           >
             <span
@@ -189,7 +189,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
               <label className="text-sm font-medium text-zinc-300">
                 Nombre de services à mobiliser
               </label>
-              <span className="text-lg font-bold text-indigo-400">{serviceCount}</span>
+              <span className="text-lg font-bold text-fuchsia-400">{serviceCount}</span>
             </div>
             <input
               type="range"
@@ -197,7 +197,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
               max={4}
               value={serviceCount}
               onChange={(e) => setServiceCount(parseInt(e.target.value))}
-              className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
             />
             <div className="flex justify-between mt-2 text-xs text-zinc-500">
               <span>1 service</span>
@@ -225,7 +225,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
                   onClick={() => setSelectedAgent(agent.id)}
                   className={`p-3 rounded-xl border transition-all text-left ${
                     selectedAgent === agent.id
-                      ? 'border-indigo-500 bg-indigo-500/10 ring-1 ring-indigo-500'
+                      ? 'border-fuchsia-500 bg-fuchsia-500/10 ring-1 ring-fuchsia-500'
                       : 'border-zinc-700 bg-zinc-800/50 hover:bg-zinc-800 hover:border-zinc-600'
                   }`}
                 >
@@ -239,7 +239,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
               ))}
             </div>
             {selectedAgent && (
-              <p className="text-sm text-indigo-400">
+              <p className="text-sm text-fuchsia-400">
                 ✅ {AGENTS.find(a => a.id === selectedAgent)?.name} sélectionné
               </p>
             )}
@@ -259,7 +259,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
               ? "Ex: Créer un Design System complet pour notre application avec palette de couleurs, typographie, et composants de base..."
               : "Ex: Créer un composant Button React avec 3 variants..."
             }
-            className="w-full h-32 bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+            className="w-full h-32 bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent resize-none"
             disabled={isLoading}
           />
         </div>
@@ -283,7 +283,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
         <button
           type="submit"
           disabled={isLoading || !brief.trim() || (!useSupervisor && !selectedAgent)}
-          className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 px-4 bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-fuchsia-400 text-white font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>

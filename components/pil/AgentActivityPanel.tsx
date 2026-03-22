@@ -25,12 +25,12 @@ const getTheme = (isDark: boolean) => ({
 });
 
 const activityTypeConfig: Record<string, { icon: any; label: string; color: string }> = {
-  DIRECT_EXECUTION: { icon: Cpu, label: 'Exécution Directe', color: 'text-blue-400' },
-  SWARM_LEADER: { icon: Users, label: 'Lead Essaim', color: 'text-purple-400' },
+  DIRECT_EXECUTION: { icon: Cpu, label: 'Exécution Directe', color: 'text-cyan-400' },
+  SWARM_LEADER: { icon: Users, label: 'Lead Essaim', color: 'text-fuchsia-400' },
   MICRO_WORKER: { icon: Zap, label: 'Micro-Worker', color: 'text-yellow-400' },
   QA_VALIDATION: { icon: CheckCircle, label: 'QA Validation', color: 'text-emerald-400' },
   QA_REJECTION: { icon: XCircle, label: 'QA Rejet', color: 'text-rose-400' },
-  DIRECTOR_TAKEOVER: { icon: Activity, label: 'Takeover Directeur', color: 'text-orange-400' },
+  DIRECTOR_TAKEOVER: { icon: Activity, label: 'Takeover Directeur', color: 'text-fuchsia-400' },
 };
 
 export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, agentId }) => {
@@ -61,7 +61,7 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className={`${t.textHeading} font-semibold flex items-center gap-2`}>
-            <BarChart3 className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+            <BarChart3 className={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
             {agentId ? `Activité: ${agentId}` : 'Activité Globale'}
           </h2>
           
@@ -72,7 +72,7 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
                 onClick={() => setTimeframe(tf)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                   timeframe === tf
-                    ? (isDark ? 'bg-white/10 text-white' : 'bg-blue-100 text-blue-700')
+                    ? (isDark ? 'bg-white/10 text-white' : 'bg-cyan-100 text-cyan-700')
                     : t.textMuted
                 }`}
               >
@@ -155,7 +155,7 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
                         <div className="flex items-center gap-2">
                           <span className={`font-medium ${t.textMain}`}>{config?.label || activity.activityType}</span>
                           {activity.isSwarm && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-400">
+                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-fuchsia-500/20 text-fuchsia-400">
                               {activity.swarmSize} workers
                             </span>
                           )}
@@ -211,7 +211,7 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
 
           {loading && (
             <div className="p-4 text-center">
-              <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full mx-auto" />
+              <div className="animate-spin h-5 w-5 border-2 border-fuchsia-500 border-t-transparent rounded-full mx-auto" />
             </div>
           )}
 
@@ -233,8 +233,8 @@ const StatCard = ({ label, value, subValue, icon: Icon, color, isDark }: any) =>
   const colors: Record<string, string> = {
     emerald: isDark ? 'text-emerald-400 bg-emerald-500/10' : 'text-emerald-600 bg-emerald-100',
     yellow: isDark ? 'text-yellow-400 bg-yellow-500/10' : 'text-yellow-600 bg-yellow-100',
-    blue: isDark ? 'text-blue-400 bg-blue-500/10' : 'text-blue-600 bg-blue-100',
-    purple: isDark ? 'text-purple-400 bg-purple-500/10' : 'text-purple-600 bg-purple-100',
+    blue: isDark ? 'text-cyan-400 bg-cyan-500/10' : 'text-cyan-600 bg-cyan-100',
+    purple: isDark ? 'text-fuchsia-400 bg-fuchsia-500/10' : 'text-fuchsia-600 bg-fuchsia-100',
   };
 
   return (

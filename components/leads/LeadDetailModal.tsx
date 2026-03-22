@@ -215,7 +215,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2.5 text-xs font-medium transition-all border-b-2 -mb-px ${
                   activeTab === tab.id
-                    ? 'text-violet-400 border-violet-500'
+                    ? 'text-fuchsia-400 border-fuchsia-500'
                     : 'text-zinc-500 border-transparent hover:text-zinc-300'
                 }`}
               >
@@ -280,7 +280,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
                         onChange={e => setPropositionAmount(e.target.value)}
                         onBlur={saveAmount}
                         placeholder="0"
-                        className="w-full pl-8 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all"
+                        className="w-full pl-8 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
                       />
                     </div>
                     {savingAmount && <Loader2 className="w-3.5 h-3.5 text-zinc-500 animate-spin" />}
@@ -297,7 +297,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
                     onBlur={saveNotes}
                     rows={4}
                     placeholder="Notes, contexte, red flags..."
-                    className="w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all resize-none"
+                    className="w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all resize-none"
                   />
                   <div className="flex items-center justify-end gap-1 mt-1">
                     {savingNotes && <><Loader2 className="w-3 h-3 text-zinc-600 animate-spin" /><span className="text-[10px] text-zinc-600">Sauvegarde...</span></>}
@@ -311,7 +311,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
                   <button
                     onClick={generateProposal}
                     disabled={generatingProposal}
-                    className="flex items-center gap-2 px-4 py-2 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 text-violet-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/30 text-fuchsia-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                   >
                     {generatingProposal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                     Générer proposition IA

@@ -60,8 +60,8 @@ export function RevenueIntelligence() {
       value: fmt(data.pipeline),
       sub: `${data.totalLeadsMois} leads ce mois`,
       icon: Target,
-      color: 'text-violet-400',
-      bg: 'bg-violet-500/10',
+      color: 'text-fuchsia-400',
+      bg: 'bg-fuchsia-500/10',
     },
     {
       label: 'CA mois en cours',
@@ -76,8 +76,8 @@ export function RevenueIntelligence() {
       value: fmt(data.projectionMensuelle),
       sub: 'basé sur taux historique',
       icon: TrendingUp,
-      color: 'text-blue-400',
-      bg: 'bg-blue-500/10',
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-500/10',
     },
     {
       label: 'Projets actifs',

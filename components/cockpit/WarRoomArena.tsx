@@ -27,9 +27,9 @@ interface VisionCardProps {
 
 function VisionCard({ letter, title, content, isSelected }: VisionCardProps) {
   const colors = {
-    A: 'from-blue-500/20 to-cyan-500/20 border-blue-500/50',
-    B: 'from-purple-500/20 to-pink-500/20 border-purple-500/50',
-    C: 'from-amber-500/20 to-orange-500/20 border-amber-500/50',
+    A: 'from-cyan-500/20 to-cyan-500/20 border-cyan-500/50',
+    B: 'from-fuchsia-500/20 to-fuchsia-500/20 border-fuchsia-500/50',
+    C: 'from-amber-500/20 to-amber-500/20 border-amber-500/50',
   };
 
   return (
@@ -116,7 +116,7 @@ function PhaseIndicator({ phase }: { phase: WarRoomData['phase'] }) {
             <div className={`
               flex items-center gap-2 px-4 py-2 rounded-full
               ${isActive
-                ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/50'
+                ? 'bg-fuchsia-500/30 text-fuchsia-300 border border-fuchsia-500/50'
                 : isPast
                   ? 'bg-green-500/20 text-green-400'
                   : 'bg-white/5 text-white/30'
@@ -154,7 +154,7 @@ function WarRoomContent({ warRoom }: { warRoom: WarRoomData }) {
       {warRoom.phase !== 'IDLE' && warRoom.phase !== 'EXPLORATION' && warRoom.visions && (
         <section className="space-y-4">
           <h2 className="text-xl font-semibold text-white/90 flex items-center gap-2">
-            <Brain className="w-5 h-5 text-indigo-400" />
+            <Brain className="w-5 h-5 text-fuchsia-400" />
             Visions du CEO
           </h2>
 
@@ -179,7 +179,7 @@ function WarRoomContent({ warRoom }: { warRoom: WarRoomData }) {
       {warRoom.phase === 'EXPLORATION' && warRoom.visions && (
         <section className="space-y-4">
           <h2 className="text-xl font-semibold text-white/90 flex items-center gap-2">
-            <Brain className="w-5 h-5 text-indigo-400" />
+            <Brain className="w-5 h-5 text-fuchsia-400" />
             Visions du CEO
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -213,8 +213,8 @@ function WarRoomContent({ warRoom }: { warRoom: WarRoomData }) {
                 agent={warRoom.evaluations.cto.agent}
                 role={warRoom.evaluations.cto.role}
                 content={warRoom.evaluations.cto.content}
-                icon={<Code2 className="w-5 h-5 text-blue-400" />}
-                color="from-blue-500/10 to-cyan-500/10"
+                icon={<Code2 className="w-5 h-5 text-cyan-400" />}
+                color="from-cyan-500/10 to-cyan-500/10"
               />
             )}
             {warRoom.evaluations.da && (
@@ -222,8 +222,8 @@ function WarRoomContent({ warRoom }: { warRoom: WarRoomData }) {
                 agent={warRoom.evaluations.da.agent}
                 role={warRoom.evaluations.da.role}
                 content={warRoom.evaluations.da.content}
-                icon={<Palette className="w-5 h-5 text-pink-400" />}
-                color="from-pink-500/10 to-rose-500/10"
+                icon={<Palette className="w-5 h-5 text-fuchsia-400" />}
+                color="from-fuchsia-500/10 to-rose-500/10"
               />
             )}
           </div>
@@ -255,7 +255,7 @@ export function WarRoomArena() {
   if (isLoading) {
     return (
       <div className="rounded-3xl p-12 text-center backdrop-blur-xl bg-white/5 border border-white/10">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-indigo-400" />
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-fuchsia-400" />
         <p className="text-white/60">Chargement de l'état...</p>
         <p className="text-xs text-white/40 mt-2">Vérification des missions en cours</p>
       </div>
@@ -265,7 +265,7 @@ export function WarRoomArena() {
   if (!connected && warRoom.phase === 'IDLE') {
     return (
       <div className="rounded-3xl p-12 text-center backdrop-blur-xl bg-white/5 border border-white/10">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-indigo-400" />
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-fuchsia-400" />
         <p className="text-white/60">Connexion au flux temps réel...</p>
       </div>
     );

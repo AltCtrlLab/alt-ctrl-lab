@@ -12,7 +12,7 @@ export function PortfolioStatsBar({ stats }: { stats: PortfolioStats | null }) {
   const typeStr = stats ? Object.entries(stats.parType).map(([k, v]) => `${k}: ${v}`).join(' · ') || '—' : '—';
   const items = [
     { label: 'Publiés', value: stats?.totalPublie ?? '—', icon: Globe, color: 'text-amber-400' },
-    { label: 'Par type', value: typeStr, icon: LayoutGrid, color: 'text-blue-400' },
+    { label: 'Par type', value: typeStr, icon: LayoutGrid, color: 'text-cyan-400' },
     { label: 'Featured', value: stats?.featured ?? '—', icon: Star, color: 'text-yellow-400' },
   ];
   return (

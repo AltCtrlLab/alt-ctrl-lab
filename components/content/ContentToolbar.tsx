@@ -32,7 +32,7 @@ export function ContentToolbar({ view, onViewChange, onCreate }: Props) {
       </div>
       <button
         onClick={onCreate}
-        className="flex items-center gap-2 px-3 py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-lg text-sm font-medium transition-colors"
+        className="flex items-center gap-2 px-3 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-lg text-sm font-medium transition-colors"
       >
         <Plus className="w-4 h-4" /> Nouveau contenu
       </button>

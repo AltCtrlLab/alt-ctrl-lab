@@ -12,9 +12,9 @@ interface ContentStats {
 export function ContentStatsBar({ stats }: { stats: ContentStats | null }) {
   const items = [
     { label: 'Publiés', value: stats?.totalPublie ?? '—', icon: CheckCircle2, color: 'text-emerald-400' },
-    { label: 'Planifiés', value: stats?.totalPlanifie ?? '—', icon: Calendar, color: 'text-blue-400' },
+    { label: 'Planifiés', value: stats?.totalPlanifie ?? '—', icon: Calendar, color: 'text-cyan-400' },
     { label: 'Idées', value: stats?.totalIdees ?? '—', icon: Lightbulb, color: 'text-amber-400' },
-    { label: 'Taux publication', value: stats ? `${stats.tauxPublication}%` : '—', icon: TrendingUp, color: 'text-pink-400' },
+    { label: 'Taux publication', value: stats ? `${stats.tauxPublication}%` : '—', icon: TrendingUp, color: 'text-fuchsia-400' },
   ];
 
   return (

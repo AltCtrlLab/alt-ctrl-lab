@@ -148,8 +148,8 @@ export default function BrandingPage() {
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06] px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-pink-500/10 border border-pink-500/20 rounded-xl flex items-center justify-center">
-              <Palette className="w-5 h-5 text-pink-400" />
+            <div className="w-10 h-10 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-xl flex items-center justify-center">
+              <Palette className="w-5 h-5 text-fuchsia-400" />
             </div>
             <div>
               <h1 className="text-base font-semibold text-zinc-100">Abdul Musawwir</h1>
@@ -177,12 +177,12 @@ export default function BrandingPage() {
             disabled={submitting}
             placeholder="Décris ta mission à Abdul Musawwir…"
             rows={4}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 resize-none focus:outline-none focus:border-pink-500/40 disabled:opacity-50 transition-colors"
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 resize-none focus:outline-none focus:border-fuchsia-500/40 disabled:opacity-50 transition-colors"
           />
           <button
             onClick={submitBrief}
             disabled={submitting || !brief.trim()}
-            className="flex items-center gap-2 px-4 py-2 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/25 hover:border-pink-500/40 text-pink-300 text-sm font-medium rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 border border-fuchsia-500/25 hover:border-fuchsia-500/40 text-fuchsia-300 text-sm font-medium rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             {submitting ? 'Envoi…' : 'Envoyer à Musawwir'}
@@ -205,11 +205,11 @@ export default function BrandingPage() {
           ) : (
             <div className="space-y-3">
               {activeTasks.map(task => (
-                <div key={task.id} className="bg-blue-500/[0.08] border border-blue-500/25 rounded-2xl p-4 space-y-2">
+                <div key={task.id} className="bg-cyan-500/[0.08] border border-cyan-500/25 rounded-2xl p-4 space-y-2">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-blue-400 flex-shrink-0" />
-                      <span className="text-sm font-medium text-blue-300">{STAGE_LABELS[task.status] ?? task.status}</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-cyan-400 flex-shrink-0" />
+                      <span className="text-sm font-medium text-cyan-300">{STAGE_LABELS[task.status] ?? task.status}</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-zinc-500 flex-shrink-0">
                       <Clock className="w-3 h-3" />

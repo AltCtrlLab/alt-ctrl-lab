@@ -129,7 +129,7 @@ export function VaultAnalytics({ isDark }: VaultAnalyticsProps) {
         <h2
           className={`${t.textHeading} text-xl font-semibold tracking-tight flex items-center gap-3`}
         >
-          <Archive className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+          <Archive className={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
           Analytiques du Vault
         </h2>
         <p className={`${t.textMuted} text-xs mt-1`}>
@@ -248,8 +248,8 @@ export function VaultAnalytics({ isDark }: VaultAnalyticsProps) {
                               : 'bg-gray-100 text-gray-700'
                             : idx === 2
                             ? isDark
-                              ? 'bg-orange-500/20 text-orange-400'
-                              : 'bg-orange-100 text-orange-700'
+                              ? 'bg-amber-500/20 text-amber-400'
+                              : 'bg-amber-100 text-amber-700'
                             : isDark
                             ? 'bg-white/[0.05] text-neutral-400'
                             : 'bg-neutral-100 text-neutral-600'
@@ -288,8 +288,8 @@ export function VaultAnalytics({ isDark }: VaultAnalyticsProps) {
                       <div
                         className={`px-3 py-1 rounded-full text-xs font-bold ${
                           isDark
-                            ? 'bg-blue-500/20 text-blue-400'
-                            : 'bg-blue-50 text-blue-700'
+                            ? 'bg-cyan-500/20 text-cyan-400'
+                            : 'bg-cyan-50 text-cyan-700'
                         }`}
                       >
                         {component.reuseCount} réutilisations

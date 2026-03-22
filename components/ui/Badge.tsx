@@ -25,7 +25,7 @@ export function Badge({
     warning: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
     danger: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
     info: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
-    premium: 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/30',
+    premium: 'bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20',
   };
   
   const sizes = {

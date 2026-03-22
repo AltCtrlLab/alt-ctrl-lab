@@ -91,7 +91,7 @@ export function N8nLivePanel() {
     return (
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Activity className="w-4 h-4 text-violet-400 animate-pulse" />
+          <Activity className="w-4 h-4 text-fuchsia-400 animate-pulse" />
           <span className="text-sm font-medium text-zinc-300">n8n Live Executions</span>
         </div>
         <div className="space-y-2">
@@ -110,7 +110,7 @@ export function N8nLivePanel() {
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-violet-400" />
+          <Activity className="w-4 h-4 text-fuchsia-400" />
           <span className="text-sm font-semibold text-zinc-100">n8n Live Executions</span>
           <span className={`text-xs px-1.5 py-0.5 rounded ${source === 'n8n' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
             {source === 'n8n' ? '● Live' : '○ Local'}
@@ -165,7 +165,7 @@ export function N8nLivePanel() {
             {/* 7d runs */}
             {auto.runsLast7d > 0 && (
               <div className="shrink-0">
-                <span className="text-xs bg-violet-500/10 text-violet-400 px-1.5 py-0.5 rounded">
+                <span className="text-xs bg-fuchsia-500/10 text-fuchsia-400 px-1.5 py-0.5 rounded">
                   {auto.runsLast7d}× /7j
                 </span>
               </div>
@@ -175,7 +175,7 @@ export function N8nLivePanel() {
             <button
               onClick={() => triggerWorkflow(auto.n8n_workflow_id, auto.name)}
               disabled={triggering === auto.n8n_workflow_id}
-              className="shrink-0 p-1.5 rounded-lg bg-zinc-800 hover:bg-violet-500/20 hover:text-violet-400 text-zinc-500 transition-colors disabled:opacity-50"
+              className="shrink-0 p-1.5 rounded-lg bg-zinc-800 hover:bg-fuchsia-500/20 hover:text-fuchsia-400 text-zinc-500 transition-colors disabled:opacity-50"
               title="Déclencher manuellement"
             >
               {triggering === auto.n8n_workflow_id ? (
