@@ -1,4 +1,5 @@
 import { Sidebar } from '@/components/dashboard/Sidebar';
+import { StatusCapsule } from '@/components/dashboard/StatusCapsule';
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,7 @@ export default function DashboardLayout({
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
+      <StatusCapsule />
     </div>
   );
 }
