@@ -12,9 +12,13 @@ import {
   createInvoice,
   createFollowup,
 } from '@/lib/db';
+import { validateBody, leadCreateSchema, leadUpdateSchema } from '@/lib/validation';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`leads:get:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
     const { searchParams } = new URL(request.url);
     const statsOnly = searchParams.get('stats') === 'true';
     const status = searchParams.get('status');
@@ -77,8 +81,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`leads:post:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const body = await request.json();
-    let score = body.score ?? 0;
+    const v = validateBody(body, leadCreateSchema);
+    if (!v.success) return v.response;
+    let score = v.data.score ?? 0;
     let scoreCriteriaStr: string | null = null;
 
     if (body.scoreCriteria && typeof body.scoreCriteria === 'object') {
@@ -87,18 +96,18 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await createLead({
-      name: body.name,
-      company: body.company,
-      email: body.email,
-      phone: body.phone,
-      source: body.source,
-      status: body.status,
+      name: v.data.name,
+      company: v.data.company,
+      email: v.data.email,
+      phone: v.data.phone,
+      source: v.data.source,
+      status: v.data.status,
       score,
       scoreCriteria: scoreCriteriaStr,
-      budget: body.budget,
+      budget: v.data.budget,
       propositionAmount: body.propositionAmount,
       timeline: body.timeline,
-      notes: body.notes,
+      notes: v.data.notes,
     });
 
     return NextResponse.json({ success: true, data: result }, { status: 201 });
@@ -109,16 +118,21 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`leads:patch:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const id = new URL(request.url).searchParams.get('id');
     if (!id) return NextResponse.json({ success: false, error: 'ID requis' }, { status: 400 });
 
     const body = await request.json();
-    const updateData: Record<string, unknown> = { ...body };
+    const v = validateBody(body, leadUpdateSchema);
+    if (!v.success) return v.response;
+    const updateData: Record<string, unknown> = { ...v.data };
 
     // Recalcule le score si les critères changent
-    if (body.scoreCriteria && typeof body.scoreCriteria === 'object') {
-      updateData.score = computeLeadScore(body.scoreCriteria);
-      updateData.scoreCriteria = JSON.stringify(body.scoreCriteria);
+    if (v.data.scoreCriteria && typeof v.data.scoreCriteria === 'object') {
+      updateData.score = computeLeadScore(v.data.scoreCriteria);
+      updateData.scoreCriteria = JSON.stringify(v.data.scoreCriteria);
     }
 
     // Retire scoreCriteria objet s'il était passé (déjà sérialisé)
@@ -130,7 +144,7 @@ export async function PATCH(request: NextRequest) {
 
     // Auto-chain: Lead → "Signé"
     const autoChainActions: string[] = [];
-    if (body.status === 'Signé') {
+    if (v.data.status === 'Signé') {
       try {
         const lead = await getLeadById(id);
         if (lead) {
@@ -179,6 +193,9 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`leads:delete:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const id = new URL(request.url).searchParams.get('id');
     if (!id) return NextResponse.json({ success: false, error: 'ID requis' }, { status: 400 });
     await deleteLead(id);

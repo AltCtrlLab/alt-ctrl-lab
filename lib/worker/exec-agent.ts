@@ -12,6 +12,8 @@
 
 import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
+import { logAgentExecution } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 const execPromise = promisify(exec);
 
@@ -89,8 +91,10 @@ async function cleanupLocks(agentId: string): Promise<void> {
 export async function executeOpenClawAgent(
   agentId: string,
   prompt: string,
-  timeoutMs: number = 900000
+  timeoutMs: number = 900000,
+  taskId?: string,
 ): Promise<AgentExecutionResult> {
+  const startTime = Date.now();
 
   await cleanupLocks(agentId);
 
@@ -101,7 +105,7 @@ export async function executeOpenClawAgent(
     : prompt;
 
   if (competences) {
-    console.log(`[CoreExecutor] Loaded COMPETENCES.md for ${agentId} (${competences.length} chars)`);
+    logger.debug('CoreExecutor', `Loaded COMPETENCES.md for ${agentId}`, { chars: competences.length });
   }
 
   return new Promise((resolve) => {
@@ -155,28 +159,58 @@ export async function executeOpenClawAgent(
 
     const timeout = setTimeout(() => {
       if (isResolved) return;
-      console.warn(`[CoreExecutor] Timeout for ${agentId}, sending SIGTERM...`);
+      logger.warn('CoreExecutor', `Timeout for ${agentId}, sending SIGTERM`, { agentId, timeoutMs });
       child.kill('SIGTERM');
       setTimeout(() => {
         if (isResolved) return;
         child.kill('SIGKILL');
         isResolved = true;
-        resolve({ success: false, stdout, stderr: `Timeout after ${timeoutMs}ms` });
+        const result = { success: false, stdout, stderr: `Timeout after ${timeoutMs}ms` };
+        logExecution(result);
+        resolve(result);
       }, 3000);
     }, timeoutMs);
+
+    const logExecution = (result: AgentExecutionResult) => {
+      const durationMs = Date.now() - startTime;
+      try {
+        logAgentExecution({
+          agentId,
+          taskId: taskId ?? null,
+          prompt: prompt.slice(0, 2000),
+          durationMs,
+          success: result.success,
+          error: result.success ? null : (result.stderr || 'Unknown error').slice(0, 1000),
+          tokenInput: null,  // OpenClaw doesn't expose token counts
+          tokenOutput: null,
+        });
+      } catch (logErr) {
+        logger.error('CoreExecutor', 'Failed to log execution', { agentId }, logErr as Error);
+      }
+
+      if (result.success) {
+        logger.info('CoreExecutor', 'Agent execution completed', { agentId, durationMs, taskId });
+      } else {
+        logger.warn('CoreExecutor', 'Agent execution failed', { agentId, durationMs, taskId, error: result.stderr.slice(0, 200) });
+      }
+    };
 
     child.on('close', (code: number | null) => {
       if (isResolved) return;
       isResolved = true;
       clearTimeout(timeout);
-      resolve({ success: code === 0, stdout: stdout.trim(), stderr: stderr.trim() });
+      const result = { success: code === 0, stdout: stdout.trim(), stderr: stderr.trim() };
+      logExecution(result);
+      resolve(result);
     });
 
     child.on('error', (err: Error) => {
       if (isResolved) return;
       isResolved = true;
       clearTimeout(timeout);
-      resolve({ success: false, stdout, stderr: err.message });
+      const result = { success: false, stdout, stderr: err.message };
+      logExecution(result);
+      resolve(result);
     });
   });
 }

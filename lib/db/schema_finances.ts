@@ -20,6 +20,8 @@ export const invoices = sqliteTable('invoices', {
   paidAt: integer('paid_at'),
   sentAt: integer('sent_at'),
   notes: text('notes'),
+  stripePaymentIntentId: text('stripe_payment_intent_id'),
+  stripePaymentLinkUrl: text('stripe_payment_link_url'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
 });

@@ -229,7 +229,7 @@ export default function RDPage() {
         setInsightsList(ins.data.insights || []);
         setStats(s => ({ ...s, insights: ins.data.insights?.length || 0 }));
       }
-    } catch { /* silent */ }
+    } catch (err) { console.error('Failed to fetch R&D data:', err); }
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -350,7 +350,7 @@ export default function RDPage() {
       if (selectedInsight?.id === ins.id) setSelectedInsight(prev => prev ? { ...prev, applied: 1, status: 'applied' } : null);
       setTaskToast('Tâche créée dans le War Room !');
       setTimeout(() => setTaskToast(null), 3000);
-    } catch { /* silent */ }
+    } catch (err) { console.error('Failed to create task from insight:', err); }
     setCreatingTask(false);
   };
 

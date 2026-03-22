@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Lead, LeadStatus, LeadSource } from '@/lib/db/schema_leads';
+import { Users, TrendingUp, Euro, Clock, AlertTriangle, LayoutGrid, Table2, Plus } from 'lucide-react';
 import { exportCSV } from '@/lib/utils';
 import { useNotifications } from '@/providers/NotificationProvider';
-import { LeadsStatsBar } from '@/components/leads/LeadsStatsBar';
-import { LeadsToolbar } from '@/components/leads/LeadsToolbar';
+import { StatsBar } from '@/components/ui/StatsBar';
+import { PageToolbar } from '@/components/ui/PageToolbar';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
 import { LeadsTable } from '@/components/leads/LeadsTable';
 import { LeadFormModal } from '@/components/leads/LeadFormModal';
@@ -55,7 +56,10 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchAll();
-    const interval = setInterval(fetchAll, 30000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      fetchAll();
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
@@ -186,27 +190,36 @@ export default function LeadsPage() {
       <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-5">
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-          <LeadsStatsBar stats={stats} />
+          <StatsBar loading={!stats} items={stats ? [
+            { label: 'Total leads', value: stats.totalLeads, icon: Users, color: 'text-fuchsia-400' },
+            { label: 'Taux de conversion', value: stats.tauxConversion, suffix: '%', icon: TrendingUp, color: 'text-emerald-400', sub: 'Leads → Signés' },
+            { label: 'Panier moyen', value: stats.panierMoyen, suffix: ' €', icon: Euro, color: 'text-zinc-400', sub: 'Sur leads signés' },
+            { label: 'Délai moyen', value: stats.delaiMoyenJours, suffix: 'j', icon: Clock, color: 'text-amber-400', sub: 'Lead → Signé' },
+            { label: 'Relances en retard', value: stats.overdueRelances, icon: AlertTriangle, color: 'text-rose-400', alert: true },
+          ] : []} columns={5} />
         </motion.div>
 
         {/* Toolbar */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}>
-          <LeadsToolbar
-            viewMode={viewMode}
-            onViewChange={setViewMode}
-            search={search}
-            onSearchChange={setSearch}
-            filterStatus={filterStatus}
-            onFilterStatus={setFilterStatus}
-            filterSource={filterSource}
-            onFilterSource={setFilterSource}
-            filterDate={filterDate}
-            onFilterDate={setFilterDate}
-            filterScore={filterScore}
-            onFilterScore={setFilterScore}
-            onNewLead={() => setCreateOpen(true)}
+          <PageToolbar
+            search={{ value: search, onChange: setSearch, placeholder: 'Chercher un lead...' }}
+            filters={[
+              { type: 'select', value: filterStatus, onChange: v => setFilterStatus(v as LeadStatus | ''), placeholder: 'Tous les statuts', options: ['Nouveau', 'Qualifié', 'À creuser', 'Discovery fait', 'Proposition envoyée', 'Relance 1', 'Relance 2', 'Signé', 'Perdu'] },
+              { type: 'select', value: filterSource, onChange: v => setFilterSource(v as LeadSource | ''), placeholder: 'Toutes les sources', options: ['LinkedIn', 'Email', 'Instagram', 'GMB', 'Referral', 'Site'] },
+              { type: 'select', value: filterDate, onChange: setFilterDate, placeholder: 'Toutes dates', options: [{ value: '7d', label: '7 derniers jours' }, { value: '30d', label: '30 derniers jours' }, { value: 'month', label: 'Ce mois' }] },
+              { type: 'select', value: filterScore, onChange: setFilterScore, placeholder: 'Tous scores', options: [{ value: '5', label: 'Score > 5' }, { value: '7', label: 'Score > 7' }] },
+            ]}
+            count={{ value: filteredLeads.length, label: filteredLeads.length !== 1 ? 'leads' : 'lead' }}
             onExport={handleExport}
-            totalLeads={filteredLeads.length}
+            viewToggle={{
+              current: viewMode,
+              onChange: v => setViewMode(v as 'kanban' | 'table'),
+              options: [
+                { key: 'kanban', label: 'Kanban', icon: LayoutGrid },
+                { key: 'table', label: 'Table', icon: Table2 },
+              ],
+            }}
+            createButton={{ label: 'Nouveau lead', icon: Plus, onClick: () => setCreateOpen(true) }}
           />
         </motion.div>
 

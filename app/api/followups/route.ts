@@ -1,9 +1,13 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, createFollowup, updateFollowup, getFollowups, deleteFollowup } from '@/lib/db';
+import { validateBody, followupCreateSchema, followupUpdateSchema } from '@/lib/validation';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`followups:get:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
     const { searchParams } = new URL(request.url);
     const statsOnly = searchParams.get('stats') === 'true';
     const rawDb = (getDb() as any).$client;
@@ -34,8 +38,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`followups:post:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const body = await request.json();
-    const id = await createFollowup(body);
+    const v = validateBody(body, followupCreateSchema);
+    if (!v.success) return v.response;
+    const id = await createFollowup(v.data as Parameters<typeof createFollowup>[0]);
     return NextResponse.json({ success: true, data: { id } });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -44,10 +53,15 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`followups:patch:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id')!;
     const body = await request.json();
-    await updateFollowup(id, body);
+    const v = validateBody(body, followupUpdateSchema);
+    if (!v.success) return v.response;
+    await updateFollowup(id, v.data as Partial<import('@/lib/db/schema_postvente').Followup>);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -56,6 +70,9 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`followups:delete:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id')!;
     await deleteFollowup(id);

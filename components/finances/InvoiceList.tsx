@@ -1,6 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Wallet } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import type { Invoice } from '@/lib/db/schema_finances';
 import { InvoiceStatusBadge } from './InvoiceStatusBadge';
 
@@ -20,7 +21,14 @@ function fmtDate(ts: number | null | undefined) {
 
 export function InvoiceList({ invoices, onSelect }: Props) {
   if (invoices.length === 0) {
-    return <p className="text-zinc-500 text-sm text-center py-12">Aucune facture</p>;
+    return (
+      <EmptyState
+        icon={Wallet}
+        color="fuchsia"
+        message="Aucune facture"
+        submessage="Une facture est créée automatiquement quand un lead passe au statut Signé."
+      />
+    );
   }
 
   return (

@@ -77,7 +77,7 @@ export function WarRoomReplay({ isDark }: WarRoomReplayProps) {
           <div className="text-center">
             <Clock size={32} className={`mx-auto mb-3 ${textM} opacity-40`} />
             <p className={textM}>Aucune session War Room enregistrée</p>
-            <p className={`text-xs mt-1 ${textM}`}>Lancez une mission full_agency pour créer un historique</p>
+            <p className={`text-xs mt-1 ${textM}`}>Lancez un brief full_agency pour créer un historique</p>
           </div>
         </div>
       ) : (

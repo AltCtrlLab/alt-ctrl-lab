@@ -74,7 +74,7 @@ export function TokenAnalytics({ isDark }: TokenAnalyticsProps) {
           <div className={`text-center py-12 ${textM}`}>
             <BarChart3 size={32} className="mx-auto mb-3 opacity-40" />
             <p>Aucune donnée de tokens disponible</p>
-            <p className="text-xs mt-1">Lancez des missions pour générer des métriques</p>
+            <p className="text-xs mt-1">Lancez des briefs pour générer des métriques</p>
           </div>
         ) : (
           <div className="space-y-4">

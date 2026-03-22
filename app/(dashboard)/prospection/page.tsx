@@ -321,7 +321,10 @@ export default function ProspectionPage() {
 
   useEffect(() => {
     fetchLeads();
-    const interval = setInterval(fetchLeads, 30000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      fetchLeads();
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchLeads]);
 

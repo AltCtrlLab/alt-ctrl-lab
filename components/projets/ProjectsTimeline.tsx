@@ -3,6 +3,8 @@
 import { useMemo } from 'react';
 import type { Project, ProjectType } from '@/lib/db/schema_projects';
 import { TYPE_META } from '@/lib/db/schema_projects';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { FolderKanban } from 'lucide-react';
 
 interface ProjectsTimelineProps {
   projects: Project[];
@@ -58,9 +60,12 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 border border-dashed border-zinc-800 rounded-2xl">
-        <p className="text-zinc-600 text-sm">Aucun projet avec des dates</p>
-      </div>
+      <EmptyState
+        icon={FolderKanban}
+        color="fuchsia"
+        message="Aucun projet avec des dates"
+        submessage="Les projets apparaissent ici quand un lead passe au statut Signé."
+      />
     );
   }
 

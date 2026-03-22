@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { HeartHandshake } from 'lucide-react';
+import { HeartHandshake, ClipboardList, Star, AlertTriangle, TrendingUp, Plus } from 'lucide-react';
 import type { Followup } from '@/lib/db/schema_postvente';
 import { useNotifications } from '@/providers/NotificationProvider';
-import { PostVenteStatsBar } from '@/components/postvente/PostVenteStatsBar';
-import { PostVenteToolbar } from '@/components/postvente/PostVenteToolbar';
+import { StatsBar } from '@/components/ui/StatsBar';
+import { PageToolbar } from '@/components/ui/PageToolbar';
 import { FollowupList } from '@/components/postvente/FollowupList';
 import { FollowupFormModal } from '@/components/postvente/FollowupFormModal';
 import { FollowupDetailModal } from '@/components/postvente/FollowupDetailModal';
@@ -48,7 +48,10 @@ export default function PostVentePage() {
 
   useEffect(() => {
     fetchAll();
-    const interval = setInterval(fetchAll, 30000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      fetchAll();
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
@@ -67,13 +70,19 @@ export default function PostVentePage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <PostVenteStatsBar stats={stats} />
-        <PostVenteToolbar
-          filterStatus={filterStatus}
-          onFilterStatus={setFilterStatus}
-          filterType={filterType}
-          onFilterType={setFilterType}
-          onCreate={() => setCreateOpen(true)}
+        <StatsBar loading={!stats} items={stats ? [
+          { label: 'À faire', value: stats.aFaire, icon: ClipboardList, color: 'text-cyan-400' },
+          { label: 'NPS moyen', value: stats.scoreNpsMoyen != null ? `${stats.scoreNpsMoyen}/10` : '—', icon: Star, color: 'text-fuchsia-400' },
+          { label: 'En retard', value: stats.overdueCount, icon: AlertTriangle, color: stats.overdueCount > 0 ? 'text-rose-400' : 'text-zinc-500', alert: true },
+          { label: 'Upsells', value: stats.upsellsIdentifies, icon: TrendingUp, color: 'text-emerald-400' },
+        ] : []} columns={4} className="mb-6" />
+        <PageToolbar
+          filters={[
+            { type: 'pill', value: filterStatus, onChange: setFilterStatus, options: ['À faire', 'Fait', 'Annulé'], allLabel: 'Tous' },
+            { type: 'pill', value: filterType, onChange: setFilterType, options: ['Check-in', 'Upsell', 'NPS', 'Support', 'Renouvellement'], allLabel: 'Tous types' },
+          ]}
+          createButton={{ label: 'Nouveau suivi', icon: Plus, onClick: () => setCreateOpen(true), color: 'bg-cyan-700 hover:bg-cyan-600' }}
+          className="mb-4"
         />
         {loading ? (
           <div className="flex items-center justify-center py-24">

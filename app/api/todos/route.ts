@@ -4,6 +4,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { validateBody, todoCreateSchema, todoUpdateSchema } from '@/lib/validation';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 interface Database {
   prepare: (sql: string) => {
@@ -15,6 +17,9 @@ interface Database {
 
 // GET /api/todos?view=today|week|month&assigned_to=agent_id
 export async function GET(request: NextRequest) {
+  const rl = checkRateLimit(`todos:get:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+  if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
   const { searchParams } = new URL(request.url);
   const view = searchParams.get('view') || 'today';
   const assignedTo = searchParams.get('assigned_to');
@@ -111,7 +116,12 @@ export async function GET(request: NextRequest) {
 // POST /api/todos - Créer une todo
 export async function POST(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`todos:post:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const body = await request.json();
+    const v = validateBody(body, todoCreateSchema);
+    if (!v.success) return v.response;
     const drizzleDb = getDb();
     const db = (drizzleDb as unknown as { $client: Database }).$client;
     
@@ -122,13 +132,13 @@ export async function POST(request: NextRequest) {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
-      body.title,
-      body.description || null,
+      v.data.title,
+      v.data.description || null,
       body.category || 'work',
-      body.priority || 'medium',
+      v.data.priority || 'medium',
       body.assignedTo || null,
       body.assignedToName || null,
-      body.dueDate || new Date().toISOString(),
+      v.data.dueDate || new Date().toISOString(),
       new Date().toISOString(),
       0,
       body.isRecurring ? 1 : 0,
@@ -151,15 +161,20 @@ export async function POST(request: NextRequest) {
 
 // PATCH /api/todos?id=todo_id - Mettre à jour
 export async function PATCH(request: NextRequest) {
+  const rl = checkRateLimit(`todos:patch:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+  if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-  
+
   if (!id) {
     return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 });
   }
-  
+
   try {
     const body = await request.json();
+    const v = validateBody(body, todoUpdateSchema);
+    if (!v.success) return v.response;
     const drizzleDb = getDb();
     const db = (drizzleDb as unknown as { $client: Database }).$client;
     
@@ -167,14 +182,15 @@ export async function PATCH(request: NextRequest) {
     const updates: string[] = [];
     const values: unknown[] = [];
     
-    if (body.title !== undefined) { updates.push('title = ?'); values.push(body.title); }
-    if (body.description !== undefined) { updates.push('description = ?'); values.push(body.description); }
-    if (body.priority !== undefined) { updates.push('priority = ?'); values.push(body.priority); }
-    if (body.assignedTo !== undefined) { updates.push('assigned_to = ?'); values.push(body.assignedTo); }
-    if (body.assignedToName !== undefined) { updates.push('assigned_to_name = ?'); values.push(body.assignedToName); }
-    if (body.dueDate !== undefined) { updates.push('due_date = ?'); values.push(body.dueDate); }
-    if (body.isCompleted !== undefined) { updates.push('is_completed = ?'); values.push(body.isCompleted ? 1 : 0); }
-    if (body.completedAt !== undefined) { updates.push('completed_at = ?'); values.push(body.completedAt); }
+    const d = v.data as Record<string, unknown>;
+    if (d.title !== undefined) { updates.push('title = ?'); values.push(d.title); }
+    if (d.description !== undefined) { updates.push('description = ?'); values.push(d.description); }
+    if (d.priority !== undefined) { updates.push('priority = ?'); values.push(d.priority); }
+    if (d.assignedTo !== undefined) { updates.push('assigned_to = ?'); values.push(d.assignedTo); }
+    if (d.assignedToName !== undefined) { updates.push('assigned_to_name = ?'); values.push(d.assignedToName); }
+    if (d.dueDate !== undefined) { updates.push('due_date = ?'); values.push(d.dueDate); }
+    if (d.isCompleted !== undefined) { updates.push('is_completed = ?'); values.push(d.isCompleted ? 1 : 0); }
+    if (d.completedAt !== undefined) { updates.push('completed_at = ?'); values.push(d.completedAt); }
     
     if (updates.length === 0) {
       return NextResponse.json({ success: false, error: 'No fields to update' }, { status: 400 });
@@ -194,13 +210,16 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE /api/todos?id=todo_id
 export async function DELETE(request: NextRequest) {
+  const rl = checkRateLimit(`todos:delete:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+  if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-  
+
   if (!id) {
     return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 });
   }
-  
+
   try {
     const drizzleDb = getDb();
     const db = (drizzleDb as unknown as { $client: Database }).$client;

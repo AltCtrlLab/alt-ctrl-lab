@@ -13,6 +13,7 @@ import dynamic from 'next/dynamic';
 const MorningBriefingWidget = dynamic(() => import('@/components/dashboard/MorningBriefing').then(m => ({ default: m.MorningBriefing })), { ssr: false });
 const RevenueIntelligenceWidget = dynamic(() => import('@/components/dashboard/RevenueIntelligence').then(m => ({ default: m.RevenueIntelligence })), { ssr: false });
 const RecommendedActionsWidget = dynamic(() => import('@/components/dashboard/RecommendedActions').then(m => ({ default: m.RecommendedActions })), { ssr: false });
+const AIMonitoringWidget = dynamic(() => import('@/components/dashboard/AIMonitoringWidget').then(m => ({ default: m.AIMonitoringWidget })), { ssr: false });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -263,8 +264,8 @@ export default function DashboardPage() {
       const r = await fetch('/api/news?limit=7');
       const data = await r.json();
       if (data.success) setNews(data.data);
-    } catch {
-      // silent
+    } catch (err) {
+      console.error('Failed to fetch news:', err);
     } finally {
       setNewsLoading(false);
     }
@@ -319,8 +320,8 @@ export default function DashboardPage() {
           totalDiscoveries: rdData.data?.stats?.totalDiscoveries || 0,
         }));
       }
-    } catch {
-      // silent
+    } catch (err) {
+      console.error('Failed to fetch dashboard stats:', err);
     }
   }, []);
 
@@ -388,8 +389,9 @@ export default function DashboardPage() {
             <MorningBriefingWidget />
             <RevenueIntelligenceWidget />
           </div>
-          <div>
+          <div className="space-y-4">
             <RecommendedActionsWidget />
+            <AIMonitoringWidget />
           </div>
         </motion.div>
 
@@ -409,7 +411,7 @@ export default function DashboardPage() {
           <div className="flex gap-2">
             <Link href="/pil" className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-sm font-medium rounded-lg transition-colors">
               <Play className="w-3.5 h-3.5" />
-              Lancer une mission
+              Lancer un brief
             </Link>
           </div>
         </motion.div>
@@ -417,7 +419,7 @@ export default function DashboardPage() {
         {/* ── Stats row ── */}
         <motion.div variants={sectionVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard
-            label="Missions actives"
+            label="Briefs actifs"
             value={stats?.activeTasks ?? '—'}
             icon={Activity}
             color="bg-fuchsia-500/10 text-fuchsia-400"
@@ -441,7 +443,7 @@ export default function DashboardPage() {
           <StatCard
             label="Taux de succès"
             value={stats ? `${stats.successRate}%` : '—'}
-            sub="Sur toutes les missions"
+            sub="Sur tous les briefs"
             icon={TrendingUp}
             color="bg-cyan-500/10 text-cyan-400"
           />
@@ -513,8 +515,8 @@ export default function DashboardPage() {
               </div>
               <div className="space-y-2">
                 <QuickAction
-                  label="Centre de Pilotage"
-                  description="Lancer une nouvelle mission"
+                  label="Cockpit Ops"
+                  description="Lancer un nouveau brief"
                   href="/pil"
                   icon={Play}
                   accent="bg-fuchsia-500/10 text-fuchsia-400"
@@ -535,7 +537,7 @@ export default function DashboardPage() {
                 />
                 <QuickAction
                   label="Historique"
-                  description="Toutes les missions passées"
+                  description="Tous les briefs passés"
                   href="/history"
                   icon={Clock}
                   accent="bg-emerald-500/20 text-emerald-400"

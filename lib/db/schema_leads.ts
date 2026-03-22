@@ -27,6 +27,7 @@ export const leads = sqliteTable('leads', {
       'Relance 2',
       'Signé',
       'Perdu',
+      'Archivé',
     ],
   }).notNull().default('Nouveau'),
 
@@ -74,7 +75,8 @@ export type LeadStatus =
   | 'Relance 1'
   | 'Relance 2'
   | 'Signé'
-  | 'Perdu';
+  | 'Perdu'
+  | 'Archivé';
 
 export type LeadSource = 'LinkedIn' | 'Email' | 'Instagram' | 'GMB' | 'Referral' | 'Site';
 export type LeadBudget = '<2k' | '2-5k' | '5-10k' | '>10k';
@@ -90,6 +92,7 @@ export const LEAD_STATUSES: LeadStatus[] = [
   'Relance 2',
   'Signé',
   'Perdu',
+  'Archivé',
 ];
 
 export const STATUS_META: Record<LeadStatus, { color: string; bg: string; border: string; dot: string }> = {
@@ -103,4 +106,5 @@ export const STATUS_META: Record<LeadStatus, { color: string; bg: string; border
   'Relance 2':            { color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30', dot: 'bg-orange-400' },
   'Signé':                { color: 'text-emerald-400',bg: 'bg-emerald-500/10',border: 'border-emerald-500/30',dot: 'bg-emerald-400' },
   'Perdu':                { color: 'text-rose-400',   bg: 'bg-rose-500/10',   border: 'border-rose-500/30',   dot: 'bg-rose-400' },
+  'Archivé':              { color: 'text-zinc-500',   bg: 'bg-zinc-500/10',   border: 'border-zinc-500/30',   dot: 'bg-zinc-500' },
 };

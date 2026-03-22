@@ -67,7 +67,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       },
       {
         id: 'mission-control',
-        label: 'Contrôle Mission',
+        label: 'Contrôle Briefs',
         icon: <Rocket className="w-4 h-4" />,
         section: 'Navigation' as const,
         action: () => {
@@ -145,7 +145,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       // Action items
       {
         id: 'nouvelle-mission',
-        label: 'Nouvelle Mission',
+        label: 'Nouveau Brief',
         icon: <Plus className="w-4 h-4" />,
         section: 'Actions' as const,
         action: () => {

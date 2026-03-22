@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Code2, Loader2, CheckCircle2, XCircle, Clock, Send, PlusCircle } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
+import { STAGE_LABELS, AGENT_BRIEF_EXAMPLES } from '@/lib/constants/agents';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface Task {
   id: string;
@@ -16,17 +18,6 @@ interface Task {
   createdAt: number;
   updatedAt: number;
 }
-
-const STAGE_LABELS: Record<string, string> = {
-  PENDING: 'En attente',
-  DIRECTOR_PLANNING: 'Planification...',
-  EXECUTOR_DRAFTING: 'En cours...',
-  DIRECTOR_QA: 'Audit qualite...',
-  EXECUTOR_REVISING: 'Revision...',
-  COMPLETED: 'Termine',
-  FAILED: 'Echec',
-  FAILED_QA: 'Echec QA',
-};
 
 export default function WebDevPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -44,13 +35,16 @@ export default function WebDevPage() {
         );
         setTasks(matinTasks.reverse());
       }
-    } catch { /* silent */ }
+    } catch (err) { console.error('Failed to fetch web-dev tasks:', err); }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => {
     fetchTasks();
-    const id = setInterval(fetchTasks, 15_000);
+    const id = setInterval(() => {
+      if (document.hidden) return;
+      fetchTasks();
+    }, 15_000);
     return () => clearInterval(id);
   }, [fetchTasks]);
 
@@ -59,7 +53,7 @@ export default function WebDevPage() {
     if (!prompt.trim() || sending) return;
     setSending(true);
     try {
-      await fetch('/api/orchestrate', {
+      await fetch('/api/orchestrate/direct', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,7 +63,7 @@ export default function WebDevPage() {
       });
       setPrompt('');
       setTimeout(fetchTasks, 1000);
-    } catch { /* silent */ }
+    } catch (err) { console.error('Failed to submit web-dev task:', err); }
     finally { setSending(false); }
   };
 
@@ -97,6 +91,27 @@ export default function WebDevPage() {
             <PlusCircle size={15} />
             Nouveau Brief
           </Link>
+        </div>
+
+        {/* Agent role explanation */}
+        <div className="bg-emerald-500/[0.04] border border-emerald-500/10 rounded-2xl p-5 mb-6">
+          <p className="text-sm text-zinc-300 leading-relaxed">
+            <strong className="text-emerald-300">Abdul Matin</strong> est votre architecte web IA.
+            Il développe des composants React, pages Next.js, intégrations API et optimisations de performance.
+            Décrivez votre besoin ci-dessous ou cliquez sur un exemple pour démarrer.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {AGENT_BRIEF_EXAMPLES.matin.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setPrompt(example)}
+                className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all text-left"
+              >
+                {example.length > 60 ? example.slice(0, 57) + '…' : example}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Quick input */}
@@ -129,11 +144,12 @@ export default function WebDevPage() {
 
         {/* Empty */}
         {!loading && tasks.length === 0 && (
-          <div className="text-center py-16">
-            <Code2 className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-            <p className="text-zinc-500 text-sm">Aucune tache en cours</p>
-            <p className="text-zinc-600 text-xs mt-1">Utilisez le champ ci-dessus ou creez un brief</p>
-          </div>
+          <EmptyState
+            icon={Code2}
+            color="emerald"
+            message="Aucune tâche en cours"
+            submessage="Utilisez le champ ci-dessus ou créez un brief pour démarrer."
+          />
         )}
 
         {/* Active tasks */}

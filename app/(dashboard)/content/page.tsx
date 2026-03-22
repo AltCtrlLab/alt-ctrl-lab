@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { CalendarDays, Sparkles, CheckCircle2 } from 'lucide-react';
+import { CalendarDays, Sparkles, CheckCircle2, Calendar, Lightbulb, TrendingUp, Kanban, List, Plus } from 'lucide-react';
 import type { ContentItem, ContentStatus } from '@/lib/db/schema_content';
 import { useNotifications } from '@/providers/NotificationProvider';
-import { ContentStatsBar } from '@/components/content/ContentStatsBar';
-import { ContentToolbar } from '@/components/content/ContentToolbar';
+import { StatsBar } from '@/components/ui/StatsBar';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageToolbar } from '@/components/ui/PageToolbar';
 import { ContentKanban } from '@/components/content/ContentKanban';
 import { ContentCalendar } from '@/components/content/ContentCalendar';
 import { ContentFormModal } from '@/components/content/ContentFormModal';
@@ -58,7 +59,10 @@ export default function ContentPage() {
 
   useEffect(() => {
     fetchAll();
-    const interval = setInterval(fetchAll, 30000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      fetchAll();
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
@@ -119,8 +123,25 @@ export default function ContentPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <ContentStatsBar stats={stats} />
-        <ContentToolbar view={view} onViewChange={setView} onCreate={() => setCreateOpen(true)} />
+        <StatsBar loading={!stats} items={stats ? [
+          { label: 'Publiés', value: stats.totalPublie, icon: CheckCircle2, color: 'text-emerald-400' },
+          { label: 'Planifiés', value: stats.totalPlanifie, icon: Calendar, color: 'text-cyan-400' },
+          { label: 'Idées', value: stats.totalIdees, icon: Lightbulb, color: 'text-amber-400' },
+          { label: 'Taux publication', value: stats.tauxPublication, suffix: '%', icon: TrendingUp, color: 'text-fuchsia-400' },
+        ] : []} columns={4} className="mb-6" />
+        <PageToolbar
+          viewToggle={{
+            current: view,
+            onChange: v => setView(v as 'kanban' | 'calendar' | 'list'),
+            options: [
+              { key: 'kanban', label: 'Kanban', icon: Kanban },
+              { key: 'list', label: 'Liste', icon: List },
+              { key: 'calendar', label: 'Calendrier', icon: Calendar },
+            ],
+          }}
+          createButton={{ label: 'Nouveau contenu', icon: Plus, onClick: () => setCreateOpen(true) }}
+          className="mb-4"
+        />
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -173,7 +194,7 @@ export default function ContentPage() {
                           onClick={() => setSelected(item)}
                         >
                           <p className="text-zinc-200 font-medium truncate max-w-xs">{item.title}</p>
-                          {item.description && <p className="text-[11px] text-zinc-600 truncate max-w-xs">{item.description.slice(0, 60)}</p>}
+                          {item.body && <p className="text-[11px] text-zinc-600 truncate max-w-xs">{item.body.slice(0, 60)}</p>}
                         </td>
                         <td className="px-4 py-3 text-xs text-zinc-500">{item.platform || '—'}</td>
                         <td className="px-4 py-3">
@@ -182,7 +203,7 @@ export default function ContentPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-xs text-zinc-500">
-                          {item.scheduledDate ? new Date(item.scheduledDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—'}
+                          {item.scheduledAt ? new Date(item.scheduledAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—'}
                         </td>
                       </tr>
                     );
@@ -190,7 +211,12 @@ export default function ContentPage() {
                 </tbody>
               </table>
               {items.length === 0 && (
-                <div className="text-center py-12 text-zinc-600 text-sm">Aucun contenu</div>
+                <EmptyState
+                  icon={CalendarDays}
+                  color="cyan"
+                  message="Aucun contenu planifié"
+                  submessage="Créez vos premiers posts avec le bouton « + Nouveau » ou utilisez le générateur IA par lot."
+                />
               )}
             </div>
           </div>

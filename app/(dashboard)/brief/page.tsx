@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useNotifications } from '@/providers/NotificationProvider';
 import { motion } from 'framer-motion';
 import {
   FileText, ArrowLeft, Globe, Palette, Megaphone, Monitor, Search,
@@ -80,6 +81,7 @@ export default function BriefPage() {
   const [context, setContext] = useState('');
   const [priority, setPriority] = useState('normal');
   const [sent, setSent] = useState(false);
+  const { push } = useNotifications();
 
   const handleSelectTemplate = useCallback((tpl: BriefTemplate) => {
     setActiveTemplate(tpl.id);
@@ -102,7 +104,7 @@ export default function BriefPage() {
     if (!title || !description) return;
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/orchestrator', {
+      const response = await fetch('/api/orchestrate/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,10 +116,10 @@ export default function BriefPage() {
       if (data.success) {
         setSent(true);
       } else {
-        alert('Erreur: ' + (data.error?.message ?? 'Inconnue'));
+        push('error', 'Erreur', data.error?.message ?? 'Inconnue');
       }
     } catch {
-      alert('Erreur de connexion au serveur');
+      push('error', 'Erreur', 'Erreur de connexion au serveur');
     } finally {
       setIsSubmitting(false);
     }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { History, CheckCircle2, XCircle, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface Activity {
   id: string;
@@ -76,10 +77,12 @@ export default function HistoryPage() {
 
         {/* Empty */}
         {!loading && !error && activities.length === 0 && (
-          <div className="text-center py-20">
-            <History className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-            <p className="text-zinc-500 text-sm">Aucune activite recente</p>
-          </div>
+          <EmptyState
+            icon={History}
+            color="zinc"
+            message="Aucune activité récente"
+            submessage="L'historique se remplit automatiquement quand les agents IA exécutent des briefs."
+          />
         )}
 
         {/* Activity list */}

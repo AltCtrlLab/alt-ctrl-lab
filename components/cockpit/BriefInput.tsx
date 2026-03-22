@@ -42,7 +42,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
       };
 
       if (selectedService !== 'full_agency') {
-        endpoint = '/api/orchestrate';
+        endpoint = '/api/orchestrate/direct';
         const TEAM_MAPPING: Record<string, string> = {
           'musawwir': 'raqim',
           'matin': 'banna',
@@ -92,7 +92,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
       className={`bg-neutral-900 rounded-xl border border-neutral-800 p-6 ${className}`}
     >
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-white mb-2">Nouvelle Mission</h2>
+        <h2 className="text-xl font-bold text-white mb-2">Nouveau Brief</h2>
         <p className="text-sm text-neutral-500">
           Sélectionnez un service et décrivez votre projet.
         </p>
@@ -179,7 +179,7 @@ export const BriefInput: React.FC<BriefInputProps> = ({
               className="p-3 bg-emerald-950/50 border border-emerald-900/50 rounded-lg"
             >
               <p className="text-sm text-emerald-400">
-                ✓ Mission envoyée au service {selectedServiceData?.name} !
+                ✓ Brief envoyé au service {selectedServiceData?.name} !
               </p>
             </motion.div>
           )}

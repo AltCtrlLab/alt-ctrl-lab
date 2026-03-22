@@ -62,6 +62,28 @@ export function getPriorityColor(priority: string): string {
   return colors[priority] || 'text-zinc-400'
 }
 
+/**
+ * Format elapsed time from a unix timestamp (ms).
+ * Returns compact strings like "12s", "5min", "2h".
+ */
+export function formatElapsed(createdAt: number): string {
+  const secs = Math.floor((Date.now() - createdAt) / 1000);
+  if (secs < 60) return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}min`;
+  return `${Math.floor(secs / 3600)}h`;
+}
+
+/**
+ * Format currency (EUR, fr-FR).
+ */
+export function formatCurrency(n: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
 export function exportCSV(data: Record<string, unknown>[], filename: string) {
   if (!data.length) return
   const headers = Object.keys(data[0])

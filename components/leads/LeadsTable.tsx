@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, TrendingUp } from 'lucide-react';
 import type { Lead, LeadStatus } from '@/lib/db/schema_leads';
 import { STATUS_META } from '@/lib/db/schema_leads';
 import { ScoreBadge } from './ScoreBadge';
 import { RelanceAlert } from './RelanceAlert';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 type SortKey = 'name' | 'score' | 'createdAt' | 'propositionAmount';
 
@@ -146,7 +147,12 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
           </tbody>
         </table>
         {sorted.length === 0 && (
-          <div className="text-center py-12 text-zinc-600 text-sm">Aucun lead</div>
+          <EmptyState
+            icon={TrendingUp}
+            color="cyan"
+            message="Aucun lead pour le moment"
+            submessage="Les leads arrivent via les webhooks Cal.com, formulaires d'audit ou prospection. Vous pouvez aussi en créer un manuellement."
+          />
         )}
       </div>
     </div>

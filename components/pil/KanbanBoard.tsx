@@ -538,11 +538,11 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ isDark, tasks, onRefresh }) =
         {/* Toolbar */}
         <div className="flex items-center justify-between mb-5 px-1">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold text-white">Tableau de Bord Missions</h2>
+            <h2 className="text-base font-semibold text-white">Tableau de Bord Briefs</h2>
             {totalActive > 0 && (
               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-cyan-500/15 border border-cyan-500/30 rounded-full text-xs text-cyan-300 font-medium">
                 <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
-                {totalActive} mission{totalActive > 1 ? 's' : ''} en cours
+                {totalActive} brief{totalActive > 1 ? 's' : ''} en cours
               </span>
             )}
           </div>

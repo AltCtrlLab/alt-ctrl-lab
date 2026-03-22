@@ -58,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: 'Commande',
       items: [
         { id: 'ops', icon: LayoutDashboard, label: 'Centre Ops', shortcut: '1' },
-        { id: 'mission', icon: Gauge, label: 'Contrôle Mission', shortcut: '2' },
+        { id: 'mission', icon: Gauge, label: 'Contrôle Briefs', shortcut: '2' },
       ],
     },
     {

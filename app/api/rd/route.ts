@@ -16,12 +16,14 @@ import { rdWarRoomConnector } from '@/lib/ai/agents/rd-warroom-connector';
 import { getDb } from '@/lib/db';
 import { discoveries, innovations, detectedPatterns } from '@/lib/db/schema_rd';
 import { eq, desc, sql } from 'drizzle-orm';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 const VPS_BASE_URL = process.env.VPS_BASE_URL || '';
 const DASH_KEY = process.env.CRON_SECRET || 'altctrl-cron-secret';
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'https://alt-ctrl-lab-production.up.railway.app';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -35,6 +37,9 @@ export async function OPTIONS() {
  */
 export async function GET(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`rd:get:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429, headers: corsHeaders });
+
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || 'overview';
     
@@ -165,9 +170,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`rd:post:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429, headers: corsHeaders });
+
     const body = await request.json();
     const { action, payload = {} } = body;
-    
+
     console.log(`[API/RD] Action: ${action}`);
     
     switch (action) {
@@ -423,7 +431,7 @@ export async function POST(request: NextRequest) {
         if (!insightText) return NextResponse.json({ success: false, error: 'insightText required' }, { status: 400, headers: corsHeaders });
         const brief = `[R&D Intelligence Métier — ${topic || 'Général'} — Priorité P${priority || '?'}]\n\n${insightText}\n\n—\nRecommandation AltCtrl.Lab :\n${recommendation || ''}`;
         try {
-          const orchestrateRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/orchestrate`, {
+          const orchestrateRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/orchestrate/direct`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ brief }),

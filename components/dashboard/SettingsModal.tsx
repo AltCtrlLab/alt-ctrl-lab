@@ -3,8 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { X, LogOut, Sun, Moon } from 'lucide-react';
+import { X, LogOut, Sun, Moon, HelpCircle, RotateCcw } from 'lucide-react';
 import { getStoredDarkMode, setStoredDarkMode } from '@/lib/theme';
+import { resetOnboarding } from '@/components/ui/OnboardingTour';
 
 interface SettingsModalProps {
   open: boolean;
@@ -77,6 +78,24 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
         >
           {isDark ? <Sun size={16} /> : <Moon size={16} />}
           <span className="text-sm">{isDark ? 'Mode clair' : 'Mode sombre'}</span>
+        </button>
+
+        {/* Re-launch tour */}
+        <button
+          onClick={() => { resetOnboarding(); window.location.reload(); }}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${btnHover}`}
+        >
+          <RotateCcw size={16} />
+          <span className="text-sm">Relancer la visite guidée</span>
+        </button>
+
+        {/* Re-show guide */}
+        <button
+          onClick={() => { localStorage.removeItem('acl-guide-dismissed'); onClose(); }}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${btnHover}`}
+        >
+          <HelpCircle size={16} />
+          <span className="text-sm">Réafficher le guide</span>
         </button>
 
         {/* Divider */}

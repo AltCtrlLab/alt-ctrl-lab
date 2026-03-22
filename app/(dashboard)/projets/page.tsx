@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Euro, Clock, FolderKanban, TrendingUp, LayoutGrid, GitBranch, Plus } from 'lucide-react';
 import type { Project, ProjectType, ProjectPhase, ProjectStatus } from '@/lib/db/schema_projects';
 import { useNotifications } from '@/providers/NotificationProvider';
-import { ProjetsStatsBar } from '@/components/projets/ProjetsStatsBar';
-import { ProjetsToolbar } from '@/components/projets/ProjetsToolbar';
+import { StatsBar } from '@/components/ui/StatsBar';
+import { PageToolbar } from '@/components/ui/PageToolbar';
 import { ProjetsGrid } from '@/components/projets/ProjetsGrid';
 import { ProjectsTimeline } from '@/components/projets/ProjectsTimeline';
 import { ProjectFormModal } from '@/components/projets/ProjectFormModal';
@@ -51,7 +52,10 @@ export default function ProjetsPage() {
 
   useEffect(() => {
     fetchAll();
-    const interval = setInterval(fetchAll, 30000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      fetchAll();
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
@@ -130,26 +134,34 @@ export default function ProjetsPage() {
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-5">
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-          <ProjetsStatsBar stats={stats} />
+          <StatsBar loading={!stats} items={stats ? [
+            { label: 'Revenus en cours', value: stats.revenueEnCours, suffix: ' €', icon: Euro, color: 'text-fuchsia-400', sub: 'Projets actifs' },
+            { label: 'Heures loguées', value: stats.heuresTotales, suffix: 'h', icon: Clock, color: 'text-cyan-400', decimals: 1, sub: 'Projets actifs' },
+            { label: 'Projets actifs', value: stats.projetsActifs, icon: FolderKanban, color: 'text-cyan-400' },
+            { label: 'Marge estimée', value: stats.margeEstimee !== null ? stats.margeEstimee : '—' as string, suffix: stats.margeEstimee !== null ? '%' : undefined, icon: TrendingUp, color: 'text-emerald-400', sub: 'Heures restantes' },
+          ] : []} columns={4} />
         </motion.div>
 
         {/* Toolbar */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}>
-          <ProjetsToolbar
-            viewMode={viewMode}
-            onViewChange={setViewMode}
-            search={search}
-            onSearchChange={setSearch}
-            filterType={filterType}
-            onFilterType={setFilterType}
-            filterStatus={filterStatus}
-            onFilterStatus={setFilterStatus}
-            filterPhase={filterPhase}
-            onFilterPhase={setFilterPhase}
-            filterDate={filterDate}
-            onFilterDate={setFilterDate}
-            onNewProjet={() => setCreateOpen(true)}
-            totalProjects={filteredProjects.length}
+          <PageToolbar
+            search={{ value: search, onChange: setSearch, placeholder: 'Chercher un projet...' }}
+            filters={[
+              { type: 'select', value: filterType, onChange: v => setFilterType(v as ProjectType | ''), placeholder: 'Tous les types', options: ['Web', 'Branding', 'IA', 'Marketing'] },
+              { type: 'select', value: filterStatus, onChange: v => setFilterStatus(v as ProjectStatus | ''), placeholder: 'Tous les statuts', options: ['Actif', 'En pause', 'Terminé', 'Annulé'] },
+              { type: 'select', value: filterPhase, onChange: v => setFilterPhase(v as ProjectPhase | ''), placeholder: 'Toutes les phases', options: ['Discovery', 'Design', 'Développement', 'Testing', 'Livraison'] },
+              { type: 'select', value: filterDate, onChange: setFilterDate, placeholder: 'Toutes dates', options: [{ value: '7d', label: '7 derniers jours' }, { value: '30d', label: '30 derniers jours' }, { value: 'month', label: 'Ce mois' }] },
+            ]}
+            count={{ value: filteredProjects.length, label: filteredProjects.length !== 1 ? 'projets' : 'projet' }}
+            viewToggle={{
+              current: viewMode,
+              onChange: v => setViewMode(v as 'cards' | 'timeline'),
+              options: [
+                { key: 'cards', label: 'Cartes', icon: LayoutGrid },
+                { key: 'timeline', label: 'Timeline', icon: GitBranch },
+              ],
+            }}
+            createButton={{ label: 'Nouveau projet', icon: Plus, onClick: () => setCreateOpen(true) }}
           />
         </motion.div>
 

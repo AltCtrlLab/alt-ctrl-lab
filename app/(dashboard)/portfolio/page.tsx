@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, Globe, LayoutGrid, Star, Plus } from 'lucide-react';
 import type { PortfolioItem } from '@/lib/db/schema_portfolio';
 import { useNotifications } from '@/providers/NotificationProvider';
-import { PortfolioStatsBar } from '@/components/portfolio/PortfolioStatsBar';
-import { PortfolioToolbar } from '@/components/portfolio/PortfolioToolbar';
+import { StatsBar } from '@/components/ui/StatsBar';
+import { PageToolbar } from '@/components/ui/PageToolbar';
 import { PortfolioGrid } from '@/components/portfolio/PortfolioGrid';
 import { PortfolioFormModal } from '@/components/portfolio/PortfolioFormModal';
 import { PortfolioDetailModal } from '@/components/portfolio/PortfolioDetailModal';
@@ -46,7 +46,10 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     fetchAll();
-    const interval = setInterval(fetchAll, 30000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      fetchAll();
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
@@ -62,8 +65,18 @@ export default function PortfolioPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <PortfolioStatsBar stats={stats} />
-        <PortfolioToolbar filterType={filterType} onFilterType={setFilterType} onCreate={() => setCreateOpen(true)} />
+        <StatsBar loading={!stats} items={stats ? [
+          { label: 'Publiés', value: stats.totalPublie, icon: Globe, color: 'text-amber-400' },
+          { label: 'Par type', value: Object.entries(stats.parType).map(([k, v]) => `${k}: ${v}`).join(' · ') || '—', icon: LayoutGrid, color: 'text-cyan-400' },
+          { label: 'Featured', value: stats.featured, icon: Star, color: 'text-yellow-400' },
+        ] : []} columns={3} className="mb-6" />
+        <PageToolbar
+          filters={[
+            { type: 'pill', value: filterType, onChange: setFilterType, options: ['Web', 'Branding', 'IA', 'Marketing'], allLabel: 'Tous' },
+          ]}
+          createButton={{ label: 'Ajouter', icon: Plus, onClick: () => setCreateOpen(true), color: 'bg-amber-600 hover:bg-amber-500' }}
+          className="mb-4"
+        />
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />

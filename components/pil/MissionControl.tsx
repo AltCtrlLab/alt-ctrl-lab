@@ -100,7 +100,7 @@ const MissionControl: React.FC<MissionControlProps> = ({
 
   return (
     <div className="w-full space-y-6">
-      <h1 className={`text-2xl font-bold ${textH}`}>Centre de Mission</h1>
+      <h1 className={`text-2xl font-bold ${textH}`}>Centre de Briefs</h1>
       <p className={`text-sm ${textM}`}>Tableau de bord temps réel de l'agence</p>
 
       {/* KPI Cards */}

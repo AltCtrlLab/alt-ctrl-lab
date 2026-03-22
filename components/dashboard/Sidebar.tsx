@@ -6,84 +6,21 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard,
   PlusCircle,
-  TrendingUp,
-  FolderKanban,
-  Wallet,
-  Target,
-  HeartHandshake,
-  CalendarDays,
-  Workflow,
-  Terminal,
-  Briefcase,
-  Palette,
-  Code2,
-  Megaphone,
-  FlaskConical,
   Settings,
   Sun,
   Moon,
   ChevronDown,
   HelpCircle,
-  History,
 } from 'lucide-react';
 import {
   getStoredDarkMode,
   setStoredDarkMode,
 } from '@/lib/theme';
+import { NAV_SECTIONS, TEAM_AI_ITEMS } from '@/lib/constants/navigation';
+import type { NavItem, NavSection } from '@/lib/constants/navigation';
 import { SettingsModal } from './SettingsModal';
 import { GuidePanel } from './GuidePanel';
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ElementType;
-  color: string;
-  agent?: string;
-}
-
-interface NavSection {
-  title: string;
-  items: NavItem[];
-}
-
-const navSections: NavSection[] = [
-  {
-    title: 'Commande',
-    items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, color: 'text-zinc-400' },
-      { label: 'Nouveau Brief', href: '/brief', icon: PlusCircle, color: 'text-zinc-400' },
-    ],
-  },
-  {
-    title: 'Pipeline',
-    items: [
-      { label: 'Leads', href: '/leads', icon: TrendingUp, color: 'text-zinc-400' },
-      { label: 'Projets', href: '/projets', icon: FolderKanban, color: 'text-zinc-400' },
-      { label: 'Finances', href: '/finances', icon: Wallet, color: 'text-zinc-400' },
-      { label: 'Prospection', href: '/prospection', icon: Target, color: 'text-zinc-400' },
-      { label: 'Post-Vente', href: '/postvente', icon: HeartHandshake, color: 'text-zinc-400' },
-    ],
-  },
-  {
-    title: 'Ops',
-    items: [
-      { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-zinc-400' },
-      { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-zinc-400' },
-      { label: 'Cockpit Ops', href: '/pil', icon: Terminal, color: 'text-zinc-400' },
-      { label: 'Historique', href: '/history', icon: History, color: 'text-zinc-400' },
-    ],
-  },
-];
-
-const teamAiItems: NavItem[] = [
-  { label: 'Portfolio', href: '/portfolio', icon: Briefcase, color: 'text-zinc-400' },
-  { label: 'Branding', href: '/branding', icon: Palette, color: 'text-zinc-400', agent: 'Abdul Musawwir' },
-  { label: 'Web Dev', href: '/web-dev', icon: Code2, color: 'text-zinc-400', agent: 'Abdul Matin' },
-  { label: 'Marketing', href: '/marketing', icon: Megaphone, color: 'text-zinc-400', agent: 'Abdul Fatah' },
-  { label: 'R&D', href: '/rd', icon: FlaskConical, color: 'text-zinc-400' },
-];
 
 interface SidebarProps {
   pendingCounts?: Record<string, number>;
@@ -195,7 +132,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
 
       {/* Nav Sections */}
       <div className="flex-1 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden px-2">
-        {navSections.map((section, sIdx) => (
+        {NAV_SECTIONS.map((section, sIdx) => (
           <div key={section.title}>
             {sIdx > 0 && <div className={`mx-2 my-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-neutral-200'}`} />}
             <p className={`px-3 py-1 text-[10px] uppercase tracking-widest font-medium ${textMuted}`}>
@@ -229,7 +166,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                {teamAiItems.map(renderNavLink)}
+                {TEAM_AI_ITEMS.map(renderNavLink)}
               </motion.div>
             )}
           </AnimatePresence>

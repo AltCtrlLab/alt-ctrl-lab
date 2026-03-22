@@ -215,7 +215,7 @@ export function VaultAnalytics({ isDark }: VaultAnalyticsProps) {
             <Archive size={32} className={`${t.textMuted} mx-auto mb-3 opacity-40`} />
             <p className={`${t.textMain} text-sm`}>Aucun composant dans le vault</p>
             <p className={`${t.textMuted} text-xs mt-1`}>
-              Les composants apparaîtront après les premières missions
+              Les composants apparaîtront après les premiers briefs
             </p>
           </div>
         ) : (

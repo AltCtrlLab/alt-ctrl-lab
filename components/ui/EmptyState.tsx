@@ -36,6 +36,22 @@ const COLOR_MAP: Record<string, { iconBg: string; iconBorder: string; iconText: 
     btnBorder: 'border-zinc-700',
     btnText: 'text-zinc-300',
   },
+  emerald: {
+    iconBg: 'bg-emerald-500/10',
+    iconBorder: 'border-emerald-500/20',
+    iconText: 'text-emerald-400',
+    btnBg: 'bg-emerald-600/20 hover:bg-emerald-600/30',
+    btnBorder: 'border-emerald-500/30',
+    btnText: 'text-emerald-300',
+  },
+  amber: {
+    iconBg: 'bg-amber-500/10',
+    iconBorder: 'border-amber-500/20',
+    iconText: 'text-amber-400',
+    btnBg: 'bg-amber-600/20 hover:bg-amber-600/30',
+    btnBorder: 'border-amber-500/30',
+    btnText: 'text-amber-300',
+  },
 };
 
 export function EmptyState({ icon: Icon, color, message, submessage, ctaLabel, onAction }: EmptyStateProps) {

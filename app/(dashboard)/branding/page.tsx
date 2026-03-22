@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Palette, Loader2, CheckCircle2, XCircle, Clock, Send, Wifi, WifiOff } from 'lucide-react';
+import { STAGE_LABELS, ACTIVE_STATUSES, DONE_STATUSES, AGENT_BRIEF_EXAMPLES } from '@/lib/constants/agents';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { formatElapsed } from '@/lib/utils';
 
 interface Task {
   id: string;
@@ -14,27 +17,6 @@ interface Task {
   stage: string;
   createdAt: number;
   updatedAt: number;
-}
-
-const STAGE_LABELS: Record<string, string> = {
-  PENDING: 'En attente',
-  DIRECTOR_PLANNING: 'Planification en cours...',
-  EXECUTOR_DRAFTING: 'Création en cours...',
-  DIRECTOR_QA: 'Audit qualité...',
-  EXECUTOR_REVISING: 'Révision en cours...',
-  COMPLETED: 'Livrable validé',
-  FAILED: 'Échec',
-  FAILED_QA: 'Échec',
-};
-
-const ACTIVE_STATUSES = ['PENDING', 'DIRECTOR_PLANNING', 'EXECUTOR_DRAFTING', 'DIRECTOR_QA', 'EXECUTOR_REVISING'];
-const DONE_STATUSES = ['COMPLETED', 'FAILED', 'FAILED_QA'];
-
-function formatElapsed(createdAt: number): string {
-  const secs = Math.floor((Date.now() - createdAt) / 1000);
-  if (secs < 60) return `${secs}s`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}min`;
-  return `${Math.floor(secs / 3600)}h`;
 }
 
 function extractBrief(prompt: string): string {
@@ -107,7 +89,7 @@ export default function BrandingPage() {
     if (!brief.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/orchestrate', {
+      const res = await fetch('/api/orchestrate/direct', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ director_id: 'musawwir', executor_id: 'raqim', brief: brief.trim(), timeout: 900 }),
@@ -136,9 +118,31 @@ export default function BrandingPage() {
     setArchived(prev => new Set([...prev, id]));
   }
 
-  const activeTasks = tasks.filter(t => ACTIVE_STATUSES.includes(t.status) && !archived.has(t.id));
+  async function approveTask(id: string) {
+    try {
+      await fetch('/api/agents', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_task', taskId: id, status: 'APPROVED' }),
+      });
+    } catch { /* silent */ }
+    archiveTask(id);
+  }
+
+  async function rejectTask(id: string) {
+    try {
+      await fetch('/api/agents', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_task', taskId: id, status: 'REJECTED' }),
+      });
+    } catch { /* silent */ }
+    archiveTask(id);
+  }
+
+  const activeTasks = tasks.filter(t => (ACTIVE_STATUSES as readonly string[]).includes(t.status) && !archived.has(t.id));
   const doneTasks = tasks
-    .filter(t => DONE_STATUSES.includes(t.status) && !archived.has(t.id))
+    .filter(t => (DONE_STATUSES as readonly string[]).includes(t.status) && !archived.has(t.id))
     .slice(0, 10);
 
   return (
@@ -168,6 +172,27 @@ export default function BrandingPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+        {/* Agent role explanation */}
+        <div className="bg-fuchsia-500/[0.04] border border-fuchsia-500/10 rounded-2xl p-5">
+          <p className="text-sm text-zinc-300 leading-relaxed">
+            <strong className="text-fuchsia-300">Abdul Musawwir</strong> est votre directeur artistique IA.
+            Il crée des identités visuelles, logos, palettes de couleurs et guidelines de marque.
+            Décrivez votre besoin ci-dessous ou cliquez sur un exemple pour démarrer.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {AGENT_BRIEF_EXAMPLES.musawwir.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setBrief(example)}
+                className="text-xs px-3 py-1.5 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-300 hover:bg-fuchsia-500/20 hover:border-fuchsia-500/30 transition-all text-left"
+              >
+                {example.length > 60 ? example.slice(0, 57) + '…' : example}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Brief input */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-3">
           <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Nouveau brief</p>
@@ -175,7 +200,7 @@ export default function BrandingPage() {
             value={brief}
             onChange={e => setBrief(e.target.value)}
             disabled={submitting}
-            placeholder="Décris ta mission à Abdul Musawwir…"
+            placeholder="Décris ton brief à Abdul Musawwir…"
             rows={4}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 resize-none focus:outline-none focus:border-fuchsia-500/40 disabled:opacity-50 transition-colors"
           />
@@ -197,11 +222,12 @@ export default function BrandingPage() {
               <Loader2 className="w-5 h-5 animate-spin text-zinc-600" />
             </div>
           ) : activeTasks.length === 0 ? (
-            <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-8 text-center">
-              <Palette className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-              <p className="text-sm text-zinc-500">Aucune mission active</p>
-              <p className="text-xs text-zinc-600 mt-1">Envoie un brief pour démarrer</p>
-            </div>
+            <EmptyState
+              icon={Palette}
+              color="fuchsia"
+              message="Aucun brief en cours"
+              submessage="Envoie un brief ci-dessus pour démarrer avec Musawwir."
+            />
           ) : (
             <div className="space-y-3">
               {activeTasks.map(task => (
@@ -279,14 +305,14 @@ export default function BrandingPage() {
                     {isCompleted && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => archiveTask(task.id)}
+                          onClick={() => rejectTask(task.id)}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-zinc-800/60 hover:bg-zinc-700/60 border border-zinc-700/50 text-zinc-400 rounded-lg transition-colors"
                         >
                           <XCircle className="w-3 h-3" />
                           Rejeter
                         </button>
                         <button
-                          onClick={() => archiveTask(task.id)}
+                          onClick={() => approveTask(task.id)}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-300 rounded-lg transition-colors font-medium"
                         >
                           <CheckCircle2 className="w-3 h-3" />

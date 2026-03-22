@@ -11,6 +11,8 @@ import { contentItems } from './schema_content';
 import { automations } from './schema_automations';
 import { portfolioItems } from './schema_portfolio';
 import { followups } from './schema_postvente';
+import { portalTokens, deliverables, clientReports } from './schema_portal';
+import { PortalToken, Deliverable, NewDeliverable, ClientReport, NewClientReport } from './schema_portal';
 import { Invoice, NewInvoice, Expense, NewExpense } from './schema_finances';
 import { ContentItem, NewContentItem } from './schema_content';
 import { Automation, NewAutomation } from './schema_automations';
@@ -519,6 +521,154 @@ export function getDb() {
     try { sqlite.exec(`ALTER TABLE business_insights ADD COLUMN note TEXT`); } catch (_) { /* already exists */ }
     try { sqlite.exec(`ALTER TABLE business_insights ADD COLUMN rejected INTEGER DEFAULT 0`); } catch (_) { /* already exists */ }
     try { sqlite.exec(`ALTER TABLE business_insights ADD COLUMN read_at INTEGER`); } catch (_) { /* already exists */ }
+
+    // Migration: agent_executions table (Sprint 3 — IA Monitoring)
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS agent_executions (
+          id TEXT PRIMARY KEY,
+          agent_id TEXT NOT NULL,
+          task_id TEXT,
+          prompt TEXT NOT NULL,
+          duration_ms INTEGER NOT NULL DEFAULT 0,
+          success INTEGER NOT NULL DEFAULT 0,
+          error TEXT,
+          token_input INTEGER,
+          token_output INTEGER,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_exec_agent ON agent_executions(agent_id);
+        CREATE INDEX IF NOT EXISTS idx_agent_exec_created ON agent_executions(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_agent_exec_success ON agent_executions(success);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // user_events — analytics tracking (onboarding tour, etc.)
+    try {
+      rawDb.exec(`
+        CREATE TABLE IF NOT EXISTS user_events (
+          id TEXT PRIMARY KEY,
+          event_type TEXT NOT NULL,
+          metadata TEXT,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_user_events_type_created ON user_events(event_type, created_at DESC);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // Migration: Stripe fields on invoices
+    const stripeInvoiceMigrations = [
+      `ALTER TABLE invoices ADD COLUMN stripe_payment_intent_id TEXT;`,
+      `ALTER TABLE invoices ADD COLUMN stripe_payment_link_url TEXT;`,
+    ];
+    for (const m of stripeInvoiceMigrations) {
+      try { sqlite.exec(m); } catch (_) { /* column already exists */ }
+    }
+
+    // Migration: portal_tokens table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS portal_tokens (
+          id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          token_hash TEXT NOT NULL UNIQUE,
+          label TEXT,
+          expires_at INTEGER,
+          last_accessed_at INTEGER,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_portal_tokens_hash ON portal_tokens(token_hash);
+        CREATE INDEX IF NOT EXISTS idx_portal_tokens_project ON portal_tokens(project_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // Migration: deliverables table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS deliverables (
+          id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          filename TEXT NOT NULL,
+          file_path TEXT NOT NULL,
+          file_size INTEGER,
+          mime_type TEXT DEFAULT 'application/octet-stream',
+          uploaded_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_deliverables_project ON deliverables(project_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // Migration: client_reports table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS client_reports (
+          id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL,
+          period TEXT NOT NULL,
+          html_content TEXT,
+          pdf_path TEXT,
+          generated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_client_reports_project ON client_reports(project_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // Sprint 6 — invoice reminder columns
+    const invoiceReminderMigrations = [
+      `ALTER TABLE invoices ADD COLUMN reminder_sent_at INTEGER;`,
+      `ALTER TABLE invoices ADD COLUMN reminder_count INTEGER DEFAULT 0;`,
+    ];
+    for (const sql of invoiceReminderMigrations) {
+      try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
+    }
+
+    // Sprint 6 — lead nurture columns
+    const nurtureMigrations = [
+      `ALTER TABLE leads ADD COLUMN nurture_step INTEGER DEFAULT 0;`,
+      `ALTER TABLE leads ADD COLUMN nurture_started_at INTEGER;`,
+    ];
+    for (const sql of nurtureMigrations) {
+      try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
+    }
+
+    // Sprint 6 — notifications table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id TEXT PRIMARY KEY,
+          type TEXT NOT NULL DEFAULT 'info',
+          severity TEXT NOT NULL DEFAULT 'info',
+          title TEXT NOT NULL,
+          message TEXT,
+          entity_type TEXT,
+          entity_id TEXT,
+          is_read INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_notif_read ON notifications(is_read);
+        CREATE INDEX IF NOT EXISTS idx_notif_created ON notifications(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_notif_type ON notifications(type);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // Sprint 6 — audit_trail table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS audit_trail (
+          id TEXT PRIMARY KEY,
+          user_id TEXT DEFAULT 'system',
+          action TEXT NOT NULL,
+          entity_type TEXT NOT NULL,
+          entity_id TEXT NOT NULL,
+          changes_json TEXT,
+          ip TEXT,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_trail(entity_type, entity_id);
+        CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_trail(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_trail(action);
+      `);
+    } catch (_) { /* already exists */ }
 
     // Seed n8n workflow IDs
     const seedWorkflows = [
@@ -1050,4 +1200,325 @@ export function getAllCachedProfiles(): IGProfileCache[] {
       analyzedAt: row.analyzed_at,
     }));
   } catch { return []; }
+}
+
+// ============================================================
+// AGENT EXECUTIONS — IA Monitoring (Sprint 3)
+// ============================================================
+
+export interface AgentExecutionLog {
+  agentId: string;
+  taskId?: string | null;
+  prompt: string;
+  durationMs: number;
+  success: boolean;
+  error?: string | null;
+  tokenInput?: number | null;
+  tokenOutput?: number | null;
+}
+
+export function logAgentExecution(data: AgentExecutionLog): string {
+  const rawDb = (getDb() as any).$client;
+  const id = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  rawDb.prepare(`
+    INSERT INTO agent_executions (id, agent_id, task_id, prompt, duration_ms, success, error, token_input, token_output, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    data.agentId,
+    data.taskId ?? null,
+    data.prompt.slice(0, 2000), // cap prompt storage
+    data.durationMs,
+    data.success ? 1 : 0,
+    data.error ?? null,
+    data.tokenInput ?? null,
+    data.tokenOutput ?? null,
+    Date.now(),
+  );
+  return id;
+}
+
+export interface AgentExecStats {
+  agentId: string;
+  totalExecutions: number;
+  successCount: number;
+  failCount: number;
+  successRate: number;
+  avgDurationMs: number;
+  totalTokenInput: number;
+  totalTokenOutput: number;
+}
+
+export function getAgentExecutionStats(agentId?: string, timeframeMs?: number): AgentExecStats[] {
+  const rawDb = (getDb() as any).$client;
+  const since = timeframeMs ? Date.now() - timeframeMs : 0;
+
+  const whereClause = agentId
+    ? `WHERE agent_id = ? AND created_at > ?`
+    : `WHERE created_at > ?`;
+  const params = agentId ? [agentId, since] : [since];
+
+  const rows = rawDb.prepare(`
+    SELECT
+      agent_id,
+      COUNT(*) as total,
+      SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as success_count,
+      SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as fail_count,
+      AVG(duration_ms) as avg_duration,
+      COALESCE(SUM(token_input), 0) as total_token_input,
+      COALESCE(SUM(token_output), 0) as total_token_output
+    FROM agent_executions
+    ${whereClause}
+    GROUP BY agent_id
+    ORDER BY total DESC
+  `).all(...params) as any[];
+
+  return rows.map(r => ({
+    agentId: r.agent_id,
+    totalExecutions: r.total,
+    successCount: r.success_count,
+    failCount: r.fail_count,
+    successRate: r.total > 0 ? Math.round((r.success_count / r.total) * 100) : 0,
+    avgDurationMs: Math.round(r.avg_duration || 0),
+    totalTokenInput: r.total_token_input,
+    totalTokenOutput: r.total_token_output,
+  }));
+}
+
+export interface RecentExecution {
+  id: string;
+  agentId: string;
+  taskId: string | null;
+  prompt: string;
+  durationMs: number;
+  success: boolean;
+  error: string | null;
+  tokenInput: number | null;
+  tokenOutput: number | null;
+  createdAt: number;
+}
+
+export function getRecentExecutions(limit: number = 20): RecentExecution[] {
+  const rawDb = (getDb() as any).$client;
+  const rows = rawDb.prepare(`
+    SELECT id, agent_id, task_id, prompt, duration_ms, success, error, token_input, token_output, created_at
+    FROM agent_executions
+    ORDER BY created_at DESC
+    LIMIT ?
+  `).all(limit) as any[];
+
+  return rows.map(r => ({
+    id: r.id,
+    agentId: r.agent_id,
+    taskId: r.task_id,
+    prompt: r.prompt,
+    durationMs: r.duration_ms,
+    success: r.success === 1,
+    error: r.error,
+    tokenInput: r.token_input,
+    tokenOutput: r.token_output,
+    createdAt: r.created_at,
+  }));
+}
+
+// ─── User Events (analytics tracking) ───────────────────────────
+
+export function logUserEvent(eventType: string, metadata?: Record<string, unknown>): string {
+  const id = crypto.randomUUID();
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(`
+    INSERT INTO user_events (id, event_type, metadata, created_at)
+    VALUES (?, ?, ?, ?)
+  `).run(id, eventType, metadata ? JSON.stringify(metadata) : null, Date.now());
+  return id;
+}
+
+// ============================================================
+// PORTAL TOKENS
+// ============================================================
+
+import crypto from 'crypto';
+
+function hashToken(rawToken: string): string {
+  return crypto.createHash('sha256').update(rawToken).digest('hex');
+}
+
+export function createPortalToken(projectId: string, label?: string, expiresInDays: number = 90): { id: string; rawToken: string } {
+  const rawDb = (getDb() as any).$client;
+  const id = `ptk_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = hashToken(rawToken);
+  const now = Date.now();
+  const expiresAt = now + expiresInDays * 24 * 60 * 60 * 1000;
+
+  rawDb.prepare(`
+    INSERT INTO portal_tokens (id, project_id, token_hash, label, expires_at, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(id, projectId, tokenHash, label ?? null, expiresAt, now);
+
+  return { id, rawToken };
+}
+
+export function getProjectByPortalToken(rawToken: string): { projectId: string; tokenId: string; expired: boolean } | null {
+  const rawDb = (getDb() as any).$client;
+  const tokenHash = hashToken(rawToken);
+
+  const row = rawDb.prepare(`
+    SELECT id, project_id, expires_at FROM portal_tokens WHERE token_hash = ?
+  `).get(tokenHash) as { id: string; project_id: string; expires_at: number | null } | undefined;
+
+  if (!row) return null;
+
+  // Update last_accessed_at
+  rawDb.prepare(`UPDATE portal_tokens SET last_accessed_at = ? WHERE id = ?`).run(Date.now(), row.id);
+
+  const expired = row.expires_at ? Date.now() > row.expires_at : false;
+  return { projectId: row.project_id, tokenId: row.id, expired };
+}
+
+export function revokePortalToken(id: string): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(`DELETE FROM portal_tokens WHERE id = ?`).run(id);
+}
+
+export function getPortalTokensForProject(projectId: string): Array<{ id: string; label: string | null; expiresAt: number | null; createdAt: number }> {
+  const rawDb = (getDb() as any).$client;
+  const rows = rawDb.prepare(`
+    SELECT id, label, expires_at, created_at FROM portal_tokens WHERE project_id = ? ORDER BY created_at DESC
+  `).all(projectId) as Array<{ id: string; label: string | null; expires_at: number | null; created_at: number }>;
+  return rows.map(r => ({ id: r.id, label: r.label, expiresAt: r.expires_at, createdAt: r.created_at }));
+}
+
+// ============================================================
+// DELIVERABLES
+// ============================================================
+
+export function createDeliverable(data: { projectId: string; filename: string; filePath: string; fileSize?: number; mimeType?: string }): string {
+  const rawDb = (getDb() as any).$client;
+  const id = `dlv_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  rawDb.prepare(`
+    INSERT INTO deliverables (id, project_id, filename, file_path, file_size, mime_type, uploaded_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(id, data.projectId, data.filename, data.filePath, data.fileSize ?? null, data.mimeType ?? 'application/octet-stream', Date.now());
+  return id;
+}
+
+export function getDeliverablesForProject(projectId: string): Deliverable[] {
+  const rawDb = (getDb() as any).$client;
+  const rows = rawDb.prepare(`
+    SELECT id, project_id, filename, file_path, file_size, mime_type, uploaded_at
+    FROM deliverables WHERE project_id = ? ORDER BY uploaded_at DESC
+  `).all(projectId) as Array<Record<string, unknown>>;
+  return rows.map(r => ({
+    id: r.id as string,
+    projectId: r.project_id as string,
+    filename: r.filename as string,
+    filePath: r.file_path as string,
+    fileSize: r.file_size as number | null,
+    mimeType: r.mime_type as string | null,
+    uploadedAt: r.uploaded_at as number,
+  }));
+}
+
+export function deleteDeliverable(id: string): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(`DELETE FROM deliverables WHERE id = ?`).run(id);
+}
+
+// ============================================================
+// CLIENT REPORTS
+// ============================================================
+
+export function createClientReport(data: { projectId: string; period: string; htmlContent?: string; pdfPath?: string }): string {
+  const rawDb = (getDb() as any).$client;
+  const id = `rpt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  rawDb.prepare(`
+    INSERT INTO client_reports (id, project_id, period, html_content, pdf_path, generated_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(id, data.projectId, data.period, data.htmlContent ?? null, data.pdfPath ?? null, Date.now());
+  return id;
+}
+
+export function getClientReportsForProject(projectId: string): ClientReport[] {
+  const rawDb = (getDb() as any).$client;
+  const rows = rawDb.prepare(`
+    SELECT id, project_id, period, html_content, pdf_path, generated_at
+    FROM client_reports WHERE project_id = ? ORDER BY generated_at DESC
+  `).all(projectId) as Array<Record<string, unknown>>;
+  return rows.map(r => ({
+    id: r.id as string,
+    projectId: r.project_id as string,
+    period: r.period as string,
+    htmlContent: r.html_content as string | null,
+    pdfPath: r.pdf_path as string | null,
+    generatedAt: r.generated_at as number,
+  }));
+}
+
+// ============================================================
+// INVOICES — extra helpers
+// ============================================================
+
+export function getInvoicesByProjectId(projectId: string): Invoice[] {
+  const rawDb = (getDb() as any).$client;
+  const rows = rawDb.prepare(`
+    SELECT * FROM invoices WHERE project_id = ? ORDER BY created_at DESC
+  `).all(projectId) as Array<Record<string, unknown>>;
+  return rows.map(r => ({
+    id: r.id as string,
+    clientName: r.client_name as string,
+    projectId: r.project_id as string | null,
+    amount: r.amount as number,
+    status: r.status as string,
+    dueDate: r.due_date as number | null,
+    paidAt: r.paid_at as number | null,
+    sentAt: r.sent_at as number | null,
+    notes: r.notes as string | null,
+    stripePaymentIntentId: r.stripe_payment_intent_id as string | null,
+    stripePaymentLinkUrl: r.stripe_payment_link_url as string | null,
+    createdAt: r.created_at as number,
+    updatedAt: r.updated_at as number,
+  }));
+}
+
+export function getInvoiceById(id: string): Invoice | null {
+  const rawDb = (getDb() as any).$client;
+  const r = rawDb.prepare(`SELECT * FROM invoices WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
+  if (!r) return null;
+  return {
+    id: r.id as string,
+    clientName: r.client_name as string,
+    projectId: r.project_id as string | null,
+    amount: r.amount as number,
+    status: r.status as string,
+    dueDate: r.due_date as number | null,
+    paidAt: r.paid_at as number | null,
+    sentAt: r.sent_at as number | null,
+    notes: r.notes as string | null,
+    stripePaymentIntentId: r.stripe_payment_intent_id as string | null,
+    stripePaymentLinkUrl: r.stripe_payment_link_url as string | null,
+    createdAt: r.created_at as number,
+    updatedAt: r.updated_at as number,
+  };
+}
+
+export function findInvoiceByStripeIntent(stripePaymentIntentId: string): Invoice | null {
+  const rawDb = (getDb() as any).$client;
+  const r = rawDb.prepare(`SELECT * FROM invoices WHERE stripe_payment_intent_id = ?`).get(stripePaymentIntentId) as Record<string, unknown> | undefined;
+  if (!r) return null;
+  return {
+    id: r.id as string,
+    clientName: r.client_name as string,
+    projectId: r.project_id as string | null,
+    amount: r.amount as number,
+    status: r.status as string,
+    dueDate: r.due_date as number | null,
+    paidAt: r.paid_at as number | null,
+    sentAt: r.sent_at as number | null,
+    notes: r.notes as string | null,
+    stripePaymentIntentId: r.stripe_payment_intent_id as string | null,
+    stripePaymentLinkUrl: r.stripe_payment_link_url as string | null,
+    createdAt: r.created_at as number,
+    updatedAt: r.updated_at as number,
+  };
 }

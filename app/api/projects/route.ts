@@ -9,9 +9,13 @@ import {
   getProjectById,
   createFollowup,
 } from '@/lib/db';
+import { validateBody, projectCreateSchema, projectUpdateSchema } from '@/lib/validation';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`projects:get:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
     const { searchParams } = new URL(request.url);
     const statsOnly = searchParams.get('stats') === 'true';
     const status = searchParams.get('status') ?? undefined;
@@ -56,20 +60,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`projects:post:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const body = await request.json();
+    const v = validateBody(body, projectCreateSchema);
+    if (!v.success) return v.response;
     const result = await createProject({
-      clientName: body.clientName,
+      clientName: v.data.clientName,
       projectType: body.projectType,
       phase: body.phase,
-      status: body.status,
-      budget: body.budget ?? null,
+      status: v.data.status,
+      budget: v.data.budget ?? null,
       startDate: body.startDate ?? null,
       kickoffDate: body.kickoffDate ?? null,
-      deadline: body.deadline ?? null,
-      hoursEstimated: body.hoursEstimated ?? 0,
-      notes: body.notes ?? null,
+      deadline: v.data.deadline ? new Date(v.data.deadline).getTime() : null,
+      hoursEstimated: v.data.hoursEstimated ?? 0,
+      notes: v.data.notes ?? null,
       teamAgents: body.teamAgents ? JSON.stringify(body.teamAgents) : null,
-      leadId: body.leadId ?? null,
+      leadId: v.data.leadId ?? null,
     });
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (err: any) {
@@ -79,17 +88,26 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`projects:patch:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const id = new URL(request.url).searchParams.get('id');
     if (!id) return NextResponse.json({ success: false, error: 'ID requis' }, { status: 400 });
     const body = await request.json();
-    if (body.teamAgents && Array.isArray(body.teamAgents)) {
-      body.teamAgents = JSON.stringify(body.teamAgents);
+    const v = validateBody(body, projectUpdateSchema);
+    if (!v.success) return v.response;
+    const validatedData: Record<string, unknown> = { ...v.data };
+    if (validatedData.teamAgents && Array.isArray(validatedData.teamAgents)) {
+      validatedData.teamAgents = JSON.stringify(validatedData.teamAgents);
     }
-    await updateProject(id, body);
+    if (typeof validatedData.deadline === 'string') {
+      validatedData.deadline = new Date(validatedData.deadline as string).getTime();
+    }
+    await updateProject(id, validatedData);
 
     // Auto-chain: Projet → "Livraison"
     const autoChainActions: string[] = [];
-    if (body.phase === 'Livraison') {
+    if (v.data.phase === 'Livraison') {
       try {
         const project = await getProjectById(id);
         if (project) {
@@ -117,6 +135,9 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const rl = checkRateLimit(`projects:delete:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+
     const id = new URL(request.url).searchParams.get('id');
     if (!id) return NextResponse.json({ success: false, error: 'ID requis' }, { status: 400 });
     await deleteProject(id);

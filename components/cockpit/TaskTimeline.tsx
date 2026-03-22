@@ -93,7 +93,7 @@ const mockTasks: TimelineTask[] = [
   // Mode Pôle Direct - Directeur au niveau 1
   {
     id: 'dir-direct-001',
-    title: 'Web Dev Mission',
+    title: 'Web Dev Brief',
     agent: 'Matin',
     status: 'EXECUTING',
     mode: 'director_direct',

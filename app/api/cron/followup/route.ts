@@ -1,12 +1,10 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { sendEmail } from '@/lib/email';
 import Anthropic from '@anthropic-ai/sdk';
 
 const CRON_SECRET = process.env.CRON_SECRET || 'altctrl-cron-secret';
-const MAILJET_API_KEY = process.env.MAILJET_API_KEY || '';
-const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY || '';
-const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL || 'hello@altctrllab.com';
 const MAILJET_FROM_NAME = process.env.MAILJET_FROM_NAME || 'Alt Ctrl Lab';
 const CAL_LINK = 'https://cal.com/altctrllab/discovery';
 
@@ -132,22 +130,4 @@ Ton direct, pas de jargon. En français.`;
   }
 }
 
-async function sendEmail(to: string, name: string, subject: string, body: string) {
-  if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) return;
-  await fetch('https://api.mailjet.com/v3.1/send', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Basic ' + Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString('base64'),
-    },
-    body: JSON.stringify({
-      Messages: [{
-        From: { Email: MAILJET_FROM_EMAIL, Name: MAILJET_FROM_NAME },
-        To: [{ Email: to, Name: name }],
-        Subject: subject,
-        TextPart: body,
-        HTMLPart: body.split('\n').map(l => `<p>${l}</p>`).join(''),
-      }],
-    }),
-  });
-}
+// sendEmail is now imported from @/lib/email

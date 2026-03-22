@@ -257,7 +257,7 @@ export function WarRoomArena() {
       <div className="rounded-3xl p-12 text-center backdrop-blur-xl bg-white/5 border border-white/10">
         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-fuchsia-400" />
         <p className="text-white/60">Chargement de l'état...</p>
-        <p className="text-xs text-white/40 mt-2">Vérification des missions en cours</p>
+        <p className="text-xs text-white/40 mt-2">Vérification des briefs en cours</p>
       </div>
     );
   }
@@ -291,7 +291,7 @@ export function WarRoomArena() {
         <Brain className="w-12 h-12 mx-auto mb-4 text-white/20" />
         <p className="text-white/40">En attente du démarrage de la War Room...</p>
         <p className="text-xs text-white/30 mt-4 max-w-sm mx-auto">
-          Soumettez une mission avec le service "Full Agency" pour activer le protocole War Room.
+          Soumettez un brief avec le service "Full Agency" pour activer le protocole War Room.
         </p>
       </div>
     );

@@ -1,6 +1,8 @@
 'use client';
 import { motion } from 'framer-motion';
 import type { Expense } from '@/lib/db/schema_finances';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Wallet } from 'lucide-react';
 
 interface Props {
   expenses: Expense[];
@@ -24,7 +26,14 @@ const CAT_COLORS: Record<string, string> = {
 
 export function ExpenseList({ expenses }: Props) {
   if (expenses.length === 0) {
-    return <p className="text-zinc-500 text-sm text-center py-12">Aucune dépense</p>;
+    return (
+      <EmptyState
+        icon={Wallet}
+        color="cyan"
+        message="Aucune dépense enregistrée"
+        submessage="Les dépenses apparaissent ici quand elles sont ajoutées via l'interface ou les webhooks."
+      />
+    );
   }
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);

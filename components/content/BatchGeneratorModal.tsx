@@ -17,7 +17,7 @@ export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalP
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['LinkedIn']);
   const [period, setPeriod] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ count: number } | null>(null);
+  const [result, setResult] = useState<{ count: number; fromTemplate?: boolean } | null>(null);
   const [error, setError] = useState('');
 
   function togglePlatform(p: string) {
@@ -39,7 +39,7 @@ export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalP
       });
       const data = await res.json();
       if (data.success) {
-        setResult({ count: data.data.count });
+        setResult({ count: data.data.count, fromTemplate: data.data.fromTemplate });
         onSuccess(data.data.count);
       } else {
         setError(data.error || 'Erreur de génération');
@@ -82,6 +82,11 @@ export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalP
               <h3 className="text-lg font-semibold text-zinc-100 mb-1">
                 {result.count} post{result.count > 1 ? 's' : ''} générés !
               </h3>
+              {result.fromTemplate && (
+                <p className="text-xs text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg mb-3">
+                  Généré depuis template — l'API IA était indisponible
+                </p>
+              )}
               <p className="text-sm text-zinc-400 mb-6">
                 Les brouillons sont disponibles dans votre Content Calendar.
               </p>

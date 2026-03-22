@@ -17,7 +17,7 @@ const SHORTCUTS = [
   ]},
   { section: 'Navigation', items: [
     { keys: ['1'], desc: 'Centre Ops' },
-    { keys: ['2'], desc: 'Contrôle Mission' },
+    { keys: ['2'], desc: 'Contrôle Briefs' },
     { keys: ['3'], desc: 'Effectif Équipe' },
     { keys: ['4'], desc: 'Activité' },
     { keys: ['5'], desc: 'Tableau Kanban' },

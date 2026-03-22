@@ -48,6 +48,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
   const [autoChainActions, setAutoChainActions] = useState<string[]>([]);
   const [generatingProposal, setGeneratingProposal] = useState(false);
   const [proposal, setProposal] = useState<string | null>(null);
+  const [proposalFromTemplate, setProposalFromTemplate] = useState(false);
 
   const scoreCriteria: ScoreCriteria | null = lead.scoreCriteria
     ? JSON.parse(lead.scoreCriteria as string)
@@ -96,10 +97,14 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
         }),
       });
       const data = await res.json();
-      if (data.success) setProposal(data.data.proposal);
-      else alert(`Erreur: ${data.error}`);
-    } catch (err: any) {
-      alert(`Erreur: ${err.message}`);
+      if (data.success) {
+        setProposal(data.data.proposal);
+        setProposalFromTemplate(data.data.fromTemplate === true);
+      } else {
+        console.error('Proposal generation failed:', data.error);
+      }
+    } catch (err: unknown) {
+      console.error('Proposal generation error:', err);
     } finally {
       setGeneratingProposal(false);
     }
@@ -319,7 +324,12 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
                   {proposal && (
                     <div className="rounded-xl border border-zinc-700 bg-zinc-900/80 p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-zinc-400">Proposition générée</span>
+                        <span className="text-xs font-semibold text-zinc-400">
+                          Proposition générée
+                          {proposalFromTemplate && (
+                            <span className="ml-2 text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">depuis template</span>
+                          )}
+                        </span>
                         <button
                           onClick={() => navigator.clipboard.writeText(proposal)}
                           className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"

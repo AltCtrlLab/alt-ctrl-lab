@@ -1,38 +1,46 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createLead } from '@/lib/db';
+import { verifyWebhookAuth } from '@/lib/webhook-auth';
+import { validateBody, coldLeadSchema } from '@/lib/validation';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, email, phone, company, website, address, category, notes, website_score, websiteScore } = body;
-    if (!name) return NextResponse.json({ success: false, error: 'name requis' }, { status: 400 });
+    const rl = checkRateLimit(`webhook:gmb:${request.headers.get('x-forwarded-for') ?? 'unknown'}`, 'default');
+    if (!rl.allowed) return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
 
-    const score = websiteScore ?? website_score ?? null;
+    const rawBody = await request.text();
+    if (!verifyWebhookAuth(request, 'gmb', rawBody)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = JSON.parse(rawBody);
+    const v = validateBody(body, coldLeadSchema);
+    if (!v.success) return v.response;
 
     const result = await createLead({
-      name,
-      email: email ?? null,
-      phone: phone ?? null,
-      company: company ?? null,
+      name: v.data.name,
+      email: v.data.email ?? null,
+      phone: v.data.phone ?? null,
+      company: v.data.company ?? null,
       source: 'GMB',
       status: 'Nouveau',
-      website: website ?? null,
-      websiteScore: score !== null ? Number(score) : null,
+      website: v.data.website ?? null,
+      websiteScore: body.websiteScore ?? body.website_score ?? null,
       emailSentCount: 1,
       lastContactedAt: Date.now(),
       notes: [
         'Source: cold-email (Google Maps)',
-        website ? `Site: ${website}` : null,
-        score !== null ? `Score Lighthouse: ${score}/100` : null,
-        address ? `Adresse: ${address}` : null,
-        category ? `Catégorie: ${category}` : null,
-        notes ?? null,
+        v.data.website ? `Site: ${v.data.website}` : null,
+        v.data.address ? `Adresse: ${v.data.address}` : null,
+        v.data.categories ? `Catégorie: ${v.data.categories}` : null,
+        body.notes ?? null,
       ].filter(Boolean).join('\n') || null,
     });
 
     return NextResponse.json({ success: true, data: result }, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
   }
 }

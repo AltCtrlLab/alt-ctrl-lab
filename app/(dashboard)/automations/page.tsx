@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Workflow } from 'lucide-react';
+import { Workflow, Zap, CheckCircle2, Activity, AlertTriangle, Plus } from 'lucide-react';
 import type { Automation } from '@/lib/db/schema_automations';
-import { AutomationsStatsBar } from '@/components/automations/AutomationsStatsBar';
-import { AutomationsToolbar } from '@/components/automations/AutomationsToolbar';
+import { StatsBar } from '@/components/ui/StatsBar';
+import { PageToolbar } from '@/components/ui/PageToolbar';
 import { AutomationsGrid } from '@/components/automations/AutomationsGrid';
 import { AutomationFormModal } from '@/components/automations/AutomationFormModal';
 import { AutomationDetailModal } from '@/components/automations/AutomationDetailModal';
@@ -45,7 +45,10 @@ export default function AutomationsPage() {
 
   useEffect(() => {
     fetchAll();
-    const interval = setInterval(fetchAll, 30000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      fetchAll();
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchAll]);
 
@@ -62,9 +65,20 @@ export default function AutomationsPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <AutomationsStatsBar stats={stats} />
+        <StatsBar loading={!stats} items={stats ? [
+          { label: 'Actives', value: stats.totalActif, icon: Zap, color: 'text-emerald-400' },
+          { label: 'Taux succès', value: stats.tauxSucces, suffix: '%', icon: CheckCircle2, color: 'text-cyan-400' },
+          { label: 'Exécutions', value: stats.execsMois, icon: Activity, color: 'text-fuchsia-400' },
+          { label: 'En erreur', value: stats.enErreur, icon: AlertTriangle, color: stats.enErreur > 0 ? 'text-rose-400' : 'text-zinc-500', alert: true },
+        ] : []} columns={4} className="mb-6" />
         <N8nLivePanel />
-        <AutomationsToolbar filterStatus={filterStatus} onFilterStatus={setFilterStatus} onCreate={() => setCreateOpen(true)} />
+        <PageToolbar
+          filters={[
+            { type: 'pill', value: filterStatus, onChange: setFilterStatus, options: ['Actif', 'Inactif', 'Erreur'], allLabel: 'Tous' },
+          ]}
+          createButton={{ label: 'Nouvelle automation', icon: Plus, onClick: () => setCreateOpen(true) }}
+          className="mb-4"
+        />
         {loading ? (
           <div className="text-center py-12 text-zinc-500 text-sm">Chargement...</div>
         ) : (

@@ -17,6 +17,7 @@ import { usePilBackend } from '@/hooks/usePilBackend';
 import { getTheme, getStoredAccent, getStoredSidebarExpanded, applyAccentColor, AccentColor } from '@/lib/theme';
 import { useTeamMetrics } from '@/hooks/useTeamMetrics';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 // Lazy imports for new components
 import CommandPalette from '@/components/pil/CommandPalette';
@@ -76,7 +77,7 @@ function ActiveTasksFeed({ tasks, onOpenKanban }: { tasks: any[]; onOpenKanban: 
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-fuchsia-400 rounded-full animate-pulse" />
             <span className="text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">
-              {active.length} mission{active.length > 1 ? 's' : ''} en cours
+              {active.length} brief{active.length > 1 ? 's' : ''} en cours
             </span>
           </div>
           {active.map(task => {
@@ -142,12 +143,12 @@ function ActiveTasksFeed({ tasks, onOpenKanban }: { tasks: any[]; onOpenKanban: 
 
       {/* Empty */}
       {sorted.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center p-8
-          bg-white/[0.02] border border-white/[0.05] rounded-2xl border-dashed">
-          <LayoutDashboard className="w-8 h-8 text-neutral-700" />
-          <p className="text-sm text-neutral-500">Aucune mission en cours</p>
-          <p className="text-xs text-neutral-600">Sélectionnez un service et soumettez votre première directive</p>
-        </div>
+        <EmptyState
+          icon={LayoutDashboard}
+          color="fuchsia"
+          message="Aucun brief en cours"
+          submessage="Sélectionnez un service et soumettez votre première directive."
+        />
       )}
 
       {sorted.length > 0 && (

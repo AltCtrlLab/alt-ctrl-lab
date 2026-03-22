@@ -104,7 +104,7 @@ export function usePilBackend() {
     }
   };
 
-  // FIX P0-3: Route vers /api/supervisor pour full_agency, /api/orchestrate sinon
+  // FIX P0-3: Route vers /api/supervisor pour full_agency, /api/orchestrate/direct sinon
   const submitMission = useCallback(async (brief: string, serviceId: string) => {
     try {
       // Full Agency → War Room Protocol via /api/supervisor
@@ -129,7 +129,7 @@ export function usePilBackend() {
         return { success: false, error: data.error?.message || data.error };
       }
 
-      // Autres services → délégation directe via /api/orchestrate
+      // Autres services → délégation directe via /api/orchestrate/direct
       const TEAM_MAPPING: Record<string, { director: string; executor: string }> = {
         'branding': { director: 'musawwir', executor: 'raqim' },
         'web': { director: 'matin', executor: 'banna' },
@@ -142,7 +142,7 @@ export function usePilBackend() {
         return { success: false, error: `Unknown service: ${serviceId}` };
       }
 
-      const res = await fetch('/api/orchestrate', {
+      const res = await fetch('/api/orchestrate/direct', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

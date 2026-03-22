@@ -28,7 +28,7 @@ export function ValidationFeed({ agentType, title, description }: ValidationFeed
 
   const handleMockSubmit = async () => {
     try {
-      const response = await fetch('/api/orchestrator', {
+      const response = await fetch('/api/orchestrate/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

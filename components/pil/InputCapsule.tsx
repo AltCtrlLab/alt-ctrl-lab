@@ -62,9 +62,9 @@ export const InputCapsule: React.FC<InputCapsuleProps> = ({
         const result = await onSubmit?.(brief, selectedService);
         setBrief('');
         localStorage.removeItem(`draft_${selectedService}`);
-        push('success', 'Mission lancée', `La mission a été envoyée à l'agence (${selectedService})`);
+        push('success', 'Brief lancé', `Le brief a été envoyé à l'agence (${selectedService})`);
       } catch {
-        push('error', 'Échec de soumission', 'La mission n\'a pas pu être envoyée');
+        push('error', 'Échec de soumission', 'Le brief n\'a pas pu être envoyé');
       } finally {
         setIsSubmitting(false);
       }
@@ -98,7 +98,7 @@ export const InputCapsule: React.FC<InputCapsuleProps> = ({
         onChange={(e) => setBrief(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        placeholder="Décrivez la mission. L'orchestrateur assignera les tâches aux agents appropriés..."
+        placeholder="Décrivez le brief. L'orchestrateur assignera les tâches aux agents appropriés..."
         className={`
           flex-1 w-full bg-transparent resize-none outline-none p-5 text-sm leading-relaxed font-sans tracking-tight z-10 
           ${t.textMain} ${isDark ? 'placeholder:text-neutral-600' : 'placeholder:text-neutral-400'}

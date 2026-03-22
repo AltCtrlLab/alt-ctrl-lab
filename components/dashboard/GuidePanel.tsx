@@ -2,11 +2,8 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X, Sparkles, Compass, Keyboard, HelpCircle,
-  LayoutDashboard, TrendingUp, FolderKanban, Wallet,
-  CalendarDays, Workflow, Terminal, Target, HeartHandshake,
-} from 'lucide-react';
+import { X, Sparkles, Compass, Keyboard, HelpCircle } from 'lucide-react';
+import { NAV_SECTIONS, TEAM_AI_ITEMS } from '@/lib/constants/navigation';
 
 interface GuidePanelProps {
   open: boolean;
@@ -14,16 +11,10 @@ interface GuidePanelProps {
   isDark: boolean;
 }
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, desc: 'Vue d\'ensemble avec KPIs et activite recente' },
-  { label: 'Leads', icon: TrendingUp, desc: 'Pipeline commercial : du prospect au client signe' },
-  { label: 'Projets', icon: FolderKanban, desc: 'Suivi des projets en cours avec phases et deadlines' },
-  { label: 'Finances', icon: Wallet, desc: 'Factures, depenses et tresorerie' },
-  { label: 'Content', icon: CalendarDays, desc: 'Calendrier editorial et gestion de contenu' },
-  { label: 'Automations', icon: Workflow, desc: 'Workflows n8n et automatisations actives' },
-  { label: 'Prospection', icon: Target, desc: 'Prospection froide et outreach automatise' },
-  { label: 'Post-Vente', icon: HeartHandshake, desc: 'Suivi post-projet, NPS et relances' },
-  { label: 'Cockpit Ops', icon: Terminal, desc: 'Centre de controle avance des agents IA' },
+/** Derive guide sections from the shared navigation constants */
+const GUIDE_SECTIONS = [
+  ...NAV_SECTIONS,
+  { title: 'Équipe IA', items: TEAM_AI_ITEMS },
 ];
 
 const SHORTCUTS = [
@@ -33,10 +24,10 @@ const SHORTCUTS = [
 ];
 
 const FAQ = [
-  { q: 'Comment creer un nouveau projet ?', a: 'Depuis la page Leads, passez un lead au statut "Signe" — un projet et une facture seront crees automatiquement.' },
-  { q: 'Comment fonctionnent les agents IA ?', a: 'Chaque agent a une specialite (dev, marketing, branding). Envoyez un brief depuis la page Brief et les agents traitent votre demande.' },
-  { q: 'Comment connecter n8n ?', a: 'Les workflows n8n sont configures dans la page Automations. Les webhooks synchronisent automatiquement les donnees.' },
-  { q: 'Ou voir l\'historique des taches ?', a: 'La page History affiche toutes les executions passees des agents avec leur statut.' },
+  { q: 'Comment créer un nouveau projet ?', a: 'Depuis la page Leads, passez un lead au statut "Signé" — un projet et une facture seront créés automatiquement.' },
+  { q: 'Comment fonctionnent les agents IA ?', a: 'Chaque agent a une spécialité (dev, marketing, branding). Envoyez un brief depuis la page Brief et les agents traitent votre demande.' },
+  { q: 'Comment connecter n8n ?', a: 'Les workflows n8n sont configurés dans la page Automations. Les webhooks synchronisent automatiquement les données.' },
+  { q: 'Où voir l\'historique des tâches ?', a: 'La page Historique affiche toutes les exécutions passées des agents avec leur statut.' },
 ];
 
 export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
@@ -98,9 +89,9 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
                   <h3 className={`text-sm font-semibold ${isDark ? 'text-zinc-200' : 'text-neutral-700'}`}>Bienvenue</h3>
                 </div>
                 <p className={`text-sm leading-relaxed ${isDark ? 'text-zinc-400' : 'text-neutral-500'}`}>
-                  Ce cockpit centralise toutes les operations d'AltCtrl.Lab. Leads, projets, finances,
-                  contenu et automatisations sont geres depuis une interface unique. Les agents IA
-                  traitent les taches en arriere-plan pendant que tu supervises.
+                  Ce cockpit centralise toutes les opérations d&apos;AltCtrl.Lab. Leads, projets, finances,
+                  contenu et automatisations sont gérés depuis une interface unique. Les agents IA
+                  traitent les tâches en arrière-plan pendant que tu supervises.
                 </p>
               </section>
 
@@ -110,22 +101,33 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
                   <Compass className="w-4 h-4 text-fuchsia-400" />
                   <h3 className={`text-sm font-semibold ${isDark ? 'text-zinc-200' : 'text-neutral-700'}`}>Navigation</h3>
                 </div>
-                <div className="space-y-1.5">
-                  {NAV_ITEMS.map(item => {
-                    const Icon = item.icon;
-                    return (
-                      <div
-                        key={item.label}
-                        className={`flex items-start gap-3 px-3 py-2 rounded-lg ${isDark ? 'bg-zinc-900/40' : 'bg-neutral-50'}`}
-                      >
-                        <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? 'text-zinc-500' : 'text-neutral-400'}`} />
-                        <div>
-                          <p className={`text-sm font-medium ${isDark ? 'text-zinc-300' : 'text-neutral-700'}`}>{item.label}</p>
-                          <p className={`text-xs ${isDark ? 'text-zinc-600' : 'text-neutral-400'}`}>{item.desc}</p>
-                        </div>
+                <div className="space-y-4">
+                  {GUIDE_SECTIONS.map(section => (
+                    <div key={section.title}>
+                      <p className={`text-[10px] uppercase tracking-widest font-medium mb-1.5 ${isDark ? 'text-zinc-600' : 'text-neutral-400'}`}>
+                        {section.title}
+                      </p>
+                      <div className="space-y-1.5">
+                        {section.items.map(item => {
+                          const Icon = item.icon;
+                          return (
+                            <div
+                              key={item.label}
+                              className={`flex items-start gap-3 px-3 py-2 rounded-lg ${isDark ? 'bg-zinc-900/40' : 'bg-neutral-50'}`}
+                            >
+                              <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? 'text-zinc-500' : 'text-neutral-400'}`} />
+                              <div>
+                                <p className={`text-sm font-medium ${isDark ? 'text-zinc-300' : 'text-neutral-700'}`}>{item.label}</p>
+                                {item.desc && (
+                                  <p className={`text-xs ${isDark ? 'text-zinc-600' : 'text-neutral-400'}`}>{item.desc}</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </section>
 
