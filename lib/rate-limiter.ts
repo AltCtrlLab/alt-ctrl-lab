@@ -15,10 +15,11 @@ interface RateLimitConfig {
 }
 
 const CONFIGS: Record<string, RateLimitConfig> = {
-  'mission': { maxTokens: 10, refillRate: 10 / 60 },       // 10/min
-  'war-room': { maxTokens: 2, refillRate: 2 / 60 },        // 2/min
-  'vault-search': { maxTokens: 30, refillRate: 30 / 60 },   // 30/min
-  'default': { maxTokens: 60, refillRate: 1 },               // 60/min
+  'mission': { maxTokens: 10, refillRate: 10 / 60 },         // 10/min
+  'war-room': { maxTokens: 2, refillRate: 2 / 60 },          // 2/min
+  'vault-search': { maxTokens: 30, refillRate: 30 / 60 },    // 30/min
+  'login': { maxTokens: 5, refillRate: 5 / (15 * 60) },      // 5/15min — brute-force protection
+  'default': { maxTokens: 60, refillRate: 1 },                // 60/min
 };
 
 export function checkRateLimit(key: string, type: string = 'default'): { allowed: boolean; retryAfter?: number } {
