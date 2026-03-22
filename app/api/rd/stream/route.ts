@@ -8,8 +8,6 @@ import { sql } from 'drizzle-orm';
 const VPS_BASE_URL = process.env.VPS_BASE_URL || '';
 const DASH_KEY = process.env.CRON_SECRET || 'altctrl-cron-secret';
 
-type LogLevel = 'info' | 'success' | 'warn' | 'error';
-
 export async function POST(req: NextRequest) {
   const { action, payload } = await req.json();
 
@@ -23,8 +21,9 @@ export async function POST(req: NextRequest) {
     } catch { /* writer closed */ }
   };
 
-  const log = (message: string, level: LogLevel = 'info') =>
-    emit('log', { message, level, ts: Date.now() });
+  // Émet un step structuré (remplace les logs texte bruts)
+  const step = (id: string, label: string, status: 'running' | 'done' | 'warn' | 'error', detail = '') =>
+    emit('step', { id, label, status, detail, ts: Date.now() });
 
   const getStats = async () => {
     try {
@@ -42,7 +41,6 @@ export async function POST(req: NextRequest) {
     } catch { return { discoveries: 0, innovations: 0, patterns: 0 }; }
   };
 
-  // Proxy une action vers le serveur VPS (qui a openclaw installé)
   const proxyToVPS = async (vpsAction: string, vpsPayload: Record<string, unknown> = {}) => {
     if (!VPS_BASE_URL) throw new Error('VPS_BASE_URL non configuré');
     const res = await fetch(`${VPS_BASE_URL}/api/rd`, {
@@ -56,116 +54,103 @@ export async function POST(req: NextRequest) {
 
   (async () => {
     try {
-      await log(`🚀 Démarrage : ${action}`, 'info');
+      await emit('start', { action });
 
       // ─── Scout ─────────────────────────────────────────────────────
       if (action === 'scout' || action === 'pipeline') {
-        await log('🔍 Scout — scraping ProductHunt, GitHub, HackerNews, ArXiv...', 'info');
+        await step('scout', 'Scout', 'running', 'Scraping ProductHunt, GitHub, HackerNews...');
         try {
           if (VPS_BASE_URL) {
-            await log('🔌 Connexion au pipeline VPS...', 'info');
             const res = await proxyToVPS('scout');
-            if (res.success) {
-              const count = res.data?.discoveriesCreated ?? 0;
-              await log(`✅ Scout terminé — ${count} nouvelles découvertes`, 'success');
-              await emit('result', { action: 'scout', created: count });
-            } else {
-              await log(`⚠️ Scout (VPS) : ${res.error || 'erreur inconnue'}`, 'warn');
-            }
+            const count = res.data?.discoveriesCreated ?? 0;
+            await step('scout', 'Scout', res.success ? 'done' : 'warn', res.success ? `${count} nouvelles découvertes` : res.error || 'Erreur inconnue');
           } else {
             const { abdulKhabir } = await import('@/lib/ai/agents/khabir');
             const results = await abdulKhabir.scout();
-            const created = results.filter(r => r.success && !r.alreadyKnown).length;
-            await log(`✅ Scout terminé — ${created} nouvelles découvertes`, 'success');
-            await emit('result', { action: 'scout', created });
+            const count = results.filter((r: any) => r.success && !r.alreadyKnown).length;
+            await step('scout', 'Scout', 'done', `${count} nouvelles découvertes`);
           }
         } catch (e: any) {
-          await log(`⚠️ Scout indisponible : ${e.message}`, 'warn');
+          await step('scout', 'Scout', 'warn', `Indisponible : ${e.message}`);
         }
       }
 
       // ─── Élever ────────────────────────────────────────────────────
       if (action === 'elevate' || action === 'pipeline') {
-        await log('⬆️ Élévation — analyse IA des découvertes en attente...', 'info');
+        await step('elevate', 'Élever', 'running', 'Analyse IA des découvertes en attente...');
         try {
           if (VPS_BASE_URL) {
             const res = await proxyToVPS('elevate');
-            if (res.success) {
-              const count = res.data?.innovationsCreated ?? 0;
-              await log(`✅ Élévation terminée — ${count} innovations générées`, 'success');
-              await emit('result', { action: 'elevate', created: count });
-            } else {
-              await log(`⚠️ Élévation (VPS) : ${res.error || 'erreur inconnue'}`, 'warn');
-            }
+            const count = res.data?.innovationsCreated ?? 0;
+            await step('elevate', 'Élever', res.success ? 'done' : 'warn', res.success ? `${count} innovations générées` : res.error || 'Erreur');
           } else {
             const { abdulBasir } = await import('@/lib/ai/agents/basir');
             const results = await abdulBasir.processPendingDiscoveries();
-            const created = results.filter(r => r.success).length;
-            await log(`✅ Élévation terminée — ${created} innovations générées`, 'success');
-            await emit('result', { action: 'elevate', created });
+            const count = results.filter((r: any) => r.success).length;
+            await step('elevate', 'Élever', 'done', `${count} innovations générées`);
           }
         } catch (e: any) {
-          await log(`⚠️ Élévation indisponible : ${e.message}`, 'warn');
+          await step('elevate', 'Élever', 'warn', `Indisponible : ${e.message}`);
         }
       }
 
       // ─── Analyser ──────────────────────────────────────────────────
       if (action === 'analyze' || action === 'pipeline') {
-        await log('🧠 Analyse — détection de patterns et tendances...', 'info');
+        await step('analyze', 'Analyser', 'running', 'Détection de patterns et tendances...');
         try {
           if (VPS_BASE_URL) {
             const res = await proxyToVPS('analyze');
-            if (res.success) {
-              const d = res.data || {};
-              await log(`✅ Analyse terminée — ${d.patternsDetected ?? 0} patterns, ${d.trendsAnalyzed ?? 0} tendances`, 'success');
-              await emit('result', { action: 'analyze', patterns: d.patternsDetected ?? 0, trends: d.trendsAnalyzed ?? 0 });
-            } else {
-              await log(`⚠️ Analyse (VPS) : ${res.error || 'erreur inconnue'}`, 'warn');
-            }
+            const d = res.data || {};
+            await step('analyze', 'Analyser', res.success ? 'done' : 'warn', res.success ? `${d.patternsDetected ?? 0} patterns, ${d.trendsAnalyzed ?? 0} tendances` : res.error || 'Erreur');
           } else {
             const { fusionEngine } = await import('@/lib/ai/agents/fusion-engine');
             const result = await fusionEngine.analyze();
-            await log(`✅ Analyse terminée — ${result.patterns.length} patterns, ${result.trends.length} tendances`, 'success');
-            await emit('result', { action: 'analyze', patterns: result.patterns.length, trends: result.trends.length });
+            await step('analyze', 'Analyser', 'done', `${result.patterns.length} patterns, ${result.trends.length} tendances`);
           }
         } catch (e: any) {
-          await log(`⚠️ Analyse indisponible : ${e.message}`, 'warn');
+          await step('analyze', 'Analyser', 'warn', `Indisponible : ${e.message}`);
         }
       }
 
       // ─── Business Intel ────────────────────────────────────────────
       if (action === 'business-intel') {
-        const topic = payload?.topic || 'instagram-acquisition';
-        await log(`💡 Intelligence Métier — analyse du topic "${topic}"...`, 'info');
+        const topic = (payload?.topic as string) || 'instagram-acquisition';
+        await step('business-intel', 'Intelligence Métier', 'running', `Analyse du topic "${topic}"...`);
         try {
           if (VPS_BASE_URL) {
             const res = await proxyToVPS('business-intel', { action: 'scout', topic });
             if (res.success) {
               const count = res.data?.insights?.length ?? 0;
-              await log(`✅ ${count} insights générés pour "${topic}"`, 'success');
-              await emit('result', { action: 'business-intel', topic, count });
+              await step('business-intel', 'Intelligence Métier', 'done', `${count} insights générés`);
+
+              // ← Clé : lire les insights depuis VPS et les émettre directement
+              // (Railway ne peut pas lire la DB VPS, donc on envoie les données dans le stream)
+              const insRes = await proxyToVPS('business-intel', { action: 'get', topic });
+              const insights = insRes.data?.insights || [];
+              await emit('insights', { topic, insights });
             } else {
-              await log(`⚠️ Business Intel (VPS) : ${res.error || 'erreur'}`, 'warn');
+              await step('business-intel', 'Intelligence Métier', 'warn', res.error || 'Erreur VPS');
             }
           } else {
-            const { scoutBusinessIntelligence } = await import('@/lib/ai/agents/khabir-business');
+            const { scoutBusinessIntelligence, getInsightsByTopic } = await import('@/lib/ai/agents/khabir-business');
             const result = await scoutBusinessIntelligence(topic);
             const count = result.insights?.length ?? 0;
-            await log(`✅ ${count} insights générés pour "${topic}"`, 'success');
-            await emit('result', { action: 'business-intel', topic, count });
+            await step('business-intel', 'Intelligence Métier', 'done', `${count} insights générés`);
+            const insights = getInsightsByTopic(topic);
+            await emit('insights', { topic, insights });
           }
         } catch (e: any) {
-          await log(`⚠️ Intelligence Métier indisponible : ${e.message}`, 'warn');
+          await step('business-intel', 'Intelligence Métier', 'warn', `Indisponible : ${e.message}`);
         }
       }
 
       // ─── Stats finales ─────────────────────────────────────────────
       const stats = await getStats();
       await emit('stats', stats);
-      await emit('done', { message: 'Pipeline terminé' });
+      await emit('done', { action });
 
     } catch (err: any) {
-      await log(`❌ Erreur critique : ${err.message}`, 'error');
+      await emit('step', { id: 'error', label: 'Erreur', status: 'error', detail: err.message, ts: Date.now() });
       await emit('done', { error: err.message });
     } finally {
       try { writer.close(); } catch { /* already closed */ }

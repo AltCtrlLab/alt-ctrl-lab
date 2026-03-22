@@ -110,6 +110,20 @@ export async function GET(request: NextRequest) {
 
       case 'insights': {
         const topic = searchParams.get('topic') || undefined;
+        // Proxy vers VPS si Railway — les insights sont sauvegardés dans la DB VPS
+        if (VPS_BASE_URL) {
+          try {
+            const vpsRes = await fetch(`${VPS_BASE_URL}/api/rd`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-dashboard-key': DASH_KEY },
+              body: JSON.stringify({ action: 'business-intel', payload: { action: 'get', topic } }),
+            });
+            const data = await vpsRes.json();
+            return NextResponse.json({ success: true, data: { insights: data.data?.insights || [] } }, { headers: corsHeaders });
+          } catch {
+            return NextResponse.json({ success: true, data: { insights: [] } }, { headers: corsHeaders });
+          }
+        }
         try {
           const { getInsightsByTopic } = await import('@/lib/ai/agents/khabir-business');
           const insights = getInsightsByTopic(topic);

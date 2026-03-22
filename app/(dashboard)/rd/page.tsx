@@ -11,7 +11,11 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface LogEntry { type: string; message: string; level: 'info' | 'success' | 'warn' | 'error'; ts: number; }
+interface PipelineStep {
+  id: string; label: string;
+  status: 'pending' | 'running' | 'done' | 'warn' | 'error';
+  detail?: string; ts?: number;
+}
 interface Innovation {
   id: string; title: string; opportunityScore: number | null; status: string;
   category: string | null; implementationComplexity: string | null;
@@ -168,8 +172,8 @@ export default function RDPage() {
   // Pipeline
   const [running, setRunning] = useState(false);
   const [activeAction, setActiveAction] = useState<string | null>(null);
-  const [liveLog, setLiveLog] = useState<LogEntry[]>([]);
-  const [logOpen, setLogOpen] = useState(true);
+  const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>([]);
+  const [logOpen] = useState(true);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   // Data
@@ -219,7 +223,7 @@ export default function RDPage() {
 
   useEffect(() => {
     if (logsEndRef.current) logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-  }, [liveLog]);
+  }, [pipelineSteps]);
 
   // ── Run action via SSE ──────────────────────────────────────────────────────
 
@@ -227,7 +231,7 @@ export default function RDPage() {
     if (running) return;
     setRunning(true);
     setActiveAction(action);
-    setLiveLog([]);
+    setPipelineSteps([]);
     setLogOpen(true);
 
     try {
@@ -251,8 +255,20 @@ export default function RDPage() {
           if (!line.startsWith('data:')) continue;
           try {
             const ev = JSON.parse(line.slice(5).trim());
-            if (ev.type === 'log') {
-              setLiveLog(prev => [...prev, { type: 'log', message: ev.message, level: ev.level || 'info', ts: ev.ts || Date.now() }]);
+            if (ev.type === 'step') {
+              // Upsert le step dans la liste (running → done/warn/error)
+              setPipelineSteps(prev => {
+                const existing = prev.findIndex(s => s.id === ev.id);
+                const entry: PipelineStep = { id: ev.id, label: ev.label, status: ev.status, detail: ev.detail, ts: ev.ts };
+                if (existing >= 0) { const next = [...prev]; next[existing] = entry; return next; }
+                return [...prev, entry];
+              });
+            } else if (ev.type === 'insights') {
+              // Insights reçus directement du VPS via le stream → plus besoin de fetch
+              setInsightsList(ev.insights || []);
+              setStats(s => ({ ...s, insights: (ev.insights || []).length }));
+              setSelectedTopic(ev.topic || selectedTopic);
+              setActiveTab('insights');
             } else if (ev.type === 'stats') {
               setStats(s => ({ ...s, discoveries: ev.discoveries ?? s.discoveries, innovations: ev.innovations ?? s.innovations, patterns: ev.patterns ?? s.patterns }));
             } else if (ev.type === 'done') {
@@ -262,7 +278,7 @@ export default function RDPage() {
         }
       }
     } catch (err: any) {
-      setLiveLog(prev => [...prev, { type: 'log', message: `❌ Erreur : ${err.message}`, level: 'error', ts: Date.now() }]);
+      setPipelineSteps(prev => [...prev, { id: 'error', label: 'Erreur', status: 'error', detail: err.message, ts: Date.now() }]);
     } finally {
       setRunning(false);
       setActiveAction(null);
@@ -386,45 +402,60 @@ export default function RDPage() {
           </div>
         </div>
 
-        {/* ── Live Activity Log ─────────────────────────────────────────────── */}
+        {/* ── Pipeline Progress ─────────────────────────────────────────────── */}
         <AnimatePresence>
-          {(running || liveLog.length > 0) && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden rounded-2xl border border-zinc-700/50 bg-zinc-900/60">
-              <div className="px-4 py-2.5 border-b border-zinc-800/50 flex items-center gap-2">
-                <Activity className={`w-3.5 h-3.5 ${running ? 'text-emerald-400 animate-pulse' : 'text-zinc-500'}`} />
-                <span className="text-xs font-semibold text-zinc-300">Activité temps réel</span>
-                <span className="text-xs text-zinc-600 ml-auto">{liveLog.length} événements</span>
-                <button onClick={() => setLogOpen(o => !o)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
-                  {logOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </button>
-                <button onClick={() => setLiveLog([])} className="text-zinc-600 hover:text-zinc-400 transition-colors" title="Effacer">
+          {(running || pipelineSteps.length > 0) && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              className="rounded-2xl border border-zinc-700/40 bg-zinc-900/50 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-zinc-800/40 flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${running ? 'bg-violet-400 animate-pulse' : 'bg-zinc-600'}`} />
+                <span className="text-xs font-semibold text-zinc-300">
+                  {running ? 'Pipeline en cours...' : 'Dernière exécution'}
+                </span>
+                <button onClick={() => setPipelineSteps([])} className="ml-auto text-zinc-600 hover:text-zinc-400 transition-colors" title="Effacer">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              {logOpen && (
-                <div className="max-h-52 overflow-y-auto p-3 space-y-1 font-mono">
-                  {liveLog.map((entry, i) => (
-                    <div key={i} className={`flex items-start gap-2 text-xs ${
-                      entry.level === 'success' ? 'text-emerald-400' :
-                      entry.level === 'warn' ? 'text-amber-400' :
-                      entry.level === 'error' ? 'text-rose-400' : 'text-zinc-400'
+              <div className="p-3 space-y-2">
+                {pipelineSteps.map((s, i) => (
+                  <motion.div key={s.id + i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
+                      s.status === 'done' ? 'bg-emerald-500/5 border-emerald-500/15' :
+                      s.status === 'running' ? 'bg-violet-500/5 border-violet-500/20' :
+                      s.status === 'warn' ? 'bg-amber-500/5 border-amber-500/15' :
+                      s.status === 'error' ? 'bg-rose-500/5 border-rose-500/15' :
+                      'bg-zinc-800/20 border-zinc-800/40'
                     }`}>
-                      <span className="text-zinc-600 shrink-0 tabular-nums">
-                        {new Date(entry.ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center">
+                      {s.status === 'done' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                      {s.status === 'running' && <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />}
+                      {s.status === 'warn' && <AlertCircle className="w-4 h-4 text-amber-400" />}
+                      {s.status === 'error' && <AlertCircle className="w-4 h-4 text-rose-400" />}
+                      {s.status === 'pending' && <Clock className="w-4 h-4 text-zinc-600" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-sm font-medium ${
+                        s.status === 'done' ? 'text-emerald-300' :
+                        s.status === 'running' ? 'text-violet-300' :
+                        s.status === 'warn' ? 'text-amber-300' :
+                        s.status === 'error' ? 'text-rose-300' : 'text-zinc-500'
+                      }`}>{s.label}</span>
+                      {s.detail && <p className="text-xs text-zinc-500 mt-0.5 truncate">{s.detail}</p>}
+                    </div>
+                    {s.ts && (
+                      <span className="text-xs text-zinc-600 shrink-0">
+                        {new Date(s.ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      <span>{entry.message}</span>
-                    </div>
-                  ))}
-                  {running && (
-                    <div className="flex items-center gap-2 text-xs text-zinc-600">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      <span>En cours...</span>
-                    </div>
-                  )}
-                  <div ref={logsEndRef} />
-                </div>
-              )}
+                    )}
+                  </motion.div>
+                ))}
+                {running && pipelineSteps.length === 0 && (
+                  <div className="flex items-center gap-3 px-3 py-2.5">
+                    <Loader2 className="w-4 h-4 text-violet-400 animate-spin shrink-0" />
+                    <span className="text-sm text-zinc-400">Démarrage...</span>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
