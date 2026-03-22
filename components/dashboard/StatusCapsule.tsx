@@ -53,6 +53,7 @@ export function StatusCapsule() {
       initial={{ y: 24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut', delay: 0.3 }}
+      aria-label="Statut systeme"
       className={`fixed bottom-6 right-6 z-30 hidden md:block w-56 rounded-2xl border backdrop-blur-xl shadow-2xl overflow-hidden ${glass}`}
     >
       {/* MÉTÉO — moitié haute */}

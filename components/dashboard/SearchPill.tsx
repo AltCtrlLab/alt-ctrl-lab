@@ -165,6 +165,7 @@ export function SearchPill() {
           onChange={(e) => handleChange(e.target.value)}
           onFocus={() => setFocused(true)}
           placeholder="Rechercher..."
+          aria-label="Recherche universelle"
           className={`flex-1 bg-transparent outline-none text-sm ${textMain} placeholder:${textMuted}`}
         />
         <kbd className={`hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono ${

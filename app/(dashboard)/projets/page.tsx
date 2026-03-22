@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Project, ProjectType, ProjectPhase, ProjectStatus } from '@/lib/db/schema_projects';
+import { useNotifications } from '@/providers/NotificationProvider';
 import { ProjetsStatsBar } from '@/components/projets/ProjetsStatsBar';
 import { ProjetsToolbar } from '@/components/projets/ProjetsToolbar';
 import { ProjetsGrid } from '@/components/projets/ProjetsGrid';
@@ -29,6 +30,7 @@ export default function ProjetsPage() {
   const [filterDate, setFilterDate] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const { push } = useNotifications();
 
   const fetchAll = useCallback(async () => {
     try {
@@ -41,7 +43,7 @@ export default function ProjetsPage() {
       if (projData.success) setProjects(projData.data.projects);
       if (statsData.success) setStats(statsData.data);
     } catch (err) {
-      console.error('Erreur chargement projets:', err);
+      push('error', 'Erreur chargement projets', err instanceof Error ? err.message : 'Erreur reseau');
     } finally {
       setLoading(false);
     }

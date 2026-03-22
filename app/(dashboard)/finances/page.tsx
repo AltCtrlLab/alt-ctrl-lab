@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet } from 'lucide-react';
+import { Wallet, Plus } from 'lucide-react';
 import type { Invoice } from '@/lib/db/schema_finances';
 import type { Expense } from '@/lib/db/schema_finances';
 import { exportCSV } from '@/lib/utils';
+import { useNotifications } from '@/providers/NotificationProvider';
 import { FinancesStatsBar } from '@/components/finances/FinancesStatsBar';
 import { FinancesToolbar } from '@/components/finances/FinancesToolbar';
 import { InvoiceList } from '@/components/finances/InvoiceList';
@@ -13,6 +14,7 @@ import { ExpenseList } from '@/components/finances/ExpenseList';
 import { InvoiceFormModal } from '@/components/finances/InvoiceFormModal';
 import { ExpenseFormModal } from '@/components/finances/ExpenseFormModal';
 import { InvoiceDetailModal } from '@/components/finances/InvoiceDetailModal';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface FinancesStats {
   caEncaisse: number;
@@ -31,6 +33,7 @@ export default function FinancesPage() {
   const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
   const [createExpenseOpen, setCreateExpenseOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const { push } = useNotifications();
 
   const fetchAll = useCallback(async () => {
     try {
@@ -46,7 +49,7 @@ export default function FinancesPage() {
       if (expData.success) setExpenses(expData.data.expenses);
       if (statsData.success) setStats(statsData.data);
     } catch (err) {
-      console.error('Erreur chargement finances:', err);
+      push('error', 'Erreur chargement finances', err instanceof Error ? err.message : 'Erreur reseau');
     } finally {
       setLoading(false);
     }
@@ -96,7 +99,13 @@ export default function FinancesPage() {
         />
 
         {loading ? (
-          <div className="text-center py-12 text-zinc-500 text-sm">Chargement...</div>
+          <div className="flex items-center justify-center py-24">
+            <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+          </div>
+        ) : view === 'invoices' && invoices.length === 0 ? (
+          <EmptyState icon={Wallet} color="emerald" message="Aucune facture" submessage="Creez votre premiere facture pour commencer" ctaLabel="Creer une facture" onAction={() => setCreateInvoiceOpen(true)} />
+        ) : view === 'expenses' && expenses.length === 0 ? (
+          <EmptyState icon={Wallet} color="emerald" message="Aucune depense" submessage="Ajoutez vos depenses pour le suivi financier" ctaLabel="Ajouter une depense" onAction={() => setCreateExpenseOpen(true)} />
         ) : view === 'invoices' ? (
           <InvoiceList invoices={invoices} onSelect={setSelectedInvoice} />
         ) : (

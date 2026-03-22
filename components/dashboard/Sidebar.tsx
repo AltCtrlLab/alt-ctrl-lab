@@ -25,12 +25,15 @@ import {
   Sun,
   Moon,
   ChevronDown,
+  HelpCircle,
+  History,
 } from 'lucide-react';
 import {
   getStoredDarkMode,
   setStoredDarkMode,
 } from '@/lib/theme';
 import { SettingsModal } from './SettingsModal';
+import { GuidePanel } from './GuidePanel';
 
 interface NavItem {
   label: string;
@@ -69,6 +72,7 @@ const navSections: NavSection[] = [
       { label: 'Content', href: '/content', icon: CalendarDays, color: 'text-pink-400' },
       { label: 'Automations', href: '/automations', icon: Workflow, color: 'text-violet-400' },
       { label: 'Cockpit Ops', href: '/pil', icon: Terminal, color: 'text-rose-400' },
+      { label: 'Historique', href: '/history', icon: History, color: 'text-zinc-400' },
     ],
   },
 ];
@@ -91,6 +95,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
   const [teamAiOpen, setTeamAiOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   useEffect(() => {
     setIsDark(getStoredDarkMode());
@@ -238,19 +243,31 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
         {/* Dark/Light toggle */}
         <button
           onClick={toggleDark}
+          aria-label="Basculer le theme"
           className={`flex items-center gap-3 px-3 py-2 rounded-xl w-full transition-colors ${navHover}`}
         >
           {isDark ? <Sun size={16} /> : <Moon size={16} />}
           <span className="text-sm">{isDark ? 'Mode clair' : 'Mode sombre'}</span>
         </button>
 
+        {/* Guide */}
+        <button
+          onClick={() => setGuideOpen(true)}
+          aria-label="Guide d'utilisation"
+          className={`flex items-center gap-3 px-3 py-2 rounded-xl w-full transition-colors ${navHover}`}
+        >
+          <HelpCircle size={16} />
+          <span className="text-sm">Guide</span>
+        </button>
+
         {/* Settings */}
         <button
           onClick={() => setSettingsOpen(true)}
+          aria-label="Paramètres"
           className={`flex items-center gap-3 px-3 py-2 rounded-xl w-full transition-colors ${navHover}`}
         >
           <Settings size={16} />
-          <span className="text-sm">Parametres</span>
+          <span className="text-sm">Paramètres</span>
         </button>
       </div>
 
@@ -259,6 +276,11 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
         onClose={() => setSettingsOpen(false)}
         isDark={isDark}
         onToggleDark={toggleDark}
+      />
+      <GuidePanel
+        open={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        isDark={isDark}
       />
     </nav>
   );

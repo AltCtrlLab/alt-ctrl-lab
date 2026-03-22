@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Briefcase } from 'lucide-react';
 import type { PortfolioItem } from '@/lib/db/schema_portfolio';
+import { useNotifications } from '@/providers/NotificationProvider';
 import { PortfolioStatsBar } from '@/components/portfolio/PortfolioStatsBar';
 import { PortfolioToolbar } from '@/components/portfolio/PortfolioToolbar';
 import { PortfolioGrid } from '@/components/portfolio/PortfolioGrid';
 import { PortfolioFormModal } from '@/components/portfolio/PortfolioFormModal';
 import { PortfolioDetailModal } from '@/components/portfolio/PortfolioDetailModal';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface PortfolioStats {
   totalPublie: number;
@@ -23,6 +25,7 @@ export default function PortfolioPage() {
   const [filterType, setFilterType] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [selected, setSelected] = useState<PortfolioItem | null>(null);
+  const { push } = useNotifications();
 
   const fetchAll = useCallback(async () => {
     try {
@@ -35,7 +38,7 @@ export default function PortfolioPage() {
       if (itemsData.success) setItems(itemsData.data.items);
       if (statsData.success) setStats(statsData.data);
     } catch (err) {
-      console.error('Erreur chargement portfolio:', err);
+      push('error', 'Erreur chargement portfolio', err instanceof Error ? err.message : 'Erreur reseau');
     } finally {
       setLoading(false);
     }
@@ -62,7 +65,11 @@ export default function PortfolioPage() {
         <PortfolioStatsBar stats={stats} />
         <PortfolioToolbar filterType={filterType} onFilterType={setFilterType} onCreate={() => setCreateOpen(true)} />
         {loading ? (
-          <div className="text-center py-12 text-zinc-500 text-sm">Chargement...</div>
+          <div className="flex items-center justify-center py-24">
+            <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState icon={Briefcase} color="amber" message="Aucun projet dans le portfolio" submessage="Ajoutez vos realisations pour les mettre en avant" ctaLabel="Ajouter un projet" onAction={() => setCreateOpen(true)} />
         ) : (
           <PortfolioGrid items={filtered} onSelect={setSelected} />
         )}

@@ -12,6 +12,13 @@ export const metadata: Metadata = {
   title: 'Alt Ctrl Lab | Cockpit',
   description: 'Human-in-the-Loop Orchestration Dashboard',
   robots: { index: false, follow: false },
+  icons: { icon: '/email/LogoHeader1.png', apple: '/email/LogoHeader1.png' },
+  openGraph: {
+    title: 'Alt Ctrl Lab | Cockpit',
+    description: 'Human-in-the-Loop Orchestration Dashboard',
+    type: 'website',
+  },
+  other: { 'theme-color': '#09090b' },
 };
 
 export default function RootLayout({

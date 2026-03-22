@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { HeartHandshake } from 'lucide-react';
 import type { Followup } from '@/lib/db/schema_postvente';
+import { useNotifications } from '@/providers/NotificationProvider';
 import { PostVenteStatsBar } from '@/components/postvente/PostVenteStatsBar';
 import { PostVenteToolbar } from '@/components/postvente/PostVenteToolbar';
 import { FollowupList } from '@/components/postvente/FollowupList';
 import { FollowupFormModal } from '@/components/postvente/FollowupFormModal';
 import { FollowupDetailModal } from '@/components/postvente/FollowupDetailModal';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface PostVenteStats {
   aFaire: number;
@@ -25,6 +27,7 @@ export default function PostVentePage() {
   const [filterType, setFilterType] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [selected, setSelected] = useState<Followup | null>(null);
+  const { push } = useNotifications();
 
   const fetchAll = useCallback(async () => {
     try {
@@ -37,7 +40,7 @@ export default function PostVentePage() {
       if (fData.success) setFollowups(fData.data.followups);
       if (sData.success) setStats(sData.data);
     } catch (err) {
-      console.error('Erreur chargement post-vente:', err);
+      push('error', 'Erreur chargement post-vente', err instanceof Error ? err.message : 'Erreur reseau');
     } finally {
       setLoading(false);
     }
@@ -73,7 +76,11 @@ export default function PostVentePage() {
           onCreate={() => setCreateOpen(true)}
         />
         {loading ? (
-          <div className="text-center py-12 text-zinc-500 text-sm">Chargement...</div>
+          <div className="flex items-center justify-center py-24">
+            <div className="w-8 h-8 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState icon={HeartHandshake} color="cyan" message="Aucun suivi post-vente" submessage="Planifiez un suivi pour fidéliser vos clients" ctaLabel="Planifier un suivi" onAction={() => setCreateOpen(true)} />
         ) : (
           <FollowupList followups={filtered} onSelect={setSelected} />
         )}
