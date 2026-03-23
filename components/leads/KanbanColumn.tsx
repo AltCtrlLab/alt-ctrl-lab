@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import type { Lead, LeadStatus } from '@/lib/db/schema_leads';
-import { STATUS_META } from '@/lib/db/schema_leads';
 import { LeadCard } from './LeadCard';
 
 interface KanbanColumnProps {
@@ -14,7 +13,6 @@ interface KanbanColumnProps {
 
 export function KanbanColumn({ status, leads, onCardClick, onDrop }: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const meta = STATUS_META[status];
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -32,31 +30,31 @@ export function KanbanColumn({ status, leads, onCardClick, onDrop }: KanbanColum
 
   return (
     <div
-      className={`flex-shrink-0 w-80 flex flex-col rounded-xl transition-all duration-200 ${
-        isDragOver
-          ? 'bg-fuchsia-500/5 ring-1 ring-fuchsia-500/30'
-          : ''
+      className={`flex-shrink-0 w-80 flex flex-col gap-4 transition-all duration-200 ${
+        isDragOver ? 'opacity-80' : ''
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between px-2 mb-4">
+      <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
           <h4 className="font-headline font-bold text-sm uppercase tracking-wider text-zinc-400">
             {status}
           </h4>
-          <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-[10px] text-zinc-500 font-bold">
+          <span className="bg-[#19191c] px-2 py-0.5 rounded-full text-[10px] text-zinc-500 font-bold">
             {leads.length}
           </span>
         </div>
       </div>
 
       {/* Cards */}
-      <div className="flex-1 flex flex-col gap-3 min-h-[80px] max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+      <div className={`flex flex-col gap-3 min-h-[80px] max-h-[calc(100vh-320px)] overflow-y-auto ${
+        isDragOver ? 'ring-1 ring-fuchsia-500/30 rounded-xl p-1 bg-fuchsia-500/5' : ''
+      }`}>
         {leads.length === 0 ? (
-          <div className="border-2 border-dashed border-white/5 rounded-xl h-32 flex items-center justify-center">
+          <div className="bg-[#19191c]/30 border-2 border-dashed border-white/5 rounded-xl h-32 flex items-center justify-center">
             <p className="text-zinc-600 text-xs italic">Déposer ici</p>
           </div>
         ) : (

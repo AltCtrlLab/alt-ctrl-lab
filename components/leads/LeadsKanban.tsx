@@ -17,7 +17,7 @@ export function LeadsKanban({ leads, onCardClick, onStatusChange }: LeadsKanbanP
   }, {} as Record<LeadStatus, Lead[]>);
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+    <div className="flex gap-6 overflow-x-auto pb-6 -mx-2 px-2 scroll-smooth">
       {LEAD_STATUSES.map(status => (
         <KanbanColumn
           key={status}

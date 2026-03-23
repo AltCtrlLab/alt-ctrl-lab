@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Lead, LeadStatus, LeadSource } from '@/lib/db/schema_leads';
-import { Users, TrendingUp, Euro, Clock, AlertTriangle, LayoutGrid, Table2, Plus, Search, Download, CheckCircle2 } from 'lucide-react';
+import { Users, TrendingUp, Euro, Clock, AlertTriangle, LayoutGrid, Table2, Plus, Search, Download, CheckCircle2, ChevronDown, CalendarDays } from 'lucide-react';
 import { exportCSV } from '@/lib/utils';
 import { useNotifications } from '@/providers/NotificationProvider';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
@@ -21,19 +21,18 @@ interface LeadsStats {
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────
 
-function KpiCard({ label, value, sub, subColor, icon: Icon, iconColor }: {
+function KpiCard({ label, value, sub, subColor, icon: Icon }: {
   label: string;
   value: string | number;
   sub: string;
   subColor: string;
   icon: React.ElementType;
-  iconColor: string;
 }) {
   return (
-    <div className="bg-zinc-800/50 p-6 rounded-lg border-t border-white/5 flex flex-col justify-between">
+    <div className="bg-[#1f1f22] p-6 rounded-lg border-t border-white/5 flex flex-col justify-between min-h-[140px]">
       <div>
-        <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold mb-1">{label}</p>
-        <h3 className="text-3xl font-headline font-bold text-zinc-100">{value}</h3>
+        <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold mb-2">{label}</p>
+        <h3 className="text-4xl font-headline font-extrabold text-zinc-100 tracking-tight">{value}</h3>
       </div>
       <div className={`mt-4 flex items-center gap-2 text-sm ${subColor}`}>
         <Icon className="w-4 h-4" />
@@ -45,25 +44,35 @@ function KpiCard({ label, value, sub, subColor, icon: Icon, iconColor }: {
 
 // ─── Filter Pill ──────────────────────────────────────────────────────────
 
-function FilterPill({ value, onChange, placeholder, options }: {
+function FilterPill({ value, onChange, placeholder, options, icon: Icon }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   options: readonly string[] | { value: string; label: string }[];
+  icon?: React.ElementType;
 }) {
+  const displayLabel = value
+    ? (typeof options[0] === 'string'
+        ? value
+        : (options as { value: string; label: string }[]).find(o => o.value === value)?.label ?? value)
+    : placeholder;
+
   return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      className="bg-zinc-800 text-zinc-300 text-sm font-medium px-5 py-2 rounded-full border-none focus:ring-1 focus:ring-fuchsia-500/30 cursor-pointer appearance-none hover:bg-zinc-700 transition-colors"
-    >
-      <option value="">{placeholder}</option>
-      {options.map(opt => {
-        const val = typeof opt === 'string' ? opt : opt.value;
-        const label = typeof opt === 'string' ? opt : opt.label;
-        return <option key={val} value={val}>{label}</option>;
-      })}
-    </select>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="appearance-none bg-[#262528] text-zinc-300 text-sm font-medium pl-4 pr-9 py-2.5 rounded-full border-none focus:ring-1 focus:ring-fuchsia-500/30 cursor-pointer hover:bg-[#2c2c2f] transition-colors"
+      >
+        <option value="">{placeholder}</option>
+        {options.map(opt => {
+          const val = typeof opt === 'string' ? opt : opt.value;
+          const label = typeof opt === 'string' ? opt : opt.label;
+          return <option key={val} value={val}>{label}</option>;
+        })}
+      </select>
+      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
+    </div>
   );
 }
 
@@ -221,15 +230,14 @@ export default function LeadsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
-      <div className="p-8 pb-32 space-y-8">
-
+      <div className="p-8 pb-32 flex-1 overflow-y-auto">
         {/* ── Hero Title & CTA ── */}
-        <div className="flex justify-between items-end">
+        <div className="flex justify-between items-end mb-10">
           <div>
             <h2 className="text-4xl font-extrabold font-headline tracking-tight text-zinc-100 mb-2">
               Leads Pipeline
             </h2>
-            <p className="text-zinc-400">Playbook commercial — Lead → Client</p>
+            <p className="text-zinc-400">Gérez et suivez votre pipeline commercial avec précision.</p>
           </div>
           <button
             onClick={() => setCreateOpen(true)}
@@ -244,29 +252,26 @@ export default function LeadsPage() {
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6"
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12"
         >
           <KpiCard
             label="Total leads"
             value={stats?.totalLeads ?? '—'}
             icon={TrendingUp}
-            iconColor="text-cyan-400"
-            sub={`${filteredLeads.length} affichés`}
+            sub={`+${filteredLeads.length} affichés`}
             subColor="text-cyan-400"
           />
           <KpiCard
             label="Taux de conversion"
             value={stats ? `${stats.tauxConversion}%` : '—'}
             icon={CheckCircle2}
-            iconColor="text-emerald-400"
             sub="Leads → Signés"
-            subColor="text-emerald-400"
+            subColor="text-cyan-400"
           />
           <KpiCard
             label="Panier moyen"
-            value={stats ? `${stats.panierMoyen.toLocaleString('fr-FR')}€` : '—'}
+            value={stats ? `€${(stats.panierMoyen / 1000).toFixed(1)}k` : '—'}
             icon={Euro}
-            iconColor="text-zinc-400"
             sub="Sur leads signés"
             subColor="text-zinc-400"
           />
@@ -274,8 +279,7 @@ export default function LeadsPage() {
             label="Délai moyen"
             value={stats ? `${stats.delaiMoyenJours}j` : '—'}
             icon={Clock}
-            iconColor="text-amber-400"
-            sub={stats?.overdueRelances ? `${stats.overdueRelances} relances en retard` : 'Pipeline fluide'}
+            sub={stats?.overdueRelances ? `-${stats.overdueRelances} relances en retard` : 'Pipeline fluide'}
             subColor={stats?.overdueRelances ? 'text-rose-400' : 'text-zinc-400'}
           />
         </motion.div>
@@ -285,7 +289,7 @@ export default function LeadsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.05 }}
-          className="flex flex-wrap gap-3 items-center"
+          className="flex flex-wrap gap-3 items-center mb-8"
         >
           <span className="text-sm font-semibold text-zinc-500 mr-1">Filtres :</span>
 
