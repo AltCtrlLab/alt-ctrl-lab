@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Loader2, Euro, Clock, Calendar, Check, Users } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import { AutoChainToast } from '@/components/shared/AutoChainToast';
 import type { Project, ProjectPhase, ProjectType, ProjectStatus } from '@/lib/db/schema_projects';
 import { ProjectTypeBadge } from './ProjectTypeBadge';
@@ -42,7 +41,6 @@ const AGENTS_DISPLAY: Record<string, string> = {
 };
 
 export function ProjectDetailModal({ project, onClose, onPhaseChange, onUpdated, onDeleted }: ProjectDetailModalProps) {
-  const trapRef = useFocusTrap(true, onClose);
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const [notes, setNotes] = useState(project.notes ?? '');
   const [notesDirty, setNotesDirty] = useState(false);
@@ -111,26 +109,7 @@ export function ProjectDetailModal({ project, onClose, onPhaseChange, onUpdated,
 
   return (
     <>
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <motion.div
-          ref={trapRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Détails du projet ${project.clientName}`}
-          tabIndex={-1}
-          initial={{ opacity: 0, scale: 0.96, y: 8 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 8 }}
-          transition={{ duration: 0.2 }}
-          className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
-        >
+    <AdaptiveModal isOpen={true} onClose={onClose} title={`Détails du projet ${project.clientName}`} showHeader={false}>
           {/* Header */}
           <div className="flex items-start justify-between px-6 py-4 border-b border-zinc-800 flex-shrink-0">
             <div className="min-w-0 flex-1">
@@ -275,9 +254,7 @@ export function ProjectDetailModal({ project, onClose, onPhaseChange, onUpdated,
               </div>
             )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </AdaptiveModal>
 
     {autoChainActions.length > 0 && (
       <AutoChainToast actions={autoChainActions} onClose={() => setAutoChainActions([])} />

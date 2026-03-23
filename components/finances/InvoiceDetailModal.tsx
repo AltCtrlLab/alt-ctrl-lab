@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import type { Invoice, InvoiceStatus } from '@/lib/db/schema_finances';
 import { InvoiceStatusBadge } from './InvoiceStatusBadge';
 
@@ -16,7 +15,6 @@ function fmt(n: number) {
 }
 
 export function InvoiceDetailModal({ invoice, onClose, onUpdated }: Props) {
-  const trapRef = useFocusTrap(true, onClose);
   const [status, setStatus] = useState<InvoiceStatus>(invoice.status as InvoiceStatus);
   const [saving, setSaving] = useState(false);
 
@@ -46,12 +44,7 @@ export function InvoiceDetailModal({ invoice, onClose, onUpdated }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Détails de la facture" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-100">{invoice.clientName}</h2>
-          <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300"><X className="w-4 h-4" /></button>
-        </div>
+    <AdaptiveModal isOpen={true} onClose={onClose} title={invoice.clientName} maxWidth="max-w-md">
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-zinc-100">{fmt(invoice.amount)}</span>
@@ -84,7 +77,6 @@ export function InvoiceDetailModal({ invoice, onClose, onUpdated }: Props) {
             Supprimer
           </button>
         </div>
-      </div>
-    </div>
+    </AdaptiveModal>
   );
 }

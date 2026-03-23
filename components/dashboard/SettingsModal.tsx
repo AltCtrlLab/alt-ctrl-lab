@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { X, LogOut, Sun, Moon, HelpCircle, RotateCcw } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { getStoredDarkMode, setStoredDarkMode } from '@/lib/theme';
+import { LogOut, Sun, Moon, HelpCircle, RotateCcw } from 'lucide-react';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import { resetOnboarding } from '@/components/ui/OnboardingTour';
 
 interface SettingsModalProps {
@@ -17,28 +14,6 @@ interface SettingsModalProps {
 
 export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsModalProps) {
   const router = useRouter();
-  const panelRef = useRef<HTMLDivElement>(null);
-  const trapRef = useFocusTrap(open, onClose);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -55,32 +30,9 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
     : 'hover:bg-zinc-100 text-zinc-600';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <motion.div
-        ref={(node: HTMLDivElement | null) => {
-          (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-          (trapRef as unknown as React.MutableRefObject<HTMLDivElement | null>).current = node;
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Paramètres"
-        tabIndex={-1}
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        transition={{ duration: 0.15 }}
-        className={`relative w-80 rounded-2xl border shadow-2xl backdrop-blur-xl p-5 ${glass}`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className={`text-sm font-semibold ${textMain}`}>Parametres</h2>
-          <button onClick={onClose} aria-label="Fermer" className={`p-1 rounded-lg transition-colors ${btnHover}`}>
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* Theme toggle */}
+    <AdaptiveModal isOpen={open} onClose={onClose} title="Parametres" maxWidth="max-w-md">
+      {/* Theme toggle */}
+      <div className="p-5">
         <button
           onClick={onToggleDark}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${btnHover}`}
@@ -95,7 +47,7 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${btnHover}`}
         >
           <RotateCcw size={16} />
-          <span className="text-sm">Relancer la visite guidée</span>
+          <span className="text-sm">Relancer la visite guidee</span>
         </button>
 
         {/* Re-show guide */}
@@ -104,7 +56,7 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${btnHover}`}
         >
           <HelpCircle size={16} />
-          <span className="text-sm">Réafficher le guide</span>
+          <span className="text-sm">Reafficher le guide</span>
         </button>
 
         {/* Divider */}
@@ -123,7 +75,7 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
         <p className={`text-center text-[10px] mt-4 ${textMuted}`}>
           AltCtrl.Lab &middot; Cockpit v2
         </p>
-      </motion.div>
-    </div>
+      </div>
+    </AdaptiveModal>
   );
 }

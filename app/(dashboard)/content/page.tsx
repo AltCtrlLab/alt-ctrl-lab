@@ -122,13 +122,13 @@ export default function ContentPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-4 md:py-6">
         <StatsBar loading={!stats} items={stats ? [
           { label: 'Publiés', value: stats.totalPublie, icon: CheckCircle2, color: 'text-emerald-400' },
           { label: 'Planifiés', value: stats.totalPlanifie, icon: Calendar, color: 'text-cyan-400' },
           { label: 'Idées', value: stats.totalIdees, icon: Lightbulb, color: 'text-amber-400' },
           { label: 'Taux publication', value: stats.tauxPublication, suffix: '%', icon: TrendingUp, color: 'text-fuchsia-400' },
-        ] : []} columns={4} className="mb-6" />
+        ] : []} columns={4} className="mb-4 md:mb-6" />
         <PageToolbar
           viewToggle={{
             current: view,

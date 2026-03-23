@@ -69,17 +69,17 @@ export default function FinancesPage() {
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <Wallet className="w-5 h-5 text-emerald-400" />
-          <h1 className="text-sm font-semibold text-zinc-100">Finances & Facturation</h1>
+          <h1 className="text-xs md:text-sm font-semibold text-zinc-100">Finances & Facturation</h1>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8">
         <StatsBar loading={!stats} items={stats ? [
           { label: 'CA encaissé', value: formatCurrency(stats.caEncaisse), icon: Euro, color: 'text-emerald-400' },
           { label: 'CA en attente', value: formatCurrency(stats.caEnAttente), icon: Clock, color: 'text-cyan-400', sub: stats.facturesEnRetard > 0 ? `${stats.facturesEnRetard} en retard` : undefined },
           { label: 'Dépenses / mois', value: formatCurrency(stats.depensesMois), icon: TrendingDown, color: 'text-amber-400' },
           { label: 'Marge nette', value: formatCurrency(stats.margeNette), icon: Euro, color: stats.margeNette >= 0 ? 'text-emerald-400' : 'text-rose-400' },
-        ] : []} columns={4} className="mb-6" />
+        ] : []} columns={4} className="mb-4 md:mb-6" />
         <PageToolbar
           viewToggle={{
             current: view,
@@ -114,7 +114,7 @@ export default function FinancesPage() {
             onClick: view === 'invoices' ? () => setCreateInvoiceOpen(true) : () => setCreateExpenseOpen(true),
             color: 'bg-emerald-600 hover:bg-emerald-500',
           }}
-          className="mb-4"
+          className="sticky top-14 z-10 bg-zinc-950/80 backdrop-blur-xl py-2 -mx-4 px-4 md:static md:bg-transparent md:backdrop-blur-none md:py-0 md:mx-0 md:px-0 mb-4"
         />
 
         {loading ? (

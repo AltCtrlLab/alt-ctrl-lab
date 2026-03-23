@@ -235,12 +235,12 @@ export default function PilCockpit() {
           badges={badges}
         />
 
-        <div className="flex-1 my-4 mr-4 ml-4 overflow-hidden relative z-10">
+        <div className="flex-1 my-2 mr-2 ml-2 md:my-4 md:mr-4 md:ml-4 overflow-hidden relative z-10">
           <ErrorBoundary>
           <AnimatePresence mode="wait">
             {/* === OPS CENTER === */}
             {currentView === 'ops' && (
-              <motion.div key="ops" {...viewAnimation} className="h-full flex flex-col gap-4">
+              <motion.div key="ops" {...viewAnimation} className="h-full flex flex-col gap-3 md:gap-4">
                 <OpsHeader
                   isDark={isDark}
                   selectedService={selectedService}
@@ -250,8 +250,8 @@ export default function PilCockpit() {
                   onNavigate={setCurrentView}
                 />
                 <CockpitStreamProvider>
-                  <div className="flex-1 grid grid-cols-12 gap-4 min-h-0">
-                    <div className="col-span-8 flex flex-col gap-4 h-full overflow-y-auto">
+                  <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4 min-h-0">
+                    <div className="lg:col-span-8 flex flex-col gap-3 md:gap-4 h-full overflow-y-auto">
                       <InputCapsule isDark={isDark} selectedService={selectedService} onSubmit={handleMissionSubmit} />
                       {/* War Room uniquement pour Full Agency */}
                       {selectedService === 'full' || selectedService === 'full_agency' ? (
@@ -267,7 +267,7 @@ export default function PilCockpit() {
                         <LiveTerminal />
                       </div>
                     </div>
-                    <div className="col-span-4 flex flex-col gap-4 h-full">
+                    <div className="lg:col-span-4 flex flex-col gap-3 md:gap-4 h-full">
                       <div className="flex-1 min-h-0 overflow-hidden">
                         <SemanticTimeline />
                       </div>

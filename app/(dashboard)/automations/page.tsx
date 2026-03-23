@@ -64,13 +64,13 @@ export default function AutomationsPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         <StatsBar loading={!stats} items={stats ? [
           { label: 'Actives', value: stats.totalActif, icon: Zap, color: 'text-emerald-400' },
           { label: 'Taux succès', value: stats.tauxSucces, suffix: '%', icon: CheckCircle2, color: 'text-cyan-400' },
           { label: 'Exécutions', value: stats.execsMois, icon: Activity, color: 'text-fuchsia-400' },
           { label: 'En erreur', value: stats.enErreur, icon: AlertTriangle, color: stats.enErreur > 0 ? 'text-rose-400' : 'text-zinc-400', alert: true },
-        ] : []} columns={4} className="mb-6" />
+        ] : []} columns={4} className="mb-4 md:mb-6" />
         <N8nLivePanel />
         <PageToolbar
           filters={[

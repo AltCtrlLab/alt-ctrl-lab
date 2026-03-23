@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 
 interface Props {
   onClose: () => void;
@@ -9,7 +8,6 @@ interface Props {
 }
 
 export function FollowupFormModal({ onClose, onCreated }: Props) {
-  const trapRef = useFocusTrap(true, onClose);
   const [form, setForm] = useState({ clientName: '', type: 'Check-in', status: 'À faire', priority: 'Normale', scheduledAt: '', notes: '' });
   const [saving, setSaving] = useState(false);
 
@@ -34,52 +32,46 @@ export function FollowupFormModal({ onClose, onCreated }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Nouveau suivi" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-100">Nouveau suivi</h2>
-          <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300"><X className="w-4 h-4" /></button>
+    <AdaptiveModal isOpen={true} onClose={onClose} title="Nouveau suivi" maxWidth="max-w-md">
+      <form onSubmit={handleSubmit} className="p-4 space-y-3">
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Client *</label>
+          <input required value={form.clientName} onChange={e => setForm(f => ({ ...f, clientName: e.target.value }))}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500" />
         </div>
-        <form onSubmit={handleSubmit} className="p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-zinc-400 mb-1 block">Client *</label>
-            <input required value={form.clientName} onChange={e => setForm(f => ({ ...f, clientName: e.target.value }))}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-zinc-400 mb-1 block">Type</label>
-              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none">
-                {['Check-in', 'Upsell', 'NPS', 'Support', 'Renouvellement'].map(o => <option key={o}>{o}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-zinc-400 mb-1 block">Priorité</label>
-              <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none">
-                {['Haute', 'Normale', 'Basse'].map(o => <option key={o}>{o}</option>)}
-              </select>
-            </div>
+            <label className="text-xs text-zinc-400 mb-1 block">Type</label>
+            <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none">
+              {['Check-in', 'Upsell', 'NPS', 'Support', 'Renouvellement'].map(o => <option key={o}>{o}</option>)}
+            </select>
           </div>
           <div>
-            <label className="text-xs text-zinc-400 mb-1 block">Date planifiée</label>
-            <input type="date" value={form.scheduledAt} onChange={e => setForm(f => ({ ...f, scheduledAt: e.target.value }))}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none" />
+            <label className="text-xs text-zinc-400 mb-1 block">Priorite</label>
+            <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none">
+              {['Haute', 'Normale', 'Basse'].map(o => <option key={o}>{o}</option>)}
+            </select>
           </div>
-          <div>
-            <label className="text-xs text-zinc-400 mb-1 block">Notes</label>
-            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none resize-none" />
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm">Annuler</button>
-            <button type="submit" disabled={saving} className="flex-1 px-3 py-2 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
-              {saving ? 'Création...' : 'Créer'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Date planifiee</label>
+          <input type="date" value={form.scheduledAt} onChange={e => setForm(f => ({ ...f, scheduledAt: e.target.value }))}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none" />
+        </div>
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Notes</label>
+          <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none resize-none" />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <button type="button" onClick={onClose} className="flex-1 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm">Annuler</button>
+          <button type="submit" disabled={saving} className="flex-1 px-3 py-2 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
+            {saving ? 'Creation...' : 'Creer'}
+          </button>
+        </div>
+      </form>
+    </AdaptiveModal>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { X, ExternalLink } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { ExternalLink } from 'lucide-react';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import type { Automation, AutomationStatus } from '@/lib/db/schema_automations';
 import { AutomationStatusBadge } from './AutomationStatusBadge';
 import { ToolBadge } from './ToolBadge';
@@ -13,7 +13,6 @@ interface Props {
 }
 
 export function AutomationDetailModal({ automation, onClose, onUpdated }: Props) {
-  const trapRef = useFocusTrap(true, onClose);
   const [status, setStatus] = useState<AutomationStatus>(automation.status as AutomationStatus);
   const [saving, setSaving] = useState(false);
 
@@ -38,12 +37,7 @@ export function AutomationDetailModal({ automation, onClose, onUpdated }: Props)
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Détails de l'automation" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-100">{automation.name}</h2>
-          <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300"><X className="w-4 h-4" /></button>
-        </div>
+    <AdaptiveModal isOpen={true} onClose={onClose} title={automation.name} maxWidth="max-w-md">
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-3">
             <AutomationStatusBadge status={status} />
@@ -83,7 +77,6 @@ export function AutomationDetailModal({ automation, onClose, onUpdated }: Props)
             Supprimer
           </button>
         </div>
-      </div>
-    </div>
+    </AdaptiveModal>
   );
 }

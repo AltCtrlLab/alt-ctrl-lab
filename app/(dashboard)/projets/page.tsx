@@ -119,7 +119,7 @@ export default function ProjetsPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       {/* Top bar */}
       <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-sm font-semibold text-zinc-200">Projets Actifs</h1>
             <p className="text-[11px] text-zinc-400">Suivi de production, phases & time log</p>
@@ -131,7 +131,7 @@ export default function ProjetsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-5">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5">
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
           <StatsBar loading={!stats} items={stats ? [

@@ -34,6 +34,7 @@ export function LeadCard({ lead, index = 0, onClick }: LeadCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.98 }}
       transition={{ delay: index * 0.03, duration: 0.2 }}
       role="button"
       tabIndex={0}

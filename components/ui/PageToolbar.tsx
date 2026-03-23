@@ -12,14 +12,14 @@ interface SearchInputProps {
 
 function ToolbarSearch({ value, onChange, placeholder = 'Rechercher...' }: SearchInputProps) {
   return (
-    <div className="relative flex-1 min-w-[200px] max-w-xs">
+    <div className="relative flex-1 min-w-[160px] md:min-w-[200px] max-w-xs">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
       <input
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
+        className="w-full pl-9 pr-3 py-2 text-base md:text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
       />
     </div>
   );
@@ -90,7 +90,7 @@ interface PageToolbarProps {
   className?: string;
 }
 
-const SELECT_CLS = 'text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-400 focus:outline-none focus:border-fuchsia-500/50 cursor-pointer';
+const SELECT_CLS = 'text-xs bg-zinc-900 border border-zinc-700 rounded-lg px-2 md:px-3 py-2 text-zinc-400 focus:outline-none focus:border-fuchsia-500/50 cursor-pointer min-h-[44px]';
 
 /**
  * Composable page toolbar — replaces 7 domain-specific Toolbar components.
@@ -109,7 +109,7 @@ export function PageToolbar({
   const hasActiveFilters = filters?.some(f => f.value !== '');
 
   return (
-    <div className={`flex flex-wrap items-center gap-3 ${className}`}>
+    <div className={`flex flex-wrap items-center gap-2 md:gap-3 ${className}`}>
       {/* Search */}
       {search && <ToolbarSearch {...search} />}
 
@@ -192,7 +192,7 @@ export function PageToolbar({
           className="flex items-center gap-1.5 px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200 bg-zinc-900 border border-zinc-800 rounded-lg transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
-          CSV
+          <span className="hidden sm:inline">CSV</span>
         </button>
       )}
 
@@ -210,7 +210,7 @@ export function PageToolbar({
                 }`}
               >
                 <VIcon className="w-3.5 h-3.5" />
-                {opt.label}
+                <span className="hidden sm:inline">{opt.label}</span>
               </button>
             );
           })}
@@ -221,12 +221,12 @@ export function PageToolbar({
       {createButton && (
         <button
           onClick={createButton.onClick}
-          className={`flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${
+          className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${
             createButton.color ?? 'bg-fuchsia-600 hover:bg-fuchsia-500'
           }`}
         >
           {createButton.icon ? <createButton.icon className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {createButton.label}
+          <span className="hidden sm:inline">{createButton.label}</span>
         </button>
       )}
     </div>

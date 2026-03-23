@@ -177,7 +177,7 @@ export default function LeadsPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       {/* Top bar */}
       <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
-        <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-sm font-semibold text-zinc-200">Leads Pipeline</h1>
             <p className="text-[11px] text-zinc-400">Playbook Commercial — Lead → Client</p>
@@ -189,7 +189,7 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-5">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5">
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
           <StatsBar loading={!stats} items={stats ? [
@@ -259,7 +259,7 @@ export default function LeadsPage() {
 
       {/* Bulk toolbar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-zinc-900/95 border border-fuchsia-500/30 shadow-2xl backdrop-blur-xl">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex flex-wrap items-center justify-center gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-3 rounded-2xl bg-zinc-900/95 border border-fuchsia-500/30 shadow-2xl backdrop-blur-xl max-w-[90vw]">
           <span className="text-sm text-zinc-300 font-medium">{selectedIds.size} selectionne{selectedIds.size > 1 ? 's' : ''}</span>
           <select
             value={bulkStatus}

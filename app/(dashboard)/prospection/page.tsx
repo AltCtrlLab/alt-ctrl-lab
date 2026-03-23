@@ -610,7 +610,7 @@ export default function ProspectionPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         {/* Trigger status */}
         {triggerStatus && !triggering && (
           <motion.div
@@ -628,7 +628,7 @@ export default function ProspectionPage() {
         )}
 
         {/* Channel selector — always visible */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {CHANNEL_OPTIONS.map(ch => {
             const Icon = ch.icon;
             const active = channel === ch.id;
@@ -701,7 +701,7 @@ export default function ProspectionPage() {
               transition={{ duration: 0.3 }}
               className="overflow-hidden"
             >
-              <div className="rounded-2xl border border-zinc-800/60 bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-xl p-6 space-y-6">
+              <div className="rounded-2xl border border-zinc-800/60 bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 backdrop-blur-xl p-4 md:p-6 space-y-4 md:space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-zinc-100">Configuration campagne</h3>
                   <span className="text-xs text-zinc-400">
@@ -798,7 +798,7 @@ export default function ProspectionPage() {
                   </button>
                 </div>
                 ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                   {/* Left column: Niches + Villes */}
                   <div className="space-y-5">
                     {/* Niches */}
@@ -1006,7 +1006,7 @@ export default function ProspectionPage() {
                 <span className="text-xs text-zinc-400">{stat.label}</span>
                 <stat.icon className={`w-4 h-4 ${stat.color} opacity-60`} />
               </div>
-              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className={`text-xl md:text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
           ))}
         </div>

@@ -150,6 +150,15 @@ html.light .text-zinc-100 { color: #111827 !important; }
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Shimmer loading effect */
 .shimmer {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);

@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2 } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { Loader2 } from 'lucide-react';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import type { ProjectType } from '@/lib/db/schema_projects';
 
 const TYPES: ProjectType[] = ['Web', 'Branding', 'IA', 'Marketing'];
@@ -22,7 +21,6 @@ interface ProjectFormModalProps {
 }
 
 export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) {
-  const trapRef = useFocusTrap(true, onClose);
   const [form, setForm] = useState({
     clientName: '',
     projectType: 'Web' as ProjectType,
@@ -79,33 +77,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
   const inputCls = "w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <motion.div
-          ref={trapRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Nouveau projet"
-          tabIndex={-1}
-          initial={{ opacity: 0, scale: 0.96, y: 8 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 8 }}
-          transition={{ duration: 0.2 }}
-          className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl"
-        >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 sticky top-0 bg-zinc-950/95 backdrop-blur-sm">
-            <h2 className="text-base font-semibold text-zinc-100">Nouveau projet</h2>
-            <button onClick={onClose} aria-label="Fermer" className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition-all">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
+    <AdaptiveModal isOpen={true} onClose={onClose} title="Nouveau projet" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Client & Type */}
             <div className="space-y-3">
@@ -191,8 +163,6 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
               </button>
             </div>
           </form>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </AdaptiveModal>
   );
 }

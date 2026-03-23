@@ -24,6 +24,7 @@ export function AutomationCard({ automation, onClick, index }: Props) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.98 }}
       transition={{ delay: index * 0.05 }}
       role="button"
       tabIndex={0}

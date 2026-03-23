@@ -41,7 +41,7 @@ interface StatsBarProps {
  */
 export function StatsBar({ items, columns, loading, className = '' }: StatsBarProps) {
   const cols = columns ?? items.length;
-  const gridCls = `grid grid-cols-2 md:grid-cols-${cols} gap-3 ${className}`;
+  const gridCls = `flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-${cols} gap-3 ${className}`;
 
   if (loading) {
     return (
@@ -66,7 +66,7 @@ export function StatsBar({ items, columns, loading, className = '' }: StatsBarPr
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 ${
+            className={`snap-center min-w-[160px] md:min-w-0 flex-shrink-0 md:flex-shrink flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 ${
               isAlert
                 ? 'bg-rose-500/5 border-rose-500/20'
                 : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.05]'

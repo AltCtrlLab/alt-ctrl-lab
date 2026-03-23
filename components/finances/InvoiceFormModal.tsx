@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 
 interface Props {
   onClose: () => void;
@@ -9,7 +8,6 @@ interface Props {
 }
 
 export function InvoiceFormModal({ onClose, onCreated }: Props) {
-  const trapRef = useFocusTrap(true, onClose);
   const [form, setForm] = useState({
     clientName: '', amount: '', status: 'Brouillon', dueDate: '', notes: '',
   });
@@ -39,12 +37,7 @@ export function InvoiceFormModal({ onClose, onCreated }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Nouvelle facture" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-100">Nouvelle facture</h2>
-          <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300"><X className="w-4 h-4" /></button>
-        </div>
+    <AdaptiveModal isOpen={true} onClose={onClose} title="Nouvelle facture" maxWidth="max-w-md">
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
           <div>
             <label className="text-xs text-zinc-400 mb-1 block">Client *</label>
@@ -80,7 +73,6 @@ export function InvoiceFormModal({ onClose, onCreated }: Props) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdaptiveModal>
   );
 }

@@ -64,12 +64,12 @@ export default function PortfolioPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-4 md:py-6">
         <StatsBar loading={!stats} items={stats ? [
           { label: 'Publiés', value: stats.totalPublie, icon: Globe, color: 'text-amber-400' },
           { label: 'Par type', value: Object.entries(stats.parType).map(([k, v]) => `${k}: ${v}`).join(' · ') || '—', icon: LayoutGrid, color: 'text-cyan-400' },
           { label: 'Featured', value: stats.featured, icon: Star, color: 'text-yellow-400' },
-        ] : []} columns={3} className="mb-6" />
+        ] : []} columns={3} className="mb-4 md:mb-6" />
         <PageToolbar
           filters={[
             { type: 'pill', value: filterType, onChange: setFilterType, options: ['Web', 'Branding', 'IA', 'Marketing'], allLabel: 'Tous' },

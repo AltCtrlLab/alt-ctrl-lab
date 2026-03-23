@@ -1,7 +1,8 @@
 'use client';
 
 import { Sidebar } from '@/components/dashboard/Sidebar';
-import { MobileNav } from '@/components/dashboard/MobileNav';
+import { MobileHeader } from '@/components/mobile/MobileHeader';
+import { BottomNav } from '@/components/mobile/BottomNav';
 import { StatusCapsule } from '@/components/dashboard/StatusCapsule';
 import { SearchPill } from '@/components/dashboard/SearchPill';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
@@ -24,12 +25,13 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="app-shell flex h-screen overflow-hidden text-zinc-300 antialiased">
-      <MobileNav />
+      <MobileHeader />
       <Sidebar />
-      <main id="main-content" className="flex-1 overflow-y-auto pt-14 md:pt-0">
+      <main id="main-content" className="flex-1 overflow-y-auto pt-12 md:pt-0 pb-20 md:pb-0">
         <Breadcrumbs />
         {children}
       </main>
+      <BottomNav />
       <div className="fixed top-3 right-36 z-50 hidden md:block">
         <NotificationCenter />
       </div>

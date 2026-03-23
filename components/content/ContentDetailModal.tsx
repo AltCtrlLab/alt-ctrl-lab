@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import type { ContentItem, ContentStatus } from '@/lib/db/schema_content';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import { PlatformIcon } from './PlatformIcon';
@@ -13,7 +13,6 @@ interface Props {
 }
 
 export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
-  const trapRef = useFocusTrap(true, onClose);
   const [tab, setTab] = useState<'content' | 'notes'>('content');
   const [status, setStatus] = useState<ContentStatus>(item.status as ContentStatus);
   const [saving, setSaving] = useState(false);
@@ -40,8 +39,7 @@ export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Détails du contenu" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <AdaptiveModal isOpen={true} onClose={onClose} title="Détails du contenu" showHeader={false} maxWidth="max-w-lg">
         <div className="flex items-center justify-between p-4 border-b border-zinc-800 sticky top-0 bg-zinc-900">
           <div className="flex items-center gap-2">
             <PlatformIcon platform={item.platform as any} />
@@ -92,7 +90,6 @@ export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
             Supprimer
           </button>
         </div>
-      </div>
-    </div>
+    </AdaptiveModal>
   );
 }

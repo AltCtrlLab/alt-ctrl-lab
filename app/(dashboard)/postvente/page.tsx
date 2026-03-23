@@ -69,13 +69,13 @@ export default function PostVentePage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-4 md:py-6">
         <StatsBar loading={!stats} items={stats ? [
           { label: 'À faire', value: stats.aFaire, icon: ClipboardList, color: 'text-cyan-400' },
           { label: 'NPS moyen', value: stats.scoreNpsMoyen != null ? `${stats.scoreNpsMoyen}/10` : '—', icon: Star, color: 'text-fuchsia-400' },
           { label: 'En retard', value: stats.overdueCount, icon: AlertTriangle, color: stats.overdueCount > 0 ? 'text-rose-400' : 'text-zinc-400', alert: true },
           { label: 'Upsells', value: stats.upsellsIdentifies, icon: TrendingUp, color: 'text-emerald-400' },
-        ] : []} columns={4} className="mb-6" />
+        ] : []} columns={4} className="mb-4 md:mb-6" />
         <PageToolbar
           filters={[
             { type: 'pill', value: filterStatus, onChange: setFilterStatus, options: ['À faire', 'Fait', 'Annulé'], allLabel: 'Tous' },

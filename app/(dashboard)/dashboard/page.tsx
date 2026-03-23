@@ -348,14 +348,14 @@ export default function DashboardPage() {
 
       {/* ── Top bar ── */}
       <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 flex items-center justify-center">
               <span className="text-[10px] font-black text-white">AC</span>
             </div>
             <span className="text-sm font-semibold text-zinc-200">Alt Ctrl Lab</span>
-            <span className="text-zinc-700">·</span>
-            <span className="text-xs text-zinc-400 capitalize">{formatDate()}</span>
+            <span className="text-zinc-700 hidden md:inline">·</span>
+            <span className="text-xs text-zinc-400 capitalize hidden md:inline">{formatDate()}</span>
           </div>
           <div className="flex items-center gap-4">
             {online ? (
@@ -380,7 +380,7 @@ export default function DashboardPage() {
         variants={prefersReduced ? staticVariants : pageVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-7xl mx-auto px-6 py-8 space-y-8"
+        className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8 space-y-4 md:space-y-8"
       >
 
         {/* ── Intelligence Layer ── */}
@@ -398,18 +398,18 @@ export default function DashboardPage() {
         {/* ── Hero greeting ── */}
         <motion.div
           variants={sectionVariants}
-          className="flex items-end justify-between"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-0"
         >
           <div>
-            <h1 className="text-3xl font-bold text-zinc-100">
+            <h1 className="text-2xl md:text-3xl font-bold text-zinc-100">
               {getGreeting()} 👋
             </h1>
             <p className="mt-1 text-zinc-400 text-sm">
               Voici l'état de votre agence IA ce {new Date().toLocaleDateString('fr-FR', { weekday: 'long' })}.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link href="/pil" className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-sm font-medium rounded-lg transition-colors">
+          <div className="flex gap-2 w-full md:w-auto">
+            <Link href="/pil" className="flex items-center justify-center gap-2 px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-sm font-medium rounded-lg transition-colors w-full md:w-auto">
               <Play className="w-3.5 h-3.5" />
               Lancer un brief
             </Link>
@@ -417,40 +417,50 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* ── Stats row ── */}
-        <motion.div variants={sectionVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard
-            label="Briefs actifs"
-            value={stats?.activeTasks ?? '—'}
-            icon={Activity}
-            color="bg-fuchsia-500/10 text-fuchsia-400"
-            href="/pil"
-          />
-          <StatCard
-            label="Complétées aujourd'hui"
-            value={stats?.completedToday ?? '—'}
-            icon={CheckCircle2}
-            color="bg-emerald-500/20 text-emerald-400"
-            href="/history"
-          />
-          <StatCard
-            label="Innovations R&D"
-            value={stats?.pendingInnovations ?? '—'}
-            sub="En attente de décision"
-            icon={Beaker}
-            color="bg-zinc-800 text-zinc-300"
-            href="/rd"
-          />
-          <StatCard
-            label="Taux de succès"
-            value={stats ? `${stats.successRate}%` : '—'}
-            sub="Sur tous les briefs"
-            icon={TrendingUp}
-            color="bg-cyan-500/10 text-cyan-400"
-          />
+        <motion.div variants={sectionVariants} className="overflow-x-auto snap-x snap-mandatory md:overflow-visible md:snap-none scrollbar-hide">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 min-w-[540px] md:min-w-0">
+            <div className="snap-center">
+              <StatCard
+                label="Briefs actifs"
+                value={stats?.activeTasks ?? '—'}
+                icon={Activity}
+                color="bg-fuchsia-500/10 text-fuchsia-400"
+                href="/pil"
+              />
+            </div>
+            <div className="snap-center">
+              <StatCard
+                label="Complétées aujourd'hui"
+                value={stats?.completedToday ?? '—'}
+                icon={CheckCircle2}
+                color="bg-emerald-500/20 text-emerald-400"
+                href="/history"
+              />
+            </div>
+            <div className="snap-center">
+              <StatCard
+                label="Innovations R&D"
+                value={stats?.pendingInnovations ?? '—'}
+                sub="En attente de décision"
+                icon={Beaker}
+                color="bg-zinc-800 text-zinc-300"
+                href="/rd"
+              />
+            </div>
+            <div className="snap-center">
+              <StatCard
+                label="Taux de succès"
+                value={stats ? `${stats.successRate}%` : '—'}
+                sub="Sur tous les briefs"
+                icon={TrendingUp}
+                color="bg-cyan-500/10 text-cyan-400"
+              />
+            </div>
+          </div>
         </motion.div>
 
         {/* ── Main content grid ── */}
-        <motion.div variants={sectionVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div variants={sectionVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
 
           {/* News — 2/3 width */}
           <div className="lg:col-span-2 space-y-4">
@@ -505,7 +515,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Sidebar — 1/3 width */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
 
             {/* Quick actions */}
             <div className="space-y-3">

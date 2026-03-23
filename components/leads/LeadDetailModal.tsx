@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, Mail, Phone, Building2, Euro, Calendar, Trash2,
-  Edit3, Check, Loader2, ExternalLink, Clock, Sparkles, Copy,
+  Mail, Phone, Building2, Euro, Calendar, Trash2,
+  Edit3, Check, Loader2, ExternalLink, Clock, Sparkles, Copy, X,
 } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import { AutoChainToast } from '@/components/shared/AutoChainToast';
 import type { Lead, LeadStatus } from '@/lib/db/schema_leads';
 import { STATUS_META } from '@/lib/db/schema_leads';
@@ -38,7 +37,6 @@ interface LeadDetailModalProps {
 type Tab = 'info' | 'score' | 'timeline';
 
 export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDeleted }: LeadDetailModalProps) {
-  const trapRef = useFocusTrap(true, onClose);
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const [notes, setNotes] = useState(lead.notes ?? '');
   const [savingNotes, setSavingNotes] = useState(false);
@@ -153,26 +151,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
 
   return (
     <>
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <motion.div
-          ref={trapRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Détails du lead ${lead.name}`}
-          tabIndex={-1}
-          initial={{ opacity: 0, scale: 0.96, y: 8 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 8 }}
-          transition={{ duration: 0.2 }}
-          className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
-        >
+    <AdaptiveModal isOpen={true} onClose={onClose} title={`Détails du lead ${lead.name}`} showHeader={false}>
           {/* Header */}
           <div className="flex items-start justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/95 flex-shrink-0">
             <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -378,9 +357,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
               </>
             )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </AdaptiveModal>
 
     {autoChainActions.length > 0 && (
       <AutoChainToast

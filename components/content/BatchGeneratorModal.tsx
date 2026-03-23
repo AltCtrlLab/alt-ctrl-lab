@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { Sparkles, Loader2, CheckCircle2, X } from 'lucide-react';
+import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 
 interface BatchGeneratorModalProps {
   onClose: () => void;
@@ -13,7 +12,6 @@ interface BatchGeneratorModalProps {
 const PLATFORMS = ['LinkedIn', 'Instagram', 'Twitter', 'Blog'];
 
 export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalProps) {
-  const trapRef = useFocusTrap(true, onClose);
   const [theme, setTheme] = useState('');
   const [count, setCount] = useState(5);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['LinkedIn']);
@@ -54,25 +52,7 @@ export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalP
   }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-        onClick={e => e.target === e.currentTarget && onClose()}
-      >
-        <motion.div
-          ref={trapRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Génération de contenu par lot"
-          tabIndex={-1}
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl"
-        >
+    <AdaptiveModal isOpen={true} onClose={onClose} title="Batch Content Generator" showHeader={false} maxWidth="max-w-lg">
           <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-fuchsia-400" />
@@ -195,8 +175,6 @@ export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalP
               </div>
             </div>
           )}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </AdaptiveModal>
   );
 }
