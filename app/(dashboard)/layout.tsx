@@ -32,7 +32,7 @@ export default function DashboardLayout({
     <div className="app-shell flex h-screen overflow-hidden text-zinc-300 antialiased">
       <MobileHeader />
       <Sidebar />
-      <main id="main-content" className="flex-1 overflow-y-auto pt-12 md:pt-0 pb-20 md:pb-0">
+      <main id="main-content" className="flex-1 overflow-y-auto pt-12 md:pt-0 pb-20 md:pb-0 md:ml-64">
         <Breadcrumbs />
         {children}
       </main>

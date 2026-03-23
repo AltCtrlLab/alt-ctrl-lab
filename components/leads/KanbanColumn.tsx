@@ -32,31 +32,32 @@ export function KanbanColumn({ status, leads, onCardClick, onDrop }: KanbanColum
 
   return (
     <div
-      className={`flex-shrink-0 w-[260px] flex flex-col rounded-xl border transition-all duration-200 ${
+      className={`flex-shrink-0 w-80 flex flex-col rounded-xl transition-all duration-200 ${
         isDragOver
-          ? 'border-fuchsia-500/50 bg-fuchsia-500/5'
-          : 'border-zinc-800 bg-zinc-900/50'
+          ? 'bg-fuchsia-500/5 ring-1 ring-fuchsia-500/30'
+          : ''
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {/* Column header */}
-      <div className={`flex items-center justify-between px-3.5 py-2.5 rounded-t-xl border-b ${meta.border} ${meta.bg}`}>
+      <div className="flex items-center justify-between px-2 mb-4">
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${meta.dot}`} />
-          <span className={`text-xs font-semibold ${meta.color}`}>{status}</span>
+          <h4 className="font-headline font-bold text-sm uppercase tracking-wider text-zinc-400">
+            {status}
+          </h4>
+          <span className="bg-zinc-800 px-2 py-0.5 rounded-full text-[10px] text-zinc-500 font-bold">
+            {leads.length}
+          </span>
         </div>
-        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${meta.bg} ${meta.color}`}>
-          {leads.length}
-        </span>
       </div>
 
       {/* Cards */}
-      <div className="flex-1 overflow-y-auto p-2.5 space-y-2 min-h-[80px] max-h-[calc(100vh-280px)]">
+      <div className="flex-1 flex flex-col gap-3 min-h-[80px] max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
         {leads.length === 0 ? (
-          <div className="h-16 rounded-lg border border-dashed border-zinc-800 flex items-center justify-center">
-            <p className="text-[10px] text-zinc-700">Déposer ici</p>
+          <div className="border-2 border-dashed border-white/5 rounded-xl h-32 flex items-center justify-center">
+            <p className="text-zinc-600 text-xs italic">Déposer ici</p>
           </div>
         ) : (
           leads.map((lead, i) => (

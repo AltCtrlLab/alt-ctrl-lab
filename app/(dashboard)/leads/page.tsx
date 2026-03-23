@@ -3,11 +3,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Lead, LeadStatus, LeadSource } from '@/lib/db/schema_leads';
-import { Users, TrendingUp, Euro, Clock, AlertTriangle, LayoutGrid, Table2, Plus } from 'lucide-react';
+import { Users, TrendingUp, Euro, Clock, AlertTriangle, LayoutGrid, Table2, Plus, Search, Download, CheckCircle2 } from 'lucide-react';
 import { exportCSV } from '@/lib/utils';
 import { useNotifications } from '@/providers/NotificationProvider';
-import { StatsBar } from '@/components/ui/StatsBar';
-import { PageToolbar } from '@/components/ui/PageToolbar';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
 import { LeadsTable } from '@/components/leads/LeadsTable';
 import { LeadFormModal } from '@/components/leads/LeadFormModal';
@@ -20,6 +18,56 @@ interface LeadsStats {
   delaiMoyenJours: number;
   overdueRelances: number;
 }
+
+// ─── KPI Card ─────────────────────────────────────────────────────────────
+
+function KpiCard({ label, value, sub, subColor, icon: Icon, iconColor }: {
+  label: string;
+  value: string | number;
+  sub: string;
+  subColor: string;
+  icon: React.ElementType;
+  iconColor: string;
+}) {
+  return (
+    <div className="bg-zinc-800/50 p-6 rounded-lg border-t border-white/5 flex flex-col justify-between">
+      <div>
+        <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold mb-1">{label}</p>
+        <h3 className="text-3xl font-headline font-bold text-zinc-100">{value}</h3>
+      </div>
+      <div className={`mt-4 flex items-center gap-2 text-sm ${subColor}`}>
+        <Icon className="w-4 h-4" />
+        <span>{sub}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Filter Pill ──────────────────────────────────────────────────────────
+
+function FilterPill({ value, onChange, placeholder, options }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  options: readonly string[] | { value: string; label: string }[];
+}) {
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="bg-zinc-800 text-zinc-300 text-sm font-medium px-5 py-2 rounded-full border-none focus:ring-1 focus:ring-fuchsia-500/30 cursor-pointer appearance-none hover:bg-zinc-700 transition-colors"
+    >
+      <option value="">{placeholder}</option>
+      {options.map(opt => {
+        const val = typeof opt === 'string' ? opt : opt.value;
+        const label = typeof opt === 'string' ? opt : opt.label;
+        return <option key={val} value={val}>{label}</option>;
+      })}
+    </select>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -64,7 +112,6 @@ export default function LeadsPage() {
   }, [fetchAll]);
 
   const handleStatusChange = useCallback(async (leadId: string, newStatus: LeadStatus) => {
-    // Optimistic update
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
     try {
       await fetch(`/api/leads?id=${leadId}`, {
@@ -73,7 +120,7 @@ export default function LeadsPage() {
         body: JSON.stringify({ status: newStatus }),
       });
     } catch {
-      fetchAll(); // rollback
+      fetchAll();
     }
   }, [fetchAll]);
 
@@ -89,7 +136,6 @@ export default function LeadsPage() {
 
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
-      // Hide archived leads unless explicitly filtered
       if (!filterStatus && l.status === 'Archivé') return false;
       if (filterStatus && l.status !== filterStatus) return false;
       if (filterSource && l.source !== filterSource) return false;
@@ -175,57 +221,140 @@ export default function LeadsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
-      {/* Top bar */}
-      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
-        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+      <div className="p-8 pb-32 space-y-8">
+
+        {/* ── Hero Title & CTA ── */}
+        <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-sm font-semibold text-zinc-200">Leads Pipeline</h1>
-            <p className="text-[11px] text-zinc-400">Playbook Commercial — Lead → Client</p>
+            <h2 className="text-4xl font-extrabold font-headline tracking-tight text-zinc-100 mb-2">
+              Leads Pipeline
+            </h2>
+            <p className="text-zinc-400">Playbook commercial — Lead → Client</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs text-zinc-400">Sync auto 30s</span>
-          </div>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="bg-fuchsia-500 hover:brightness-110 text-white font-bold px-8 py-3 rounded-full flex items-center gap-2 shadow-xl shadow-fuchsia-500/10 active:scale-95 transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            Nouveau lead
+          </button>
         </div>
-      </div>
 
-      <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5">
-        {/* Stats */}
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-          <StatsBar loading={!stats} items={stats ? [
-            { label: 'Total leads', value: stats.totalLeads, icon: Users, color: 'text-fuchsia-400' },
-            { label: 'Taux de conversion', value: stats.tauxConversion, suffix: '%', icon: TrendingUp, color: 'text-emerald-400', sub: 'Leads → Signés' },
-            { label: 'Panier moyen', value: stats.panierMoyen, suffix: ' €', icon: Euro, color: 'text-zinc-400', sub: 'Sur leads signés' },
-            { label: 'Délai moyen', value: stats.delaiMoyenJours, suffix: 'j', icon: Clock, color: 'text-amber-400', sub: 'Lead → Signé' },
-            { label: 'Relances en retard', value: stats.overdueRelances, icon: AlertTriangle, color: 'text-rose-400', alert: true },
-          ] : []} columns={5} />
-        </motion.div>
-
-        {/* Toolbar */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}>
-          <PageToolbar
-            search={{ value: search, onChange: setSearch, placeholder: 'Chercher un lead...' }}
-            filters={[
-              { type: 'select', value: filterStatus, onChange: v => setFilterStatus(v as LeadStatus | ''), placeholder: 'Tous les statuts', options: ['Nouveau', 'Qualifié', 'À creuser', 'Discovery fait', 'Proposition envoyée', 'Relance 1', 'Relance 2', 'Signé', 'Perdu', 'Archivé'] },
-              { type: 'select', value: filterSource, onChange: v => setFilterSource(v as LeadSource | ''), placeholder: 'Toutes les sources', options: ['LinkedIn', 'Email', 'Instagram', 'GMB', 'Referral', 'Site'] },
-              { type: 'select', value: filterDate, onChange: setFilterDate, placeholder: 'Toutes dates', options: [{ value: '7d', label: '7 derniers jours' }, { value: '30d', label: '30 derniers jours' }, { value: 'month', label: 'Ce mois' }] },
-              { type: 'select', value: filterScore, onChange: setFilterScore, placeholder: 'Tous scores', options: [{ value: '5', label: 'Score > 5' }, { value: '7', label: 'Score > 7' }] },
-            ]}
-            count={{ value: filteredLeads.length, label: filteredLeads.length !== 1 ? 'leads' : 'lead' }}
-            onExport={handleExport}
-            viewToggle={{
-              current: viewMode,
-              onChange: v => setViewMode(v as 'kanban' | 'table'),
-              options: [
-                { key: 'kanban', label: 'Kanban', icon: LayoutGrid },
-                { key: 'table', label: 'Table', icon: Table2 },
-              ],
-            }}
-            createButton={{ label: 'Nouveau lead', icon: Plus, onClick: () => setCreateOpen(true) }}
+        {/* ── KPI Cards ── */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-6"
+        >
+          <KpiCard
+            label="Total leads"
+            value={stats?.totalLeads ?? '—'}
+            icon={TrendingUp}
+            iconColor="text-cyan-400"
+            sub={`${filteredLeads.length} affichés`}
+            subColor="text-cyan-400"
+          />
+          <KpiCard
+            label="Taux de conversion"
+            value={stats ? `${stats.tauxConversion}%` : '—'}
+            icon={CheckCircle2}
+            iconColor="text-emerald-400"
+            sub="Leads → Signés"
+            subColor="text-emerald-400"
+          />
+          <KpiCard
+            label="Panier moyen"
+            value={stats ? `${stats.panierMoyen.toLocaleString('fr-FR')}€` : '—'}
+            icon={Euro}
+            iconColor="text-zinc-400"
+            sub="Sur leads signés"
+            subColor="text-zinc-400"
+          />
+          <KpiCard
+            label="Délai moyen"
+            value={stats ? `${stats.delaiMoyenJours}j` : '—'}
+            icon={Clock}
+            iconColor="text-amber-400"
+            sub={stats?.overdueRelances ? `${stats.overdueRelances} relances en retard` : 'Pipeline fluide'}
+            subColor={stats?.overdueRelances ? 'text-rose-400' : 'text-zinc-400'}
           />
         </motion.div>
 
-        {/* Content */}
+        {/* ── Filters & Controls ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.05 }}
+          className="flex flex-wrap gap-3 items-center"
+        >
+          <span className="text-sm font-semibold text-zinc-500 mr-1">Filtres :</span>
+
+          <FilterPill
+            value={filterStatus}
+            onChange={v => setFilterStatus(v as LeadStatus | '')}
+            placeholder="Tous les statuts"
+            options={['Nouveau', 'Qualifié', 'À creuser', 'Discovery fait', 'Proposition envoyée', 'Relance 1', 'Relance 2', 'Signé', 'Perdu', 'Archivé']}
+          />
+          <FilterPill
+            value={filterSource}
+            onChange={v => setFilterSource(v as LeadSource | '')}
+            placeholder="Toutes les sources"
+            options={['LinkedIn', 'Email', 'Instagram', 'GMB', 'Referral', 'Site']}
+          />
+          <FilterPill
+            value={filterDate}
+            onChange={setFilterDate}
+            placeholder="Toutes dates"
+            options={[{ value: '7d', label: '7 derniers jours' }, { value: '30d', label: '30 derniers jours' }, { value: 'month', label: 'Ce mois' }]}
+          />
+          <FilterPill
+            value={filterScore}
+            onChange={setFilterScore}
+            placeholder="Tous scores"
+            options={[{ value: '5', label: 'Score > 5' }, { value: '7', label: 'Score > 7' }]}
+          />
+
+          {/* Right side: search + view toggle + export */}
+          <div className="ml-auto flex items-center gap-3">
+            {/* Inline search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher..."
+                className="pl-9 pr-3 py-2 text-sm bg-zinc-800 border-none rounded-full text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500/30 w-48 transition-all"
+              />
+            </div>
+
+            <button
+              onClick={handleExport}
+              className="text-zinc-500 hover:text-zinc-300 p-2 rounded-full hover:bg-white/5 transition-colors"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+
+            {/* View toggle */}
+            <div className="flex gap-1">
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`p-2 rounded-full transition-colors ${viewMode === 'kanban' ? 'bg-fuchsia-500/10 text-fuchsia-400' : 'text-zinc-500 hover:bg-white/5'}`}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-2 rounded-full transition-colors ${viewMode === 'table' ? 'bg-fuchsia-500/10 text-fuchsia-400' : 'text-zinc-500 hover:bg-white/5'}`}
+              >
+                <Table2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Content ── */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="w-8 h-8 rounded-full border-2 border-fuchsia-500 border-t-transparent animate-spin" />

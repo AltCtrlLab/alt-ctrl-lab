@@ -8,7 +8,12 @@ const config: Config = {
     './hooks/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        headline: ['var(--font-manrope)', 'sans-serif'],
+        body: ['var(--font-inter)', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 };
