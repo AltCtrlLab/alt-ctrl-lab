@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface Props {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function ContentFormModal({ onClose, onCreated }: Props) {
+  const trapRef = useFocusTrap(true, onClose);
   const [form, setForm] = useState({
     title: '', type: 'Post LinkedIn', platform: 'LinkedIn', status: 'Idée',
     agent: 'manuel', hook: '', body: '', cta: '', scheduledAt: '', notes: '',
@@ -39,7 +41,7 @@ export function ContentFormModal({ onClose, onCreated }: Props) {
 
   const field = (label: string, key: keyof typeof form, type = 'text') => (
     <div>
-      <label className="text-xs text-zinc-500 mb-1 block">{label}</label>
+      <label className="text-xs text-zinc-400 mb-1 block">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
         className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500" />
     </div>
@@ -47,7 +49,7 @@ export function ContentFormModal({ onClose, onCreated }: Props) {
 
   const select = (label: string, key: keyof typeof form, opts: string[]) => (
     <div>
-      <label className="text-xs text-zinc-500 mb-1 block">{label}</label>
+      <label className="text-xs text-zinc-400 mb-1 block">{label}</label>
       <select value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
         className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none">
         {opts.map(o => <option key={o}>{o}</option>)}
@@ -57,10 +59,10 @@ export function ContentFormModal({ onClose, onCreated }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Nouveau contenu" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-zinc-800 sticky top-0 bg-zinc-900">
           <h2 className="text-sm font-semibold text-zinc-100">Nouveau contenu</h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
           {field('Titre *', 'title')}
@@ -75,7 +77,7 @@ export function ContentFormModal({ onClose, onCreated }: Props) {
           {field('Planifié le', 'scheduledAt', 'datetime-local')}
           {field('Hook', 'hook')}
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Contenu</label>
+            <label className="text-xs text-zinc-400 mb-1 block">Contenu</label>
             <textarea value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} rows={3}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none resize-none" />
           </div>

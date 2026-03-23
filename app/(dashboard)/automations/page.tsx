@@ -56,11 +56,11 @@ export default function AutomationsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <Workflow className="w-5 h-5 text-fuchsia-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Automations</h1>
-          <span className="text-xs text-zinc-600">Abdul Hasib</span>
+          <span className="text-xs text-zinc-400">Abdul Hasib</span>
         </div>
       </header>
 
@@ -69,7 +69,7 @@ export default function AutomationsPage() {
           { label: 'Actives', value: stats.totalActif, icon: Zap, color: 'text-emerald-400' },
           { label: 'Taux succès', value: stats.tauxSucces, suffix: '%', icon: CheckCircle2, color: 'text-cyan-400' },
           { label: 'Exécutions', value: stats.execsMois, icon: Activity, color: 'text-fuchsia-400' },
-          { label: 'En erreur', value: stats.enErreur, icon: AlertTriangle, color: stats.enErreur > 0 ? 'text-rose-400' : 'text-zinc-500', alert: true },
+          { label: 'En erreur', value: stats.enErreur, icon: AlertTriangle, color: stats.enErreur > 0 ? 'text-rose-400' : 'text-zinc-400', alert: true },
         ] : []} columns={4} className="mb-6" />
         <N8nLivePanel />
         <PageToolbar
@@ -80,7 +80,7 @@ export default function AutomationsPage() {
           className="mb-4"
         />
         {loading ? (
-          <div className="text-center py-12 text-zinc-500 text-sm">Chargement...</div>
+          <div className="text-center py-12 text-zinc-400 text-sm">Chargement...</div>
         ) : (
           <AutomationsGrid automations={filtered} onSelect={setSelected} />
         )}

@@ -32,13 +32,13 @@ export function BadgeShowcase({ earnedBadges = [] }: BadgeShowcaseProps) {
                 {isEarned ? (
                   <Award className={`w-5 h-5`} style={{ color: badge.color }} />
                 ) : (
-                  <Lock className="w-4 h-4 text-zinc-600" />
+                  <Lock className="w-4 h-4 text-zinc-400" />
                 )}
               </div>
-              <span className={`text-xs font-medium text-center ${isEarned ? 'text-zinc-200' : 'text-zinc-600'}`}>
+              <span className={`text-xs font-medium text-center ${isEarned ? 'text-zinc-200' : 'text-zinc-400'}`}>
                 {badge.name}
               </span>
-              <span className="text-[10px] text-zinc-600 mt-1 text-center leading-tight">
+              <span className="text-[10px] text-zinc-400 mt-1 text-center leading-tight">
                 {badge.desc}
               </span>
             </div>

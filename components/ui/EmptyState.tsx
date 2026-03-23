@@ -63,7 +63,7 @@ export function EmptyState({ icon: Icon, color, message, submessage, ctaLabel, o
         <Icon className={`w-6 h-6 ${c.iconText}`} />
       </div>
       <p className="text-zinc-400 text-sm mb-1">{message}</p>
-      {submessage && <p className="text-zinc-600 text-xs mb-4">{submessage}</p>}
+      {submessage && <p className="text-zinc-400 text-xs mb-4">{submessage}</p>}
       {ctaLabel && onAction && (
         <button
           onClick={onAction}

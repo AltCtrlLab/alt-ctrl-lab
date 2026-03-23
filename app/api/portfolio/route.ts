@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, createPortfolioItem, updatePortfolioItem, getPortfolioItems, deletePortfolioItem } from '@/lib/db';
 import { validateBody, portfolioCreateSchema, portfolioUpdateSchema } from '@/lib/validation';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
     const v = validateBody(body, portfolioCreateSchema);
     if (!v.success) return v.response;
     const id = await createPortfolioItem(v.data as Parameters<typeof createPortfolioItem>[0]);
+    auditCreate(request, 'portfolio', id, { title: (v.data as Record<string, unknown>).title });
     return NextResponse.json({ success: true, data: { id } });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -57,6 +59,7 @@ export async function PATCH(request: NextRequest) {
     const v = validateBody(body, portfolioUpdateSchema);
     if (!v.success) return v.response;
     await updatePortfolioItem(id, v.data as Partial<import('@/lib/db/schema_portfolio').PortfolioItem>);
+    auditUpdate(request, 'portfolio', id, v.data as Record<string, unknown>);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -71,6 +74,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id')!;
     await deletePortfolioItem(id);
+    auditDelete(request, 'portfolio', id);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

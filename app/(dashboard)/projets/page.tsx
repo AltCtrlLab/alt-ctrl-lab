@@ -118,15 +118,15 @@ export default function ProjetsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       {/* Top bar */}
-      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
+      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-sm font-semibold text-zinc-200">Projets Actifs</h1>
-            <p className="text-[11px] text-zinc-600">Suivi de production, phases & time log</p>
+            <p className="text-[11px] text-zinc-400">Suivi de production, phases & time log</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs text-zinc-500">Sync auto 30s</span>
+            <span className="text-xs text-zinc-400">Sync auto 30s</span>
           </div>
         </div>
       </div>

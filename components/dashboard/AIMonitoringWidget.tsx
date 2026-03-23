@@ -75,7 +75,7 @@ export function AIMonitoringWidget() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5 animate-pulse">
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 animate-pulse">
         <div className="h-4 w-32 bg-zinc-800 rounded mb-4" />
         <div className="grid grid-cols-4 gap-3">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-16 bg-zinc-800/50 rounded-lg" />)}
@@ -90,14 +90,14 @@ export function AIMonitoringWidget() {
         variants={sectionVariants}
         initial="hidden"
         animate="visible"
-        className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5"
+        className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5"
       >
         <div className="flex items-center gap-2 mb-3">
           <Bot className="w-4 h-4 text-fuchsia-400" />
           <h3 className="text-sm font-semibold text-zinc-200">Monitoring IA</h3>
-          <span className="text-[10px] text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full">24h</span>
+          <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">24h</span>
         </div>
-        <p className="text-xs text-zinc-500">Aucune exécution IA dans les dernières 24h.</p>
+        <p className="text-xs text-zinc-400">Aucune exécution IA dans les dernières 24h.</p>
       </motion.div>
     );
   }
@@ -111,17 +111,17 @@ export function AIMonitoringWidget() {
       variants={sectionVariants}
       initial="hidden"
       animate="visible"
-      className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5"
+      className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Bot className="w-4 h-4 text-fuchsia-400" />
           <h3 className="text-sm font-semibold text-zinc-200">Monitoring IA</h3>
-          <span className="text-[10px] text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full">24h</span>
+          <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">24h</span>
         </div>
         {mostActive && (
-          <span className="text-[10px] text-zinc-500">
+          <span className="text-[10px] text-zinc-400">
             Agent le plus actif : <span className="text-fuchsia-400">{mostActive.emoji} {mostActive.name}</span>
           </span>
         )}
@@ -133,30 +133,30 @@ export function AIMonitoringWidget() {
           <Activity className="w-3.5 h-3.5 text-fuchsia-400 flex-shrink-0" />
           <div>
             <p className="text-lg font-bold text-zinc-100">{summary.totalExecutions}</p>
-            <p className="text-[10px] text-zinc-500">Exécutions</p>
+            <p className="text-[10px] text-zinc-400">Exécutions</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
           <div>
             <p className="text-lg font-bold text-zinc-100">{summary.successRate}%</p>
-            <p className="text-[10px] text-zinc-500">Taux de succès</p>
+            <p className="text-[10px] text-zinc-400">Taux de succès</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
           <Clock className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
           <div>
             <p className="text-lg font-bold text-zinc-100">{formatDuration(summary.avgDurationMs)}</p>
-            <p className="text-[10px] text-zinc-500">Durée moy.</p>
+            <p className="text-[10px] text-zinc-400">Durée moy.</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-          <XCircle className={`w-3.5 h-3.5 flex-shrink-0 ${summary.totalFailed > 0 ? 'text-rose-400' : 'text-zinc-600'}`} />
+          <XCircle className={`w-3.5 h-3.5 flex-shrink-0 ${summary.totalFailed > 0 ? 'text-rose-400' : 'text-zinc-400'}`} />
           <div>
             <p className={`text-lg font-bold ${summary.totalFailed > 0 ? 'text-rose-400' : 'text-zinc-100'}`}>
               {summary.totalFailed}
             </p>
-            <p className="text-[10px] text-zinc-500">Échecs</p>
+            <p className="text-[10px] text-zinc-400">Échecs</p>
           </div>
         </div>
       </div>
@@ -164,7 +164,7 @@ export function AIMonitoringWidget() {
       {/* Per-Agent breakdown */}
       {topAgents.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Par agent</p>
+          <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Par agent</p>
           {topAgents.map(agent => {
             const agentDef = getAgent(agent.agentId);
             return (
@@ -177,7 +177,7 @@ export function AIMonitoringWidget() {
                     style={{ width: `${agent.successRate}%` }}
                   />
                 </div>
-                <span className="text-zinc-500 w-8 text-right">{agent.totalExecutions}</span>
+                <span className="text-zinc-400 w-8 text-right">{agent.totalExecutions}</span>
                 <span className={`w-10 text-right ${agent.successRate >= 80 ? 'text-emerald-400' : agent.successRate >= 50 ? 'text-amber-400' : 'text-rose-400'}`}>
                   {agent.successRate}%
                 </span>

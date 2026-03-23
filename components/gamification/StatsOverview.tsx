@@ -54,7 +54,7 @@ export function StatsOverview({
         <Card key={stat.label} variant="default" padding="sm" className="hover:border-zinc-700 transition-colors">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-zinc-500 mb-1">{stat.label}</p>
+              <p className="text-xs text-zinc-400 mb-1">{stat.label}</p>
               <p className="text-xl font-bold text-zinc-100">{stat.value}</p>
             </div>
             <div className={cn('p-2 rounded-lg', stat.bgColor)}>

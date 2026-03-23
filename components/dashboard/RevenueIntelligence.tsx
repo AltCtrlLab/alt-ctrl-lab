@@ -96,7 +96,7 @@ export function RevenueIntelligence() {
           <TrendingUp className="w-4 h-4 text-emerald-400" />
           <span className="text-sm font-semibold text-zinc-100">Revenue Intelligence</span>
         </div>
-        <button onClick={load} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+        <button onClick={load} className="text-zinc-400 hover:text-zinc-300 transition-colors" aria-label="Actualiser">
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
@@ -105,9 +105,9 @@ export function RevenueIntelligence() {
           <div key={i} className="bg-zinc-900/80 p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-xs text-zinc-500 mb-1">{m.label}</p>
+                <p className="text-xs text-zinc-400 mb-1">{m.label}</p>
                 <p className={`text-xl font-bold ${m.color}`}>{m.value}</p>
-                <p className="text-xs text-zinc-600 mt-0.5">{m.sub}</p>
+                <p className="text-xs text-zinc-400 mt-0.5">{m.sub}</p>
               </div>
               <div className={`p-1.5 rounded-lg ${m.bg}`}>
                 <m.icon className={`w-4 h-4 ${m.color}`} />

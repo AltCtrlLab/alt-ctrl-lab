@@ -9,7 +9,7 @@ export default function DashboardNotFound() {
           <Compass className="w-8 h-8 text-fuchsia-400" />
         </div>
         <h2 className="text-lg font-semibold text-zinc-100">Page introuvable</h2>
-        <p className="text-sm text-zinc-500">Cette page n&apos;existe pas ou a ete deplacee.</p>
+        <p className="text-sm text-zinc-400">Cette page n&apos;existe pas ou a ete deplacee.</p>
         <Link
           href="/dashboard"
           className="inline-block px-4 py-2 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400 text-sm hover:bg-fuchsia-500/20 transition-colors"

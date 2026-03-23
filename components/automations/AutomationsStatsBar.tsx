@@ -14,7 +14,7 @@ export function AutomationsStatsBar({ stats }: { stats: AutomationsStats | null 
     { label: 'Actives', value: stats?.totalActif ?? '—', icon: Zap, color: 'text-emerald-400' },
     { label: 'Taux succès', value: stats ? `${stats.tauxSucces}%` : '—', icon: CheckCircle2, color: 'text-cyan-400' },
     { label: 'Exécutions', value: stats?.execsMois ?? '—', icon: Activity, color: 'text-fuchsia-400' },
-    { label: 'En erreur', value: stats?.enErreur ?? '—', icon: AlertTriangle, color: stats && stats.enErreur > 0 ? 'text-rose-400' : 'text-zinc-500' },
+    { label: 'En erreur', value: stats?.enErreur ?? '—', icon: AlertTriangle, color: stats && stats.enErreur > 0 ? 'text-rose-400' : 'text-zinc-400' },
   ];
 
   return (
@@ -24,7 +24,7 @@ export function AutomationsStatsBar({ stats }: { stats: AutomationsStats | null 
           className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">
             <item.icon className={`w-4 h-4 ${item.color}`} />
-            <span className="text-xs text-zinc-500">{item.label}</span>
+            <span className="text-xs text-zinc-400">{item.label}</span>
           </div>
           <p className={`text-2xl font-semibold ${item.color}`}>{item.value}</p>
         </motion.div>

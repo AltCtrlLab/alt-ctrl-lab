@@ -60,13 +60,13 @@ export function LeadsToolbar({
     <div className="flex flex-wrap items-center gap-3">
       {/* Search */}
       <div className="relative flex-1 min-w-[200px] max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
         <input
           type="text"
           value={search}
           onChange={e => onSearchChange(e.target.value)}
           placeholder="Chercher un lead..."
-          className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
+          className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
         />
       </div>
 
@@ -94,14 +94,14 @@ export function LeadsToolbar({
 
       {/* Reset */}
       {hasFilters && (
-        <button onClick={resetAll} className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+        <button onClick={resetAll} className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-300 transition-colors">
           <RotateCcw className="w-3 h-3" />
           Reset
         </button>
       )}
 
       {/* Count */}
-      <span className="text-xs text-zinc-600">{totalLeads} lead{totalLeads !== 1 ? 's' : ''}</span>
+      <span className="text-xs text-zinc-400">{totalLeads} lead{totalLeads !== 1 ? 's' : ''}</span>
 
       <div className="flex-1" />
 
@@ -121,7 +121,7 @@ export function LeadsToolbar({
             key={mode}
             onClick={() => onViewChange(mode)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              viewMode === mode ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'
+              viewMode === mode ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'
             }`}
           >
             {mode === 'kanban' ? <LayoutGrid className="w-3.5 h-3.5" /> : <Table2 className="w-3.5 h-3.5" />}

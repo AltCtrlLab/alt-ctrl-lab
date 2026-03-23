@@ -51,7 +51,7 @@ function StatCard({ label, value, suffix, prefix, icon: Icon, accent, sub, alert
     <div className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 ${
       alert && value > 0
         ? 'bg-rose-500/5 border-rose-500/20'
-        : 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]'
+        : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.05]'
     }`}>
       <div className={`p-2.5 rounded-lg flex-shrink-0 ${accent}`}>
         <Icon className="w-4 h-4" />
@@ -60,8 +60,8 @@ function StatCard({ label, value, suffix, prefix, icon: Icon, accent, sub, alert
         <p className={`text-2xl font-bold ${alert && value > 0 ? 'text-rose-400' : 'text-zinc-100'}`}>
           {prefix}<CountUp value={value} suffix={suffix} />
         </p>
-        <p className="text-xs text-zinc-500 mt-0.5 truncate">{label}</p>
-        {sub && <p className="text-[10px] text-zinc-600 mt-0.5">{sub}</p>}
+        <p className="text-xs text-zinc-400 mt-0.5 truncate">{label}</p>
+        {sub && <p className="text-[10px] text-zinc-400 mt-0.5">{sub}</p>}
       </div>
     </div>
   );
@@ -76,7 +76,7 @@ export function LeadsStatsBar({ stats }: LeadsStatsBarProps) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-20 rounded-xl bg-white/[0.03] border border-white/[0.06] animate-pulse" />
+          <div key={i} className="h-20 rounded-xl bg-white/[0.03] border border-white/[0.08] animate-pulse" />
         ))}
       </div>
     );

@@ -13,7 +13,9 @@ import {
   createFollowup,
 } from '@/lib/db';
 import { validateBody, leadCreateSchema, leadUpdateSchema } from '@/lib/validation';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { notifySlack } from '@/lib/slack';
 
 export async function GET(request: NextRequest) {
   try {
@@ -110,6 +112,10 @@ export async function POST(request: NextRequest) {
       notes: v.data.notes,
     });
 
+    // Audit + Slack
+    auditCreate(request, 'lead', result.id, { name: v.data.name, source: v.data.source, status: v.data.status });
+    notifySlack('new_lead', { Nom: v.data.name, Source: v.data.source ?? 'Direct', Entreprise: v.data.company ?? '-' }).catch(() => {});
+
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -141,6 +147,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     await updateLead(id, updateData);
+    auditUpdate(request, 'lead', id, updateData);
 
     // Auto-chain: Lead → "Signé"
     const autoChainActions: string[] = [];
@@ -199,6 +206,7 @@ export async function DELETE(request: NextRequest) {
     const id = new URL(request.url).searchParams.get('id');
     if (!id) return NextResponse.json({ success: false, error: 'ID requis' }, { status: 400 });
     await deleteLead(id);
+    auditDelete(request, 'lead', id);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

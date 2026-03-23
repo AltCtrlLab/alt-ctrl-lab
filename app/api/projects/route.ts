@@ -11,6 +11,8 @@ import {
 } from '@/lib/db';
 import { validateBody, projectCreateSchema, projectUpdateSchema } from '@/lib/validation';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { notifySlack } from '@/lib/slack';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,6 +82,7 @@ export async function POST(request: NextRequest) {
       teamAgents: body.teamAgents ? JSON.stringify(body.teamAgents) : null,
       leadId: v.data.leadId ?? null,
     });
+    auditCreate(request, 'project', result.id, { clientName: v.data.clientName, type: body.projectType });
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -104,6 +107,7 @@ export async function PATCH(request: NextRequest) {
       validatedData.deadline = new Date(validatedData.deadline as string).getTime();
     }
     await updateProject(id, validatedData);
+    auditUpdate(request, 'project', id, validatedData);
 
     // Auto-chain: Projet → "Livraison"
     const autoChainActions: string[] = [];
@@ -121,6 +125,8 @@ export async function PATCH(request: NextRequest) {
             notes: 'NPS automatique — projet en phase Livraison',
           });
           autoChainActions.push('Follow-up NPS J+3 planifié');
+          // Notify Slack
+          notifySlack('project_delivered', { Client: project.clientName, Type: project.projectType }).catch(() => {});
         }
       } catch (chainErr: any) {
         console.error('Auto-chain project→Livraison error:', chainErr.message);
@@ -141,6 +147,7 @@ export async function DELETE(request: NextRequest) {
     const id = new URL(request.url).searchParams.get('id');
     if (!id) return NextResponse.json({ success: false, error: 'ID requis' }, { status: 400 });
     await deleteProject(id);
+    auditDelete(request, 'project', id);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

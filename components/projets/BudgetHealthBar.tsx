@@ -10,7 +10,7 @@ export function BudgetHealthBar({ hoursActual, hoursEstimated, showLabel = true 
   if (!hoursEstimated || hoursEstimated === 0) {
     return (
       <div className="space-y-1">
-        {showLabel && <div className="flex justify-between text-[10px] text-zinc-600"><span>Heures</span><span>Non estimé</span></div>}
+        {showLabel && <div className="flex justify-between text-[10px] text-zinc-400"><span>Heures</span><span>Non estimé</span></div>}
         <div className="h-1.5 rounded-full bg-zinc-800" />
       </div>
     );
@@ -32,7 +32,7 @@ export function BudgetHealthBar({ hoursActual, hoursEstimated, showLabel = true 
     <div className="space-y-1">
       {showLabel && (
         <div className="flex justify-between text-[10px]">
-          <span className="text-zinc-600">Heures</span>
+          <span className="text-zinc-400">Heures</span>
           <span className={labelColor}>
             {hoursActual}h / {hoursEstimated}h
             {over && <span className="ml-1 font-semibold">({Math.round(pct - 100)}% dépassé)</span>}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { ProjectType } from '@/lib/db/schema_projects';
 
 const TYPES: ProjectType[] = ['Web', 'Branding', 'IA', 'Marketing'];
@@ -21,6 +22,7 @@ interface ProjectFormModalProps {
 }
 
 export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) {
+  const trapRef = useFocusTrap(true, onClose);
   const [form, setForm] = useState({
     clientName: '',
     projectType: 'Web' as ProjectType,
@@ -74,7 +76,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
     }
   };
 
-  const inputCls = "w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
+  const inputCls = "w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
 
   return (
     <AnimatePresence>
@@ -86,6 +88,11 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
         onClick={e => e.target === e.currentTarget && onClose()}
       >
         <motion.div
+          ref={trapRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Nouveau projet"
+          tabIndex={-1}
           initial={{ opacity: 0, scale: 0.96, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -94,7 +101,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 sticky top-0 bg-zinc-950/95 backdrop-blur-sm">
             <h2 className="text-base font-semibold text-zinc-100">Nouveau projet</h2>
-            <button onClick={onClose} className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-200 transition-all">
+            <button onClick={onClose} aria-label="Fermer" className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition-all">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -102,32 +109,32 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Client & Type */}
             <div className="space-y-3">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Projet</p>
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Projet</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="text-xs text-zinc-500 mb-1 block">Client *</label>
+                  <label className="text-xs text-zinc-400 mb-1 block">Client *</label>
                   <input className={inputCls} placeholder="Nom du client" value={form.clientName} onChange={e => set('clientName', e.target.value)} required />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 mb-1 block">Type de prestation</label>
+                  <label className="text-xs text-zinc-400 mb-1 block">Type de prestation</label>
                   <select className={inputCls} value={form.projectType} onChange={e => set('projectType', e.target.value)}>
                     {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 mb-1 block">Budget (€)</label>
+                  <label className="text-xs text-zinc-400 mb-1 block">Budget (€)</label>
                   <input type="number" className={inputCls} placeholder="ex: 8000" value={form.budget} onChange={e => set('budget', e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 mb-1 block">Heures estimées</label>
+                  <label className="text-xs text-zinc-400 mb-1 block">Heures estimées</label>
                   <input type="number" step="0.5" className={inputCls} placeholder="ex: 40" value={form.hoursEstimated} onChange={e => set('hoursEstimated', e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 mb-1 block">Date début</label>
+                  <label className="text-xs text-zinc-400 mb-1 block">Date début</label>
                   <input type="date" className={inputCls} value={form.startDate} onChange={e => set('startDate', e.target.value)} />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-xs text-zinc-500 mb-1 block">Deadline livraison</label>
+                  <label className="text-xs text-zinc-400 mb-1 block">Deadline livraison</label>
                   <input type="date" className={inputCls} value={form.deadline} onChange={e => set('deadline', e.target.value)} />
                 </div>
               </div>
@@ -135,7 +142,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
 
             {/* Team agents */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Équipe agents</p>
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Équipe agents</p>
               <div className="flex flex-wrap gap-2">
                 {AGENTS.map(a => (
                   <button
@@ -145,7 +152,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
                       form.teamAgents.includes(a.id)
                         ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300'
-                        : 'bg-zinc-900 border-zinc-700 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
+                        : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                   >
                     {a.label}
@@ -156,7 +163,7 @@ export function ProjectFormModal({ onClose, onCreated }: ProjectFormModalProps) 
 
             {/* Notes */}
             <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Notes</label>
+              <label className="text-xs text-zinc-400 mb-1 block">Notes</label>
               <textarea
                 className={`${inputCls} resize-none`}
                 rows={2}

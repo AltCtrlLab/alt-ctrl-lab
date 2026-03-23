@@ -85,7 +85,7 @@ export function SearchPill() {
     ? 'bg-white/[0.05] border-white/[0.1] shadow-black/40'
     : 'bg-white/80 border-white/60 shadow-neutral-200/50';
   const textMain = isDark ? 'text-zinc-100' : 'text-zinc-800';
-  const textMuted = isDark ? 'text-zinc-500' : 'text-zinc-400';
+  const textMuted = isDark ? 'text-zinc-400' : 'text-zinc-400';
   const dropGlass = isDark
     ? 'bg-zinc-900/95 border-white/[0.1]'
     : 'bg-white/95 border-zinc-200';
@@ -169,7 +169,7 @@ export function SearchPill() {
           className={`flex-1 bg-transparent outline-none text-sm ${textMain} placeholder:${textMuted}`}
         />
         <kbd className={`hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono ${
-          isDark ? 'bg-white/[0.06] text-zinc-500' : 'bg-zinc-100 text-zinc-400'
+          isDark ? 'bg-white/[0.06] text-zinc-400' : 'bg-zinc-100 text-zinc-400'
         }`}>
           Ctrl+K
         </kbd>

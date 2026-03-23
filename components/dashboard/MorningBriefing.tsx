@@ -58,6 +58,7 @@ export function MorningBriefing() {
     <div className="rounded-xl border border-fuchsia-500/15 bg-fuchsia-950/10">
       <button
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
         className="w-full flex items-center justify-between px-4 py-3"
       >
         <div className="flex items-center gap-2">
@@ -72,11 +73,11 @@ export function MorningBriefing() {
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); load(); }}
-            className="text-zinc-600 hover:text-zinc-400 transition-colors"
+            className="text-zinc-400 hover:text-zinc-400 transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
-          {expanded ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
+          {expanded ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
         </div>
       </button>
 

@@ -22,7 +22,7 @@ export function PortfolioStatsBar({ stats }: { stats: PortfolioStats | null }) {
           className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">
             <item.icon className={`w-4 h-4 ${item.color}`} />
-            <span className="text-xs text-zinc-500">{item.label}</span>
+            <span className="text-xs text-zinc-400">{item.label}</span>
           </div>
           <p className={`text-lg font-semibold ${item.color} truncate`}>{item.value}</p>
         </motion.div>

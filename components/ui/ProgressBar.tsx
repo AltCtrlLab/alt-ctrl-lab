@@ -43,7 +43,7 @@ export function ProgressBar({
         <div className="flex justify-between items-center mb-1.5">
           {label && <span className="text-xs font-medium text-zinc-400">{label}</span>}
           {showValue && (
-            <span className="text-xs font-mono text-zinc-500">
+            <span className="text-xs font-mono text-zinc-400">
               {value} / {max}
             </span>
           )}

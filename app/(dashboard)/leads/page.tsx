@@ -89,6 +89,8 @@ export default function LeadsPage() {
 
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
+      // Hide archived leads unless explicitly filtered
+      if (!filterStatus && l.status === 'Archivé') return false;
       if (filterStatus && l.status !== filterStatus) return false;
       if (filterSource && l.source !== filterSource) return false;
       if (filterDate) {
@@ -174,15 +176,15 @@ export default function LeadsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       {/* Top bar */}
-      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
+      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
         <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-sm font-semibold text-zinc-200">Leads Pipeline</h1>
-            <p className="text-[11px] text-zinc-600">Playbook Commercial — Lead → Client</p>
+            <p className="text-[11px] text-zinc-400">Playbook Commercial — Lead → Client</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs text-zinc-500">Sync auto 30s</span>
+            <span className="text-xs text-zinc-400">Sync auto 30s</span>
           </div>
         </div>
       </div>
@@ -204,7 +206,7 @@ export default function LeadsPage() {
           <PageToolbar
             search={{ value: search, onChange: setSearch, placeholder: 'Chercher un lead...' }}
             filters={[
-              { type: 'select', value: filterStatus, onChange: v => setFilterStatus(v as LeadStatus | ''), placeholder: 'Tous les statuts', options: ['Nouveau', 'Qualifié', 'À creuser', 'Discovery fait', 'Proposition envoyée', 'Relance 1', 'Relance 2', 'Signé', 'Perdu'] },
+              { type: 'select', value: filterStatus, onChange: v => setFilterStatus(v as LeadStatus | ''), placeholder: 'Tous les statuts', options: ['Nouveau', 'Qualifié', 'À creuser', 'Discovery fait', 'Proposition envoyée', 'Relance 1', 'Relance 2', 'Signé', 'Perdu', 'Archivé'] },
               { type: 'select', value: filterSource, onChange: v => setFilterSource(v as LeadSource | ''), placeholder: 'Toutes les sources', options: ['LinkedIn', 'Email', 'Instagram', 'GMB', 'Referral', 'Site'] },
               { type: 'select', value: filterDate, onChange: setFilterDate, placeholder: 'Toutes dates', options: [{ value: '7d', label: '7 derniers jours' }, { value: '30d', label: '30 derniers jours' }, { value: 'month', label: 'Ce mois' }] },
               { type: 'select', value: filterScore, onChange: setFilterScore, placeholder: 'Tous scores', options: [{ value: '5', label: 'Score > 5' }, { value: '7', label: 'Score > 7' }] },
@@ -278,7 +280,7 @@ export default function LeadsPage() {
           </button>
           <button
             onClick={() => setSelectedIds(new Set())}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
           >
             Annuler
           </button>

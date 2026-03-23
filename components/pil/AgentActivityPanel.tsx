@@ -52,7 +52,7 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
   };
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-4" role="region" aria-label="Activité des agents">
       {/* Header avec Stats */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -65,10 +65,14 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
             {agentId ? `Activité: ${agentId}` : 'Activité Globale'}
           </h2>
           
-          <div className="flex gap-2">
+          <div role="tablist" className="flex gap-2">
             {(['1h', '24h', '7d', '30d'] as const).map((tf) => (
               <button
                 key={tf}
+                id={`tab-activity-${tf}`}
+                role="tab"
+                aria-selected={timeframe === tf}
+                aria-controls="panel-activity"
                 onClick={() => setTimeframe(tf)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                   timeframe === tf
@@ -83,7 +87,7 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
         </div>
 
         {metrics && (
-          <div className="grid grid-cols-4 gap-4">
+          <div id="panel-activity" role="tabpanel" aria-labelledby={`tab-activity-${timeframe}`} className="grid grid-cols-4 gap-4">
             <StatCard
               label="Tâches"
               value={metrics.totalTasks}
@@ -140,6 +144,7 @@ export const AgentActivityPanel: React.FC<AgentActivityPanelProps> = ({ isDark, 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.05 }}
+                  aria-expanded={isExpanded}
                   className={`p-4 border-b ${t.borderLight} cursor-pointer transition-colors ${
                     isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-white/40'
                   }`}

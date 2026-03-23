@@ -23,7 +23,7 @@ export function Header({ userXP, userStreak, notifications = 0, userName = 'Comm
             </div>
             <div>
               <h1 className="text-lg font-bold text-white tracking-tight">Alt Ctrl Lab</h1>
-              <p className="text-xs text-zinc-500">Cockpit d'Orkestration</p>
+              <p className="text-xs text-zinc-400">Cockpit d'Orkestration</p>
             </div>
           </div>
         </div>
@@ -33,7 +33,7 @@ export function Header({ userXP, userStreak, notifications = 0, userName = 'Comm
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-500" />
             <span className="text-zinc-100 font-medium">{userXP.toLocaleString('en-US')}</span>
-            <span className="text-zinc-500 text-xs">XP</span>
+            <span className="text-zinc-400 text-xs">XP</span>
           </div>
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4 text-zinc-400" />

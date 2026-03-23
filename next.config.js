@@ -15,6 +15,8 @@ const nextConfig = {
       'puppeteer-extra-plugin',
       'clone-deep',
       'merge-deep',
+      'stripe',
+      '@react-pdf/renderer',
     ],
   },
   images: {

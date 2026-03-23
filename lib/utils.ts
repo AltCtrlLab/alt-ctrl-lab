@@ -15,8 +15,8 @@ export function formatDate(date: string | Date): string {
   }).format(d)
 }
 
-export function formatRelativeTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+export function formatRelativeTime(date: string | number | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : typeof date === 'number' ? new Date(date) : date
   const now = new Date()
   const diff = now.getTime() - d.getTime()
   const minutes = Math.floor(diff / 60000)

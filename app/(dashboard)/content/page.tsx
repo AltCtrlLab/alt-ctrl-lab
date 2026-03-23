@@ -106,7 +106,7 @@ export default function ContentPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <CalendarDays className="w-5 h-5 text-fuchsia-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Content Calendar</h1>
@@ -166,10 +166,10 @@ export default function ContentPage() {
                         className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 accent-fuchsia-500 cursor-pointer"
                       />
                     </th>
-                    <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Titre</th>
-                    <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Plateforme</th>
-                    <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Statut</th>
-                    <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Date</th>
+                    <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">Titre</th>
+                    <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">Plateforme</th>
+                    <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">Statut</th>
+                    <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/60">
@@ -194,15 +194,15 @@ export default function ContentPage() {
                           onClick={() => setSelected(item)}
                         >
                           <p className="text-zinc-200 font-medium truncate max-w-xs">{item.title}</p>
-                          {item.body && <p className="text-[11px] text-zinc-600 truncate max-w-xs">{item.body.slice(0, 60)}</p>}
+                          {item.body && <p className="text-[11px] text-zinc-400 truncate max-w-xs">{item.body.slice(0, 60)}</p>}
                         </td>
-                        <td className="px-4 py-3 text-xs text-zinc-500">{item.platform || '—'}</td>
+                        <td className="px-4 py-3 text-xs text-zinc-400">{item.platform || '—'}</td>
                         <td className="px-4 py-3">
                           <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${meta.bg} ${meta.color}`}>
                             {item.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-zinc-500">
+                        <td className="px-4 py-3 text-xs text-zinc-400">
                           {item.scheduledAt ? new Date(item.scheduledAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—'}
                         </td>
                       </tr>
@@ -246,7 +246,7 @@ export default function ContentPage() {
           </button>
           <button
             onClick={() => setSelectedIds(new Set())}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
           >
             Annuler
           </button>

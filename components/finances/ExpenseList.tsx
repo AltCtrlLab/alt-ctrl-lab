@@ -43,7 +43,7 @@ export function ExpenseList({ expenses }: Props) {
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-zinc-500 text-xs">
+            <tr className="border-b border-zinc-800 text-zinc-400 text-xs">
               <th className="text-left px-4 py-3">Libellé</th>
               <th className="text-left px-4 py-3">Catégorie</th>
               <th className="text-left px-4 py-3">Montant</th>
@@ -66,7 +66,7 @@ export function ExpenseList({ expenses }: Props) {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-zinc-100 font-medium">{fmt(exp.amount)}</td>
-                <td className="px-4 py-3 text-zinc-500">{fmtDate(exp.date)}</td>
+                <td className="px-4 py-3 text-zinc-400">{fmtDate(exp.date)}</td>
               </motion.tr>
             ))}
           </tbody>

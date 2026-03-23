@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden px-2">
         {sections.map((section, sIdx) => (
           <div key={section.title}>
-            {sIdx > 0 && <div className={`mx-2 my-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-neutral-200'}`} />}
+            {sIdx > 0 && <div className={`mx-2 my-2 border-t ${isDark ? 'border-white/[0.08]' : 'border-neutral-200'}`} />}
             {isExpanded && (
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`px-3 py-1 text-[10px] uppercase tracking-widest font-medium ${textMuted}`}>
                 {section.title}
@@ -207,7 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom */}
       <div className={`flex flex-col gap-2 pt-2 ${isExpanded ? 'px-3' : 'items-center'}`}>
-        <div className={`mx-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-neutral-200'} mb-1`} />
+        <div className={`mx-2 border-t ${isDark ? 'border-white/[0.08]' : 'border-neutral-200'} mb-1`} />
         {!isExpanded && (
           <button onClick={() => { setIsExpanded(true); setStoredSidebarExpanded(true); }} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-neutral-500' : 'hover:bg-neutral-200 text-neutral-400'} transition-colors`}>
             <ChevronRight size={16} />

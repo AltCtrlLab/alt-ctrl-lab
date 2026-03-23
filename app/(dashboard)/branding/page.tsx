@@ -149,7 +149,7 @@ export default function BrandingPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06] px-6 py-4">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08] px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-xl flex items-center justify-center">
@@ -157,10 +157,10 @@ export default function BrandingPage() {
             </div>
             <div>
               <h1 className="text-base font-semibold text-zinc-100">Abdul Musawwir</h1>
-              <p className="text-xs text-zinc-500">Direction artistique &amp; branding</p>
+              <p className="text-xs text-zinc-400">Direction artistique &amp; branding</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
             {connected ? (
               <><Wifi className="w-3.5 h-3.5 text-emerald-400" /><span className="text-emerald-400">Connecté</span></>
             ) : (
@@ -219,7 +219,7 @@ export default function BrandingPage() {
           <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">En cours ({activeTasks.length})</p>
           {loading ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="w-5 h-5 animate-spin text-zinc-600" />
+              <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
             </div>
           ) : activeTasks.length === 0 ? (
             <EmptyState
@@ -237,13 +237,13 @@ export default function BrandingPage() {
                       <Loader2 className="w-4 h-4 animate-spin text-cyan-400 flex-shrink-0" />
                       <span className="text-sm font-medium text-cyan-300">{STAGE_LABELS[task.status] ?? task.status}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-zinc-500 flex-shrink-0">
+                    <div className="flex items-center gap-1 text-xs text-zinc-400 flex-shrink-0">
                       <Clock className="w-3 h-3" />
                       {formatElapsed(task.createdAt)}
                     </div>
                   </div>
-                  <p className="text-xs text-zinc-500 pl-6">{extractBrief(task.prompt)}…</p>
-                  <p className="text-xs text-zinc-600 pl-6">Agent: {task.agentName} · Itération {task.iteration}</p>
+                  <p className="text-xs text-zinc-400 pl-6">{extractBrief(task.prompt)}…</p>
+                  <p className="text-xs text-zinc-400 pl-6">Agent: {task.agentName} · Itération {task.iteration}</p>
                 </div>
               ))}
             </div>
@@ -279,16 +279,16 @@ export default function BrandingPage() {
                           {STAGE_LABELS[task.status] ?? task.status}
                         </span>
                       </div>
-                      <span className="text-xs text-zinc-600">
+                      <span className="text-xs text-zinc-400">
                         {new Date(task.updatedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-500">{extractBrief(task.prompt)}…</p>
+                    <p className="text-xs text-zinc-400">{extractBrief(task.prompt)}…</p>
 
                     {(task.result || task.error) && (
                       <button
                         onClick={() => toggleResult(task.id)}
-                        className="text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors"
+                        className="text-xs text-zinc-400 hover:text-zinc-300 underline underline-offset-2 transition-colors"
                       >
                         {isExpanded ? 'Masquer le résultat' : 'Voir le résultat'}
                       </button>

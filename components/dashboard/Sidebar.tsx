@@ -95,6 +95,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
 
   return (
     <nav
+      aria-label="Navigation principale"
       style={{ opacity: mounted ? 1 : 0, width: 224 }}
       className={`my-4 ml-4 hidden md:flex flex-col py-4 shrink-0 backdrop-blur-xl rounded-3xl shadow-2xl border overflow-hidden z-10 transition-opacity duration-200 ${glass}`}
     >
@@ -150,6 +151,7 @@ export function Sidebar({ pendingCounts = {} }: SidebarProps) {
           <div className={`mx-2 my-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-neutral-200'}`} />
           <button
             onClick={() => setTeamAiOpen(o => !o)}
+            aria-expanded={teamAiOpen}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl justify-between transition-all duration-200 ${navHover}`}
           >
             <p className={`text-[10px] uppercase tracking-widest font-medium ${textMuted}`}>

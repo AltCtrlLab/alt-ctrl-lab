@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, createFollowup, updateFollowup, getFollowups, deleteFollowup } from '@/lib/db';
 import { validateBody, followupCreateSchema, followupUpdateSchema } from '@/lib/validation';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
     const v = validateBody(body, followupCreateSchema);
     if (!v.success) return v.response;
     const id = await createFollowup(v.data as Parameters<typeof createFollowup>[0]);
+    auditCreate(request, 'followup', id, { type: (v.data as Record<string, unknown>).type, clientName: (v.data as Record<string, unknown>).clientName });
     return NextResponse.json({ success: true, data: { id } });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -62,6 +64,7 @@ export async function PATCH(request: NextRequest) {
     const v = validateBody(body, followupUpdateSchema);
     if (!v.success) return v.response;
     await updateFollowup(id, v.data as Partial<import('@/lib/db/schema_postvente').Followup>);
+    auditUpdate(request, 'followup', id, v.data as Record<string, unknown>);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -76,6 +79,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id')!;
     await deleteFollowup(id);
+    auditDelete(request, 'followup', id);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

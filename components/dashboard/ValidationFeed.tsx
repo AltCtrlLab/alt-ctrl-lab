@@ -26,10 +26,10 @@ export function ValidationFeed({
       <Card className="bg-zinc-900 border-zinc-800">
         <div className="p-8 text-center">
           <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-zinc-800 flex items-center justify-center">
-            <Check className="w-6 h-6 text-zinc-500" />
+            <Check className="w-6 h-6 text-zinc-400" />
           </div>
           <p className="text-sm text-zinc-400">Aucune tâche en attente de validation</p>
-          <p className="text-xs text-zinc-600 mt-1">Les livrables apparaîtront ici</p>
+          <p className="text-xs text-zinc-400 mt-1">Les livrables apparaîtront ici</p>
         </div>
       </Card>
     );
@@ -57,11 +57,11 @@ export function ValidationFeed({
                 <div>
                   <h4 className="text-sm font-medium text-zinc-100">{task.title}</h4>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-zinc-400">
                       Agent: {task.agentType}
                     </span>
                     <span className="w-1 h-1 bg-zinc-700 rounded-full" />
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-zinc-400">
                       Playbook: {task.playbook || 'default'}
                     </span>
                   </div>

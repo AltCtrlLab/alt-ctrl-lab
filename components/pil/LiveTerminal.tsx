@@ -34,7 +34,7 @@ export function LiveTerminal() {
   return (
     <div className="rounded-2xl border bg-black/80 border-white/[0.08] overflow-hidden flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.02]">
         <div className="flex items-center gap-2">
           <Terminal size={16} className="text-emerald-400" />
           <span className="text-sm font-medium text-white/80">Terminal en Direct</span>

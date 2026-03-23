@@ -13,7 +13,7 @@ export function AutomationsToolbar({ filterStatus, onFilterStatus, onCreate }: P
       <div className="flex items-center gap-2">
         {['', 'Actif', 'Inactif', 'Erreur'].map(s => (
           <button key={s} onClick={() => onFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${filterStatus === s ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${filterStatus === s ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:text-zinc-300'}`}>
             {s === '' ? 'Tous' : s}
           </button>
         ))}

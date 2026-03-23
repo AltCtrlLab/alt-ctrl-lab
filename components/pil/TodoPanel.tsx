@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle2, Circle, Plus, Trash2, Calendar, 
+import {
+  CheckCircle2, Circle, Plus, Trash2, Calendar,
   Clock, AlertCircle, User, X, ChevronRight,
   Repeat
 } from 'lucide-react';
 import { useTodos, TodoView, TodoPriority } from '@/hooks/useTodos';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface TodoPanelProps {
   isDark: boolean;
@@ -48,6 +49,7 @@ export const TodoPanel: React.FC<TodoPanelProps> = ({ isDark }) => {
   const t = getTheme(isDark);
   const { todos, stats, view, setView, loading, createTodo, toggleComplete, deleteTodo } = useTodos('today');
   const [showAddModal, setShowAddModal] = useState(false);
+  const addModalTrapRef = useFocusTrap(showAddModal, () => setShowAddModal(false));
   const [newTodo, setNewTodo] = useState({
     title: '',
     description: '',
@@ -72,7 +74,7 @@ export const TodoPanel: React.FC<TodoPanelProps> = ({ isDark }) => {
   const tabs: TodoView[] = ['today', 'week', 'month'];
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-4" role="region" aria-label="Liste de tâches">
       {/* Header avec onglets */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -101,16 +103,20 @@ export const TodoPanel: React.FC<TodoPanelProps> = ({ isDark }) => {
         </div>
 
         {/* Onglets */}
-        <div className={`flex gap-2 p-1 rounded-xl ${isDark ? 'bg-white/5' : 'bg-white/50'}`}>
+        <div role="tablist" className={`flex gap-2 p-1 rounded-xl ${isDark ? 'bg-white/5' : 'bg-white/50'}`}>
           {tabs.map((tab) => {
             const config = viewLabels[tab];
             const Icon = config.icon;
             const isActive = view === tab;
             const count = stats?.[tab] || 0;
-            
+
             return (
               <button
                 key={tab}
+                id={`tab-todo-${tab}`}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls="panel-todo"
                 onClick={() => setView(tab)}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   isActive
@@ -154,7 +160,7 @@ export const TodoPanel: React.FC<TodoPanelProps> = ({ isDark }) => {
       </motion.div>
 
       {/* Liste des todos */}
-      <div className={`flex-1 ${t.glass} backdrop-blur-xl rounded-2xl border overflow-hidden flex flex-col`}>
+      <div id="panel-todo" role="tabpanel" aria-labelledby={`tab-todo-${view}`} className={`flex-1 ${t.glass} backdrop-blur-xl rounded-2xl border overflow-hidden flex flex-col`}>
         <div className="flex-1 overflow-y-auto p-4">
           <AnimatePresence mode="popLayout">
             {todos.length === 0 && !loading && (
@@ -266,6 +272,11 @@ export const TodoPanel: React.FC<TodoPanelProps> = ({ isDark }) => {
             onClick={() => setShowAddModal(false)}
           >
             <motion.div
+              ref={addModalTrapRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Nouvelle tâche"
+              tabIndex={-1}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -274,7 +285,7 @@ export const TodoPanel: React.FC<TodoPanelProps> = ({ isDark }) => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`text-lg font-semibold ${t.textHeading}`}>Nouvelle tâche</h3>
-                <button onClick={() => setShowAddModal(false)} className={t.textMuted}>
+                <button onClick={() => setShowAddModal(false)} aria-label="Fermer" className={t.textMuted}>
                   <X size={20} />
                 </button>
               </div>

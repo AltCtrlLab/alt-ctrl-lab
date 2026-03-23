@@ -44,7 +44,7 @@ export function XPBar({ currentXP, streak = 0 }: XPBarProps) {
           </div>
           <div>
             <h4 className="text-sm font-semibold text-zinc-100">{currentLevelData.title}</h4>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-zinc-400">
               {nextLevel ? `Prochain: ${nextLevel.title}` : 'Niveau Max'}
             </p>
           </div>
@@ -54,7 +54,7 @@ export function XPBar({ currentXP, streak = 0 }: XPBarProps) {
           <div className="flex items-center gap-1 text-amber-400">
             <Zap className="w-4 h-4" />
             <span className="text-lg font-bold font-mono">{currentXP.toLocaleString('en-US')}</span>
-            <span className="text-xs text-zinc-500">XP</span>
+            <span className="text-xs text-zinc-400">XP</span>
           </div>
           {streak > 0 && (
             <div className="flex items-center justify-end gap-1 text-rose-400 text-xs mt-1">
@@ -74,7 +74,7 @@ export function XPBar({ currentXP, streak = 0 }: XPBarProps) {
       </div>
       
       {nextLevel && (
-        <p className="text-xs text-zinc-500 mt-2 text-center">
+        <p className="text-xs text-zinc-400 mt-2 text-center">
           Encore <span className="text-amber-400 font-medium">{nextLevel.xpRequired - currentXP}</span> XP pour niveau {currentLevel + 2}
         </p>
       )}

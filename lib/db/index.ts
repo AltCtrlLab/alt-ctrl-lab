@@ -1340,7 +1340,8 @@ export function logUserEvent(eventType: string, metadata?: Record<string, unknow
 import crypto from 'crypto';
 
 function hashToken(rawToken: string): string {
-  return crypto.createHash('sha256').update(rawToken).digest('hex');
+  const secret = process.env.AUTH_SECRET || process.env.PORTAL_TOKEN_SECRET || 'altctrl-portal-default-secret';
+  return crypto.createHmac('sha256', secret).update(rawToken).digest('hex');
 }
 
 export function createPortalToken(projectId: string, label?: string, expiresInDays: number = 90): { id: string; rawToken: string } {
@@ -1455,6 +1456,23 @@ export function getClientReportsForProject(projectId: string): ClientReport[] {
   }));
 }
 
+export function getClientReportById(reportId: string): ClientReport | null {
+  const rawDb = (getDb() as any).$client;
+  const r = rawDb.prepare(`
+    SELECT id, project_id, period, html_content, pdf_path, generated_at
+    FROM client_reports WHERE id = ?
+  `).get(reportId) as Record<string, unknown> | undefined;
+  if (!r) return null;
+  return {
+    id: r.id as string,
+    projectId: r.project_id as string,
+    period: r.period as string,
+    htmlContent: r.html_content as string | null,
+    pdfPath: r.pdf_path as string | null,
+    generatedAt: r.generated_at as number,
+  };
+}
+
 // ============================================================
 // INVOICES — extra helpers
 // ============================================================
@@ -1521,4 +1539,163 @@ export function findInvoiceByStripeIntent(stripePaymentIntentId: string): Invoic
     createdAt: r.created_at as number,
     updatedAt: r.updated_at as number,
   };
+}
+
+// ============================================================
+// NOTIFICATIONS (Sprint 6)
+// ============================================================
+
+export interface NotificationRecord {
+  id: string;
+  type: string;
+  severity: string;
+  title: string;
+  message: string | null;
+  entityType: string | null;
+  entityId: string | null;
+  isRead: boolean;
+  createdAt: number;
+}
+
+export function createNotification(data: {
+  type: string;
+  severity: string;
+  title: string;
+  message?: string;
+  entityType?: string;
+  entityId?: string;
+}): string {
+  const rawDb = (getDb() as any).$client;
+  const id = `notif_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  rawDb.prepare(`
+    INSERT INTO notifications (id, type, severity, title, message, entity_type, entity_id, is_read, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)
+  `).run(id, data.type, data.severity, data.title, data.message ?? null, data.entityType ?? null, data.entityId ?? null, Date.now());
+  return id;
+}
+
+export function getNotifications(filters?: {
+  unreadOnly?: boolean;
+  type?: string;
+  limit?: number;
+}): NotificationRecord[] {
+  const rawDb = (getDb() as any).$client;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (filters?.unreadOnly) {
+    conditions.push('is_read = 0');
+  }
+  if (filters?.type) {
+    conditions.push('type = ?');
+    params.push(filters.type);
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const limit = filters?.limit ?? 50;
+
+  const rows = rawDb.prepare(`
+    SELECT * FROM notifications ${whereClause} ORDER BY created_at DESC LIMIT ?
+  `).all(...params, limit) as Array<Record<string, unknown>>;
+
+  return rows.map(r => ({
+    id: r.id as string,
+    type: r.type as string,
+    severity: r.severity as string,
+    title: r.title as string,
+    message: r.message as string | null,
+    entityType: r.entity_type as string | null,
+    entityId: r.entity_id as string | null,
+    isRead: r.is_read === 1,
+    createdAt: r.created_at as number,
+  }));
+}
+
+export function markNotificationRead(id: string): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(`UPDATE notifications SET is_read = 1 WHERE id = ?`).run(id);
+}
+
+export function markAllNotificationsRead(): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(`UPDATE notifications SET is_read = 1 WHERE is_read = 0`).run();
+}
+
+export function getUnreadNotificationCount(): number {
+  const rawDb = (getDb() as any).$client;
+  const row = rawDb.prepare(`SELECT COUNT(*) as count FROM notifications WHERE is_read = 0`).get() as { count: number };
+  return row.count;
+}
+
+// ============================================================
+// AUDIT TRAIL (Sprint 6)
+// ============================================================
+
+export interface AuditRecord {
+  id: string;
+  userId: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  changesJson: string | null;
+  ip: string | null;
+  createdAt: number;
+}
+
+export function logAudit(data: {
+  action: string;
+  entityType: string;
+  entityId: string;
+  changesJson?: string;
+  ip?: string;
+}): string {
+  const rawDb = (getDb() as any).$client;
+  const id = `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  rawDb.prepare(`
+    INSERT INTO audit_trail (id, user_id, action, entity_type, entity_id, changes_json, ip, created_at)
+    VALUES (?, 'system', ?, ?, ?, ?, ?, ?)
+  `).run(id, data.action, data.entityType, data.entityId, data.changesJson ?? null, data.ip ?? null, Date.now());
+  return id;
+}
+
+export function getAuditTrail(filters?: {
+  entityType?: string;
+  entityId?: string;
+  action?: string;
+  limit?: number;
+}): AuditRecord[] {
+  const rawDb = (getDb() as any).$client;
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+
+  if (filters?.entityType) {
+    conditions.push('entity_type = ?');
+    params.push(filters.entityType);
+  }
+  if (filters?.entityId) {
+    conditions.push('entity_id = ?');
+    params.push(filters.entityId);
+  }
+  if (filters?.action) {
+    conditions.push('action = ?');
+    params.push(filters.action);
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const limit = filters?.limit ?? 50;
+
+  const rows = rawDb.prepare(`
+    SELECT * FROM audit_trail ${whereClause} ORDER BY created_at DESC LIMIT ?
+  `).all(...params, limit) as Array<Record<string, unknown>>;
+
+  return rows.map(r => ({
+    id: r.id as string,
+    userId: r.user_id as string,
+    action: r.action as string,
+    entityType: r.entity_type as string,
+    entityId: r.entity_id as string,
+    changesJson: r.changes_json as string | null,
+    ip: r.ip as string | null,
+    createdAt: r.created_at as number,
+  }));
 }

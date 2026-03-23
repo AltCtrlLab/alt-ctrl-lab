@@ -33,7 +33,7 @@ export function SettingsPanel({ isDark, accentColor, setAccentColor, isConnected
   const textM = isDark ? 'text-neutral-400' : 'text-neutral-500';
 
   return (
-    <div className="h-full overflow-y-auto p-1">
+    <div className="h-full overflow-y-auto p-1" role="region" aria-label="Paramètres PIL">
       <h1 className={`text-2xl font-bold mb-6 ${textH}`}>Réglages</h1>
 
       <div className="space-y-6 max-w-2xl">

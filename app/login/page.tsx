@@ -98,7 +98,7 @@ function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username */}
             <div className="relative">
-              <User className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-zinc-600' : 'text-zinc-400'}`} />
+              <User className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-zinc-400' : 'text-zinc-400'}`} />
               <input
                 type="text"
                 placeholder="Identifiant"
@@ -113,7 +113,7 @@ function LoginForm() {
 
             {/* Password */}
             <div className="relative">
-              <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-zinc-600' : 'text-zinc-400'}`} />
+              <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-zinc-400' : 'text-zinc-400'}`} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Mot de passe"
@@ -126,7 +126,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(v => !v)}
-                className={`absolute right-3.5 top-1/2 -translate-y-1/2 ${isDark ? 'text-zinc-600 hover:text-zinc-400' : 'text-zinc-400 hover:text-zinc-600'} transition-colors`}
+                className={`absolute right-3.5 top-1/2 -translate-y-1/2 ${isDark ? 'text-zinc-400 hover:text-zinc-300' : 'text-zinc-400 hover:text-zinc-600'} transition-colors`}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -142,7 +142,7 @@ function LoginForm() {
 
             {/* Too many attempts warning */}
             {attempts >= 3 && !error && (
-              <p className={`text-xs text-center ${isDark ? 'text-zinc-600' : 'text-zinc-400'}`}>
+              <p className={`text-xs text-center ${isDark ? 'text-zinc-400' : 'text-zinc-400'}`}>
                 Encore {5 - attempts} tentative{5 - attempts > 1 ? 's' : ''} avant blocage temporaire.
               </p>
             )}

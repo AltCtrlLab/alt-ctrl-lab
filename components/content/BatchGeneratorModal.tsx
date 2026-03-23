@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface BatchGeneratorModalProps {
   onClose: () => void;
@@ -12,6 +13,7 @@ interface BatchGeneratorModalProps {
 const PLATFORMS = ['LinkedIn', 'Instagram', 'Twitter', 'Blog'];
 
 export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalProps) {
+  const trapRef = useFocusTrap(true, onClose);
   const [theme, setTheme] = useState('');
   const [count, setCount] = useState(5);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['LinkedIn']);
@@ -61,6 +63,11 @@ export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalP
         onClick={e => e.target === e.currentTarget && onClose()}
       >
         <motion.div
+          ref={trapRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Génération de contenu par lot"
+          tabIndex={-1}
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
@@ -71,7 +78,7 @@ export function BatchGeneratorModal({ onClose, onSuccess }: BatchGeneratorModalP
               <Sparkles className="w-5 h-5 text-fuchsia-400" />
               <h2 className="text-base font-semibold text-zinc-100">Batch Content Generator</h2>
             </div>
-            <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+            <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300 transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>

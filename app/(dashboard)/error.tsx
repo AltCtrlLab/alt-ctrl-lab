@@ -21,7 +21,7 @@ export default function DashboardError({
           <AlertTriangle className="w-8 h-8 text-red-400" />
         </div>
         <h2 className="text-lg font-semibold text-zinc-100">Une erreur est survenue</h2>
-        <p className="text-sm text-zinc-500 max-w-md">{error.message}</p>
+        <p className="text-sm text-zinc-400 max-w-md">{error.message}</p>
         <button
           onClick={reset}
           className="px-4 py-2 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400 text-sm hover:bg-fuchsia-500/20 transition-colors"

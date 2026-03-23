@@ -103,7 +103,7 @@ export function SystemHealth({ isDark, isConnected = false }: SystemHealthProps)
           <h1 className={`text-2xl font-bold ${textH}`}>Santé Système</h1>
           <p className={`text-sm ${textM}`}>Monitoring en temps réel de l'infrastructure</p>
         </div>
-        <button onClick={fetchHealth} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'} transition-colors`}>
+        <button onClick={fetchHealth} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-neutral-100'} transition-colors`} aria-label="Actualiser">
           <RefreshCw size={16} className={textM} />
         </button>
       </div>

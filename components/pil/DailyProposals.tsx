@@ -300,7 +300,7 @@ function InnovationCard({
       exit={{ opacity: 0, scale: 0.95 }}
       className={`${th.glass} backdrop-blur-xl rounded-2xl border overflow-hidden`}
     >
-      <div className="p-4 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : inn.id)}>
+      <div className="p-4 cursor-pointer" role="button" tabIndex={0} aria-expanded={isExpanded} onClick={() => setExpandedId(isExpanded ? null : inn.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(isExpanded ? null : inn.id); } }}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -679,7 +679,7 @@ export const DailyProposals: React.FC<DailyProposalsProps> = ({ isDark }) => {
             <Sparkles size={18} className="text-fuchsia-400" />
             Innovations à valider ({innovations.length})
           </h2>
-          <button onClick={fetchAll} className={`p-1.5 rounded-lg hover:bg-white/5 transition-colors ${th.muted}`}>
+          <button onClick={fetchAll} className={`p-1.5 rounded-lg hover:bg-white/5 transition-colors ${th.muted}`} aria-label="Actualiser">
             <RefreshCw size={14} />
           </button>
         </div>

@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { validateBody, todoCreateSchema, todoUpdateSchema } from '@/lib/validation';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 
 interface Database {
   prepare: (sql: string) => {
@@ -145,11 +146,12 @@ export async function POST(request: NextRequest) {
       body.source || 'manual'
     );
     
+    auditCreate(request, 'todo', id, { title: v.data.title });
     return NextResponse.json({
       success: true,
       data: { id }
     });
-    
+
   } catch (error) {
     console.error('[API] Error creating todo:', error);
     return NextResponse.json({
@@ -199,9 +201,9 @@ export async function PATCH(request: NextRequest) {
     values.push(id);
     
     db.prepare(`UPDATE todos SET ${updates.join(', ')} WHERE id = ?`).run(...values);
-    
+    auditUpdate(request, 'todo', id, d);
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('[API] Error updating todo:', error);
     return NextResponse.json({ success: false, error: 'Failed to update todo' }, { status: 500 });
@@ -225,9 +227,9 @@ export async function DELETE(request: NextRequest) {
     const db = (drizzleDb as unknown as { $client: Database }).$client;
     
     db.prepare('DELETE FROM todos WHERE id = ?').run(id);
-    
+    auditDelete(request, 'todo', id);
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('[API] Error deleting todo:', error);
     return NextResponse.json({ success: false, error: 'Failed to delete todo' }, { status: 500 });

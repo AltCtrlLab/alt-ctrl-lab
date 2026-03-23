@@ -124,7 +124,7 @@ export function getTheme(isDark: boolean) {
       ? 'bg-white/[0.03] border-white/[0.08]'
       : 'bg-white border-neutral-200',
     cardHover: isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-neutral-50',
-    divider: isDark ? 'border-white/[0.06]' : 'border-neutral-200',
+    divider: isDark ? 'border-white/[0.08]' : 'border-neutral-200',
     input: isDark
       ? 'bg-white/[0.05] border-white/[0.1] text-white placeholder:text-neutral-500'
       : 'bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400',

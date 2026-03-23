@@ -51,8 +51,8 @@ export function ValidationCard({ task }: ValidationCardProps) {
     if (!task.deliverable) {
       return (
         <div className="rounded-md border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
-          <AlertCircle size={20} className="mx-auto mb-2 text-zinc-500" />
-          <p className="text-sm text-zinc-500">Aucun livrable disponible</p>
+          <AlertCircle size={20} className="mx-auto mb-2 text-zinc-400" />
+          <p className="text-sm text-zinc-400">Aucun livrable disponible</p>
         </div>
       );
     }
@@ -101,11 +101,11 @@ export function ValidationCard({ task }: ValidationCardProps) {
                       key={field.name}
                       className="inline-flex items-center rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400"
                     >
-                      {field.name}: <span className="ml-0.5 text-zinc-500">{field.type}</span>
+                      {field.name}: <span className="ml-0.5 text-zinc-400">{field.type}</span>
                     </span>
                   ))}
                   {table.fields.length > 4 && (
-                    <span className="text-[10px] text-zinc-600">+{table.fields.length - 4}</span>
+                    <span className="text-[10px] text-zinc-400">+{table.fields.length - 4}</span>
                   )}
                 </div>
               </div>
@@ -145,7 +145,7 @@ export function ValidationCard({ task }: ValidationCardProps) {
                   <span className="text-sm font-medium text-white">{workflow.name}</span>
                   <span className="text-[10px] text-amber-400">{workflow.estimatedTimeSaved}</span>
                 </div>
-                <p className="mt-1 text-xs text-zinc-500">
+                <p className="mt-1 text-xs text-zinc-400">
                   Déclencheur: {workflow.trigger}
                 </p>
               </div>
@@ -162,9 +162,9 @@ export function ValidationCard({ task }: ValidationCardProps) {
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-sm font-medium text-white">{task.title}</h3>
-            <p className="mt-1 text-xs text-zinc-500">{task.description}</p>
+            <p className="mt-1 text-xs text-zinc-400">{task.description}</p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
             <Clock size={12} />
             <span>{formatRelativeTime(task.updatedAt)}</span>
           </div>
@@ -191,7 +191,7 @@ export function ValidationCard({ task }: ValidationCardProps) {
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="Ajoutez vos commentaires..."
-            className="w-full rounded-md border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white placeholder:text-zinc-600 focus:border-white/20 focus:outline-none resize-none"
+            className="w-full rounded-md border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white placeholder:text-zinc-400 focus:border-white/20 focus:outline-none resize-none"
             rows={2}
             disabled={isSubmitting}
           />

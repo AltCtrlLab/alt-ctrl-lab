@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { X, LogOut, Sun, Moon, HelpCircle, RotateCcw } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { getStoredDarkMode, setStoredDarkMode } from '@/lib/theme';
 import { resetOnboarding } from '@/components/ui/OnboardingTour';
 
@@ -17,6 +18,7 @@ interface SettingsModalProps {
 export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsModalProps) {
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
+  const trapRef = useFocusTrap(open, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +49,7 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
     ? 'bg-zinc-900/90 border-white/[0.1]'
     : 'bg-white/90 border-zinc-200';
   const textMain = isDark ? 'text-zinc-100' : 'text-zinc-900';
-  const textMuted = isDark ? 'text-zinc-500' : 'text-zinc-400';
+  const textMuted = isDark ? 'text-zinc-400' : 'text-zinc-400';
   const btnHover = isDark
     ? 'hover:bg-white/[0.06] text-zinc-300'
     : 'hover:bg-zinc-100 text-zinc-600';
@@ -56,7 +58,14 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <motion.div
-        ref={panelRef}
+        ref={(node: HTMLDivElement | null) => {
+          (panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          (trapRef as unknown as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Paramètres"
+        tabIndex={-1}
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
@@ -66,7 +75,7 @@ export function SettingsModal({ open, onClose, isDark, onToggleDark }: SettingsM
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className={`text-sm font-semibold ${textMain}`}>Parametres</h2>
-          <button onClick={onClose} className={`p-1 rounded-lg transition-colors ${btnHover}`}>
+          <button onClick={onClose} aria-label="Fermer" className={`p-1 rounded-lg transition-colors ${btnHover}`}>
             <X size={16} />
           </button>
         </div>

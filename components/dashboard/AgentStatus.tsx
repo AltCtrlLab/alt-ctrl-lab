@@ -53,13 +53,13 @@ export function AgentStatus({ tasks }: AgentStatusProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-zinc-200">{agent.name}</p>
-                  <p className="text-xs text-zinc-500">{agent.specialty}</p>
+                  <p className="text-xs text-zinc-400">{agent.specialty}</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-2">
                 <Circle className={`w-2 h-2 ${config.color} rounded-full`} />
-                <span className="text-xs text-zinc-500">{config.label}</span>
+                <span className="text-xs text-zinc-400">{config.label}</span>
               </div>
             </div>
           );

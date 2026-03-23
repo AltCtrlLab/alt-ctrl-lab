@@ -27,6 +27,8 @@ export function AutoChainToast({ actions, onClose }: AutoChainToastProps) {
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          role="status"
+          aria-live="polite"
           className="fixed bottom-6 right-6 z-[9999] max-w-sm bg-zinc-900 border border-emerald-500/30 rounded-xl shadow-2xl shadow-emerald-900/20 p-4"
         >
           <div className="flex items-start gap-3">
@@ -46,7 +48,8 @@ export function AutoChainToast({ actions, onClose }: AutoChainToastProps) {
             </div>
             <button
               onClick={() => { setVisible(false); setTimeout(onClose, 300); }}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-zinc-400 hover:text-zinc-300 transition-colors"
+              aria-label="Fermer la notification"
             >
               <X className="w-4 h-4" />
             </button>

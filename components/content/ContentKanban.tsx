@@ -37,7 +37,7 @@ export function ContentKanban({ items, onSelect, onStatusChange }: Props) {
           >
             <div className="flex items-center justify-between mb-3">
               <span className={`text-xs font-medium ${meta.color}`}>{col}</span>
-              <span className="text-xs text-zinc-600 bg-zinc-800 rounded px-1.5">{colItems.length}</span>
+              <span className="text-xs text-zinc-400 bg-zinc-800 rounded px-1.5">{colItems.length}</span>
             </div>
             <div>
               {colItems.map(item => (

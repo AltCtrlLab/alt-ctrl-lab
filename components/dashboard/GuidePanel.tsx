@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Compass, Keyboard, HelpCircle } from 'lucide-react';
 import { NAV_SECTIONS, TEAM_AI_ITEMS } from '@/lib/constants/navigation';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface GuidePanelProps {
   open: boolean;
@@ -31,18 +32,11 @@ const FAQ = [
 ];
 
 export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
+  const trapRef = useFocusTrap(open, onClose);
   const handleDismiss = useCallback(() => {
     localStorage.setItem('acl-guide-dismissed', '1');
     onClose();
   }, [onClose]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (open) window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
 
   return (
     <AnimatePresence>
@@ -58,6 +52,11 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
           />
           {/* Panel */}
           <motion.div
+            ref={trapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Guide AltCtrl.Lab"
+            tabIndex={-1}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 40 }}
@@ -69,14 +68,14 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
             } backdrop-blur-xl`}
           >
             {/* Close */}
-            <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-white/[0.06]">
+            <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <HelpCircle className="w-5 h-5 text-cyan-400" />
                 <h2 className={`text-sm font-semibold ${isDark ? 'text-zinc-100' : 'text-neutral-800'}`}>
                   Guide AltCtrl.Lab
                 </h2>
               </div>
-              <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+              <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -104,7 +103,7 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
                 <div className="space-y-4">
                   {GUIDE_SECTIONS.map(section => (
                     <div key={section.title}>
-                      <p className={`text-[10px] uppercase tracking-widest font-medium mb-1.5 ${isDark ? 'text-zinc-600' : 'text-neutral-400'}`}>
+                      <p className={`text-[10px] uppercase tracking-widest font-medium mb-1.5 ${isDark ? 'text-zinc-400' : 'text-neutral-400'}`}>
                         {section.title}
                       </p>
                       <div className="space-y-1.5">
@@ -115,11 +114,11 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
                               key={item.label}
                               className={`flex items-start gap-3 px-3 py-2 rounded-lg ${isDark ? 'bg-zinc-900/40' : 'bg-neutral-50'}`}
                             >
-                              <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? 'text-zinc-500' : 'text-neutral-400'}`} />
+                              <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? 'text-zinc-400' : 'text-neutral-400'}`} />
                               <div>
                                 <p className={`text-sm font-medium ${isDark ? 'text-zinc-300' : 'text-neutral-700'}`}>{item.label}</p>
                                 {item.desc && (
-                                  <p className={`text-xs ${isDark ? 'text-zinc-600' : 'text-neutral-400'}`}>{item.desc}</p>
+                                  <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-neutral-400'}`}>{item.desc}</p>
                                 )}
                               </div>
                             </div>
@@ -163,7 +162,7 @@ export function GuidePanel({ open, onClose, isDark }: GuidePanelProps) {
                   {FAQ.map((item, i) => (
                     <div key={i} className={`rounded-lg p-3 ${isDark ? 'bg-zinc-900/40' : 'bg-neutral-50'}`}>
                       <p className={`text-sm font-medium mb-1 ${isDark ? 'text-zinc-200' : 'text-neutral-700'}`}>{item.q}</p>
-                      <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-500' : 'text-neutral-400'}`}>{item.a}</p>
+                      <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-neutral-400'}`}>{item.a}</p>
                     </div>
                   ))}
                 </div>

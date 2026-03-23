@@ -32,6 +32,12 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('acl-dark')==='false')document.documentElement.classList.add('light');}catch(e){}` }} />
       </head>
       <body className={`${inter.variable} font-sans`}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-fuchsia-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium"
+        >
+          Aller au contenu principal
+        </a>
         <NotificationProvider>{children}</NotificationProvider>
       </body>
     </html>

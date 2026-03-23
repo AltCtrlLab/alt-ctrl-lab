@@ -152,13 +152,13 @@ export function RecommendedActions() {
             </span>
           )}
         </div>
-        <button onClick={load} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+        <button onClick={load} className="text-zinc-400 hover:text-zinc-300 transition-colors" aria-label="Actualiser">
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
 
       {actions.length === 0 ? (
-        <div className="px-4 py-6 text-center text-sm text-zinc-500">
+        <div className="px-4 py-6 text-center text-sm text-zinc-400">
           Aucune action requise. Tout est à jour !
         </div>
       ) : (
@@ -176,9 +176,9 @@ export function RecommendedActions() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-zinc-200 truncate">{action.label}</p>
-                  <p className="text-xs text-zinc-500 truncate">{action.sub}</p>
+                  <p className="text-xs text-zinc-400 truncate">{action.sub}</p>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+                <ArrowRight className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
               </a>
             );
           })}

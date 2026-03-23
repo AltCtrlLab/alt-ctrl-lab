@@ -122,13 +122,13 @@ function InnovationModal({ innovation, onClose, onApprove, onReject }: {
             <div>
               <h3 className="text-base font-bold text-zinc-100 leading-snug">{innovation.title}</h3>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                {innovation.status && <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[innovation.status] || 'bg-zinc-800 text-zinc-500'}`}>{STATUS_LABEL[innovation.status] || innovation.status}</span>}
+                {innovation.status && <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[innovation.status] || 'bg-zinc-800 text-zinc-400'}`}>{STATUS_LABEL[innovation.status] || innovation.status}</span>}
                 {innovation.category && <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">{innovation.category}</span>}
-                {innovation.implementationComplexity && <span className={`text-xs px-2 py-0.5 rounded-full ${COMPLEXITY_COLOR[innovation.implementationComplexity] || 'bg-zinc-800 text-zinc-500'}`}>{innovation.implementationComplexity}</span>}
+                {innovation.implementationComplexity && <span className={`text-xs px-2 py-0.5 rounded-full ${COMPLEXITY_COLOR[innovation.implementationComplexity] || 'bg-zinc-800 text-zinc-400'}`}>{innovation.implementationComplexity}</span>}
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="p-1.5 text-zinc-400 hover:text-zinc-300 transition-colors shrink-0" aria-label="Fermer"><X className="w-4 h-4" /></button>
         </div>
         {innovation.altCtrlMutation && (
           <div className="mb-4 p-3 rounded-xl bg-fuchsia-500/5 border border-fuchsia-500/20">
@@ -145,13 +145,13 @@ function InnovationModal({ innovation, onClose, onApprove, onReject }: {
         {innovation.technicalArchitecture && (
           <div className="mb-4">
             <p className="text-xs font-semibold text-zinc-400 mb-1.5">Architecture technique</p>
-            <p className="text-sm text-zinc-500 leading-relaxed font-mono whitespace-pre-wrap">{innovation.technicalArchitecture}</p>
+            <p className="text-sm text-zinc-400 leading-relaxed font-mono whitespace-pre-wrap">{innovation.technicalArchitecture}</p>
           </div>
         )}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           {innovation.businessValue && <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{innovation.businessValue}</span>}
-          {innovation.estimatedImplementationDays && <span className="text-xs text-zinc-500">{innovation.estimatedImplementationDays}j estimés</span>}
-          {tags.map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500">{t}</span>)}
+          {innovation.estimatedImplementationDays && <span className="text-xs text-zinc-400">{innovation.estimatedImplementationDays}j estimés</span>}
+          {tags.map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">{t}</span>)}
         </div>
         {innovation.status === 'proposed' && (
           <div className="flex gap-3 pt-4 border-t border-zinc-800">
@@ -394,7 +394,7 @@ export default function RDPage() {
              'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
 
   const statusBadge = (ins: BusinessInsight) => {
-    if (ins.rejected || ins.status === 'rejected') return { label: 'Rejeté', cls: 'bg-zinc-800/80 text-zinc-500' };
+    if (ins.rejected || ins.status === 'rejected') return { label: 'Rejeté', cls: 'bg-zinc-800/80 text-zinc-400' };
     if (ins.applied || ins.status === 'applied') return { label: 'Appliqué', cls: 'bg-emerald-500/10 text-emerald-400' };
     if (ins.status === 'read') return { label: 'Lu', cls: 'bg-zinc-700/60 text-zinc-400' };
     return { label: 'Nouveau', cls: 'bg-cyan-500/10 text-cyan-400' };
@@ -419,11 +419,11 @@ export default function RDPage() {
             <span className={`text-xs px-2 py-0.5 rounded-full ${statusBadge(selectedInsight).cls}`}>
               {statusBadge(selectedInsight).label}
             </span>
-            <span className="text-xs text-zinc-600 px-2 py-0.5 rounded-full bg-zinc-800/60">
+            <span className="text-xs text-zinc-400 px-2 py-0.5 rounded-full bg-zinc-800/60">
               {TOPICS.find(t => t.id === selectedInsight.topic)?.icon} {TOPICS.find(t => t.id === selectedInsight.topic)?.label || selectedInsight.topic}
             </span>
           </div>
-          <button onClick={() => setSelectedInsight(null)} className="p-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+          <button onClick={() => setSelectedInsight(null)} className="p-1.5 text-zinc-400 hover:text-zinc-300 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -439,7 +439,7 @@ export default function RDPage() {
             </div>
             <p className="text-sm text-zinc-200 leading-relaxed">{selectedInsight.insight}</p>
             {selectedInsight.source && (
-              <p className="text-xs text-zinc-600 mt-2">Source : {selectedInsight.source} · {new Date(selectedInsight.createdAt).toLocaleDateString('fr-FR')}</p>
+              <p className="text-xs text-zinc-400 mt-2">Source : {selectedInsight.source} · {new Date(selectedInsight.createdAt).toLocaleDateString('fr-FR')}</p>
             )}
           </div>
 
@@ -452,7 +452,7 @@ export default function RDPage() {
               </div>
               <button
                 onClick={() => handleCopyReco(selectedInsight.id, selectedInsight.recommendation)}
-                className="flex items-center gap-1 text-xs text-zinc-500 hover:text-fuchsia-400 transition-colors"
+                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-fuchsia-400 transition-colors"
               >
                 {copiedId === selectedInsight.id ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 {copiedId === selectedInsight.id ? 'Copié' : 'Copier'}
@@ -528,7 +528,7 @@ export default function RDPage() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-base font-bold text-zinc-100">Recherche &amp; Développement</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Intelligence continue — tech &amp; acquisition</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Intelligence continue — tech &amp; acquisition</p>
           </div>
           <div className="flex items-center gap-2">
             {running && (
@@ -537,7 +537,7 @@ export default function RDPage() {
                 {activeAction === 'pipeline' ? 'Pipeline en cours...' : `${activeAction}...`}
               </span>
             )}
-            <button onClick={fetchAll} className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors" title="Actualiser">
+            <button onClick={fetchAll} className="p-2 text-zinc-400 hover:text-zinc-300 transition-colors" title="Actualiser" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
@@ -557,7 +557,7 @@ export default function RDPage() {
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
               className={`rounded-xl border border-zinc-800/60 bg-gradient-to-br ${kpi.accent} to-zinc-900/50 p-4`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-zinc-500">{kpi.label}</span>
+                <span className="text-xs text-zinc-400">{kpi.label}</span>
                 <kpi.icon className={`w-4 h-4 ${kpi.color} opacity-60`} />
               </div>
               <p className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</p>
@@ -602,7 +602,7 @@ export default function RDPage() {
                     }
                     <div className="min-w-0">
                       <p className={`text-sm font-medium truncate ${isCurrentStep ? step.color : 'text-zinc-200'}`}>{step.label}</p>
-                      <p className="text-xs text-zinc-500 truncate">{step.desc}</p>
+                      <p className="text-xs text-zinc-400 truncate">{step.desc}</p>
                     </div>
                   </button>
                   {idx < PIPELINE_STEPS.length - 1 && <ArrowRight className="w-4 h-4 text-zinc-700 shrink-0" />}
@@ -622,7 +622,7 @@ export default function RDPage() {
                 <span className="text-xs font-semibold text-zinc-300">
                   {running ? 'Pipeline en cours...' : 'Dernière exécution'}
                 </span>
-                <button onClick={() => setPipelineSteps([])} className="ml-auto text-zinc-600 hover:text-zinc-400 transition-colors" title="Effacer">
+                <button onClick={() => setPipelineSteps([])} className="ml-auto text-zinc-400 hover:text-zinc-400 transition-colors" title="Effacer">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -641,19 +641,19 @@ export default function RDPage() {
                       {s.status === 'running' && <Loader2 className="w-4 h-4 text-fuchsia-400 animate-spin" />}
                       {s.status === 'warn' && <AlertCircle className="w-4 h-4 text-amber-400" />}
                       {s.status === 'error' && <AlertCircle className="w-4 h-4 text-rose-400" />}
-                      {s.status === 'pending' && <Clock className="w-4 h-4 text-zinc-600" />}
+                      {s.status === 'pending' && <Clock className="w-4 h-4 text-zinc-400" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className={`text-sm font-medium ${
                         s.status === 'done' ? 'text-emerald-300' :
                         s.status === 'running' ? 'text-fuchsia-300' :
                         s.status === 'warn' ? 'text-amber-300' :
-                        s.status === 'error' ? 'text-rose-300' : 'text-zinc-500'
+                        s.status === 'error' ? 'text-rose-300' : 'text-zinc-400'
                       }`}>{s.label}</span>
-                      {s.detail && <p className="text-xs text-zinc-500 mt-0.5 truncate">{s.detail}</p>}
+                      {s.detail && <p className="text-xs text-zinc-400 mt-0.5 truncate">{s.detail}</p>}
                     </div>
                     {s.ts && (
-                      <span className="text-xs text-zinc-600 shrink-0">
+                      <span className="text-xs text-zinc-400 shrink-0">
                         {new Date(s.ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     )}
@@ -680,11 +680,11 @@ export default function RDPage() {
           ] as const).map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.id ? 'border-fuchsia-400 text-fuchsia-300' : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                activeTab === tab.id ? 'border-fuchsia-400 text-fuchsia-300' : 'border-transparent text-zinc-400 hover:text-zinc-300'
               }`}>
               <tab.icon className="w-3.5 h-3.5" />
               {tab.label}
-              {tab.count > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'bg-zinc-800 text-zinc-500'}`}>{tab.count}</span>}
+              {tab.count > 0 && <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'bg-zinc-800 text-zinc-400'}`}>{tab.count}</span>}
             </button>
           ))}
         </div>
@@ -698,7 +698,7 @@ export default function RDPage() {
               {TOPICS.map(t => (
                 <button key={t.id} onClick={() => { setSelectedTopic(t.id); setInsightFilter('all'); setInsightSearch(''); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm transition-all ${
-                    selectedTopic === t.id ? t.color + ' font-medium' : 'border-zinc-800/60 bg-zinc-900/30 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                    selectedTopic === t.id ? t.color + ' font-medium' : 'border-zinc-800/60 bg-zinc-900/30 text-zinc-400 hover:text-zinc-300 hover:border-zinc-700'
                   }`}>
                   <span>{t.icon}</span> {t.label}
                 </button>
@@ -715,7 +715,7 @@ export default function RDPage() {
 
             {/* Stats mini-bar */}
             {insightStats.total > 0 && (
-              <div className="flex items-center gap-4 text-xs text-zinc-500 px-1">
+              <div className="flex items-center gap-4 text-xs text-zinc-400 px-1">
                 <span className="text-cyan-400 font-medium">🆕 {insightStats.newCount} nouveaux</span>
                 <span>·</span>
                 <span className="text-emerald-400">✅ {insightStats.applied} appliqués</span>
@@ -730,7 +730,7 @@ export default function RDPage() {
             {insightStats.total > 0 && (
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative flex-1 min-w-40">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
                   <input
                     type="text"
                     placeholder="Rechercher un insight..."
@@ -742,7 +742,7 @@ export default function RDPage() {
                 <div className="flex items-center gap-1 bg-zinc-800/40 rounded-lg p-0.5">
                   {(['all', 'new', 'applied', 'rejected'] as const).map(f => (
                     <button key={f} onClick={() => setInsightFilter(f)}
-                      className={`text-xs px-2.5 py-1 rounded-md transition-colors ${insightFilter === f ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      className={`text-xs px-2.5 py-1 rounded-md transition-colors ${insightFilter === f ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-400 hover:text-zinc-300'}`}>
                       {f === 'all' ? 'Tous' : f === 'new' ? 'Nouveaux' : f === 'applied' ? 'Appliqués' : 'Rejetés'}
                     </button>
                   ))}
@@ -750,7 +750,7 @@ export default function RDPage() {
                 <div className="flex items-center gap-1 bg-zinc-800/40 rounded-lg p-0.5">
                   {(['all', 'high', 'medium', 'low'] as const).map(f => (
                     <button key={f} onClick={() => setInsightPriority(f)}
-                      className={`text-xs px-2.5 py-1 rounded-md transition-colors ${insightPriority === f ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      className={`text-xs px-2.5 py-1 rounded-md transition-colors ${insightPriority === f ? 'bg-zinc-700 text-zinc-200' : 'text-zinc-400 hover:text-zinc-300'}`}>
                       {f === 'all' ? 'Priorité' : f === 'high' ? 'P8+' : f === 'medium' ? 'P5-7' : 'P1-4'}
                     </button>
                   ))}
@@ -763,7 +763,7 @@ export default function RDPage() {
               <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-12 text-center">
                 <Lightbulb className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
                 <p className="text-sm text-zinc-400 mb-1">Aucun insight pour ce topic</p>
-                <p className="text-xs text-zinc-600 mb-4">Lance une analyse IA pour générer des insights personnalisés.</p>
+                <p className="text-xs text-zinc-400 mb-4">Lance une analyse IA pour générer des insights personnalisés.</p>
                 <button onClick={() => runAction('business-intel', { topic: selectedTopic })} disabled={running}
                   className="text-xs px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg transition-colors">
                   Analyser maintenant
@@ -772,7 +772,7 @@ export default function RDPage() {
             ) : filteredInsights.length === 0 ? (
               <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-8 text-center">
                 <Filter className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-                <p className="text-sm text-zinc-500">Aucun insight ne correspond aux filtres actifs.</p>
+                <p className="text-sm text-zinc-400">Aucun insight ne correspond aux filtres actifs.</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -801,13 +801,13 @@ export default function RDPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                             <span className={`text-xs px-2 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>
-                            {insight.source && <span className="text-xs text-zinc-600">{insight.source}</span>}
+                            {insight.source && <span className="text-xs text-zinc-400">{insight.source}</span>}
                           </div>
-                          <p className={`text-sm text-zinc-200 leading-relaxed line-clamp-2 ${isRejected ? 'line-through text-zinc-500' : ''}`}>
+                          <p className={`text-sm text-zinc-200 leading-relaxed line-clamp-2 ${isRejected ? 'line-through text-zinc-400' : ''}`}>
                             {insight.insight}
                           </p>
                           {insight.recommendation && (
-                            <p className="text-xs text-zinc-500 mt-1 leading-relaxed line-clamp-1">
+                            <p className="text-xs text-zinc-400 mt-1 leading-relaxed line-clamp-1">
                               → {insight.recommendation}
                             </p>
                           )}
@@ -815,7 +815,7 @@ export default function RDPage() {
                             <p className="text-xs text-amber-500/70 mt-1 italic line-clamp-1">📝 {insight.note}</p>
                           )}
                           <div className="flex items-center gap-3 mt-2.5">
-                            <span className="text-xs text-zinc-600">{new Date(insight.createdAt).toLocaleDateString('fr-FR')}</span>
+                            <span className="text-xs text-zinc-400">{new Date(insight.createdAt).toLocaleDateString('fr-FR')}</span>
                             <button
                               onClick={e => { e.stopPropagation(); handleOpenInsight(insight); }}
                               className="flex items-center gap-1 text-xs text-fuchsia-400 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -824,7 +824,7 @@ export default function RDPage() {
                             </button>
                             <button
                               onClick={e => { e.stopPropagation(); handleCopyReco(insight.id, insight.recommendation); }}
-                              className="flex items-center gap-1 text-xs text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="flex items-center gap-1 text-xs text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               {copiedId === insight.id ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                               {copiedId === insight.id ? 'Copié' : 'Copier'}
@@ -853,13 +853,13 @@ export default function RDPage() {
         {activeTab === 'innovations' && (
           <div className="space-y-4">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <Filter className="w-3.5 h-3.5 text-zinc-500" />
+              <Filter className="w-3.5 h-3.5 text-zinc-400" />
               {(['all', 'proposed', 'approved', 'in_progress', 'implemented', 'rejected'] as const).map(f => {
                 const count = f === 'all' ? innovationsList.length : innovationsList.filter(i => i.status === f).length;
                 return (
                   <button key={f} onClick={() => setInnovFilter(f)}
                     className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
-                      innovFilter === f ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'text-zinc-500 hover:text-zinc-300'
+                      innovFilter === f ? 'bg-fuchsia-500/20 text-fuchsia-300' : 'text-zinc-400 hover:text-zinc-300'
                     }`}>
                     {STATUS_LABEL[f] || f} ({count})
                   </button>
@@ -870,7 +870,7 @@ export default function RDPage() {
               <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-12 text-center">
                 <Zap className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
                 <p className="text-sm text-zinc-400 mb-1">Aucune innovation</p>
-                <p className="text-xs text-zinc-600 mb-4">Lance le pipeline pour découvrir et élever des innovations.</p>
+                <p className="text-xs text-zinc-400 mb-4">Lance le pipeline pour découvrir et élever des innovations.</p>
                 <button onClick={() => runAction('pipeline')} disabled={running}
                   className="text-xs px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white rounded-lg transition-colors">
                   Lancer le pipeline
@@ -888,15 +888,15 @@ export default function RDPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-zinc-200 leading-snug group-hover:text-fuchsia-200 transition-colors line-clamp-2">{innov.title}</p>
                           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                            {innov.status && <span className={`text-xs px-1.5 py-0.5 rounded-full ${STATUS_COLOR[innov.status] || 'bg-zinc-800 text-zinc-500'}`}>{STATUS_LABEL[innov.status] || innov.status}</span>}
+                            {innov.status && <span className={`text-xs px-1.5 py-0.5 rounded-full ${STATUS_COLOR[innov.status] || 'bg-zinc-800 text-zinc-400'}`}>{STATUS_LABEL[innov.status] || innov.status}</span>}
                             {innov.implementationComplexity && <span className={`text-xs px-1.5 py-0.5 rounded-full ${COMPLEXITY_COLOR[innov.implementationComplexity] || ''}`}>{innov.implementationComplexity}</span>}
                           </div>
                         </div>
                       </div>
-                      {innov.altCtrlMutation && <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-2">{innov.altCtrlMutation}</p>}
+                      {innov.altCtrlMutation && <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2 mb-2">{innov.altCtrlMutation}</p>}
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {innov.category && <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-500">{innov.category}</span>}
-                        {tags.slice(0, 2).map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-zinc-800/50 text-zinc-600">{t}</span>)}
+                        {innov.category && <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-400">{innov.category}</span>}
+                        {tags.slice(0, 2).map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-zinc-800/50 text-zinc-400">{t}</span>)}
                       </div>
                     </motion.button>
                   );
@@ -913,7 +913,7 @@ export default function RDPage() {
               <div className="p-12 text-center">
                 <Telescope className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
                 <p className="text-sm text-zinc-400 mb-1">Aucune découverte</p>
-                <p className="text-xs text-zinc-600 mb-4">Lance le Scout pour scraper ProductHunt, GitHub, HackerNews.</p>
+                <p className="text-xs text-zinc-400 mb-4">Lance le Scout pour scraper ProductHunt, GitHub, HackerNews.</p>
                 <button onClick={() => runAction('scout')} disabled={running}
                   className="text-xs px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg transition-colors">
                   Lancer Scout
@@ -921,7 +921,7 @@ export default function RDPage() {
               </div>
             ) : (
               <>
-                <div className="hidden sm:grid grid-cols-[2fr_0.8fr_1.5fr_0.6fr_0.7fr] gap-3 px-4 py-2 border-b border-zinc-800/50 text-xs text-zinc-600 font-medium">
+                <div className="hidden sm:grid grid-cols-[2fr_0.8fr_1.5fr_0.6fr_0.7fr] gap-3 px-4 py-2 border-b border-zinc-800/50 text-xs text-zinc-400 font-medium">
                   <span>Titre / Concept</span><span>Source</span><span>URL</span><span>Engagement</span><span>Statut</span>
                 </div>
                 <div className="divide-y divide-zinc-800/30">
@@ -929,7 +929,7 @@ export default function RDPage() {
                     <div key={d.id} className="grid grid-cols-[2fr_0.8fr_1.5fr_0.6fr_0.7fr] gap-3 items-center px-4 py-3 hover:bg-zinc-800/20 transition-colors">
                       <div>
                         <p className="text-sm text-zinc-300 truncate">{d.rawTitle}</p>
-                        <p className="text-xs text-zinc-600 truncate mt-0.5">{d.extractedConcept}</p>
+                        <p className="text-xs text-zinc-400 truncate mt-0.5">{d.extractedConcept}</p>
                       </div>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-400 w-fit">
                         {PLATFORM_ICON[d.sourcePlatform] || '🔗'} {d.sourcePlatform}
@@ -939,12 +939,12 @@ export default function RDPage() {
                         <ExternalLink className="w-3 h-3 shrink-0" />
                         <span className="truncate">{d.sourceUrl.replace(/^https?:\/\/(www\.)?/, '')}</span>
                       </a>
-                      <span className="text-xs text-zinc-500">{d.engagementScore != null ? Math.round(d.engagementScore * 100) + '%' : '—'}</span>
+                      <span className="text-xs text-zinc-400">{d.engagementScore != null ? Math.round(d.engagementScore * 100) + '%' : '—'}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
                         d.status === 'elevated' ? 'bg-emerald-500/10 text-emerald-400' :
                         d.status === 'analyzing' ? 'bg-cyan-500/10 text-cyan-400' :
                         d.status === 'rejected' ? 'bg-rose-500/10 text-rose-400' :
-                        'bg-zinc-800 text-zinc-500'
+                        'bg-zinc-800 text-zinc-400'
                       }`}>{d.status}</span>
                     </div>
                   ))}
@@ -961,7 +961,7 @@ export default function RDPage() {
               <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-12 text-center">
                 <GitBranch className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
                 <p className="text-sm text-zinc-400 mb-1">Aucun pattern détecté</p>
-                <p className="text-xs text-zinc-600 mb-4">Lance l&apos;analyse pour détecter les patterns émergents.</p>
+                <p className="text-xs text-zinc-400 mb-4">Lance l&apos;analyse pour détecter les patterns émergents.</p>
                 <button onClick={() => runAction('analyze')} disabled={running}
                   className="text-xs px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg transition-colors">
                   Analyser les patterns
@@ -974,11 +974,11 @@ export default function RDPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-zinc-200 leading-snug">{p.title}</p>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500 mt-1 inline-block">{p.patternType}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 mt-1 inline-block">{p.patternType}</span>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                         {p.trendDirection && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${TREND_COLOR[p.trendDirection] || 'bg-zinc-800 text-zinc-500'}`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${TREND_COLOR[p.trendDirection] || 'bg-zinc-800 text-zinc-400'}`}>
                             {p.trendDirection === 'rising' ? '↑' : p.trendDirection === 'declining' ? '↓' : '→'} {p.trendDirection}
                           </span>
                         )}
@@ -987,11 +987,11 @@ export default function RDPage() {
                         )}
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">{p.description}</p>
-                    <div className="flex items-center gap-2 text-xs text-zinc-600">
+                    <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">{p.description}</p>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
                       <BookOpen className="w-3 h-3" />
                       <span>{p.evidenceCount} preuves</span>
-                      {p.suggestedAction && <span className="text-zinc-500 truncate">→ {p.suggestedAction}</span>}
+                      {p.suggestedAction && <span className="text-zinc-400 truncate">→ {p.suggestedAction}</span>}
                     </div>
                   </div>
                 ))}

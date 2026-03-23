@@ -66,7 +66,7 @@ interface ScoreBreakdownProps {
 
 export function ScoreBreakdown({ criteria }: ScoreBreakdownProps) {
   if (!criteria) {
-    return <p className="text-xs text-zinc-600 italic">Score non calculé — critères manquants.</p>;
+    return <p className="text-xs text-zinc-400 italic">Score non calculé — critères manquants.</p>;
   }
 
   return (
@@ -82,8 +82,8 @@ export function ScoreBreakdown({ criteria }: ScoreBreakdownProps) {
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] text-zinc-400">{row.label}</span>
               <div className="flex items-center gap-2">
-                {info && <span className="text-[10px] text-zinc-500 italic">{info.label}</span>}
-                <span className={`text-xs font-bold ${pts > 0 ? 'text-emerald-400' : 'text-zinc-600'}`}>
+                {info && <span className="text-[10px] text-zinc-400 italic">{info.label}</span>}
+                <span className={`text-xs font-bold ${pts > 0 ? 'text-emerald-400' : 'text-zinc-400'}`}>
                   +{pts}/{row.maxPoints}
                 </span>
               </div>

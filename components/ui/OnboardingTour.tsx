@@ -335,13 +335,13 @@ export function OnboardingTour({ forceOpen, onComplete }: OnboardingTourProps) {
                   <div className={`p-2 rounded-lg bg-white/[0.05] ${current.color}`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[10px] text-zinc-600 uppercase tracking-wider">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
                     Étape {step + 1}/{TOUR_STEPS.length}
                   </span>
                 </div>
                 <button
                   onClick={close}
-                  className="text-zinc-600 hover:text-zinc-300 transition-colors"
+                  className="text-zinc-400 hover:text-zinc-300 transition-colors"
                   aria-label="Fermer le tour"
                 >
                   <X className="w-4 h-4" />
@@ -388,7 +388,7 @@ export function OnboardingTour({ forceOpen, onComplete }: OnboardingTourProps) {
                 <div className="flex items-center justify-between">
                   <button
                     onClick={step === 0 ? close : prev}
-                    className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                    className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
                   >
                     {step === 0 ? (
                       'Passer le tour'

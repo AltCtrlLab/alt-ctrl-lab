@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, createAutomation, updateAutomation, getAutomations, deleteAutomation } from '@/lib/db';
 import { validateBody, automationCreateSchema, automationUpdateSchema } from '@/lib/validation';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
     const v = validateBody(body, automationCreateSchema);
     if (!v.success) return v.response;
     const id = await createAutomation(v.data as Parameters<typeof createAutomation>[0]);
+    auditCreate(request, 'automation', id, { name: (v.data as Record<string, unknown>).name });
     return NextResponse.json({ success: true, data: { id } });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -62,6 +64,7 @@ export async function PATCH(request: NextRequest) {
     const v = validateBody(body, automationUpdateSchema);
     if (!v.success) return v.response;
     await updateAutomation(id, v.data as Partial<import('@/lib/db/schema_automations').Automation>);
+    auditUpdate(request, 'automation', id, v.data as Record<string, unknown>);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -76,6 +79,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id')!;
     await deleteAutomation(id);
+    auditDelete(request, 'automation', id);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

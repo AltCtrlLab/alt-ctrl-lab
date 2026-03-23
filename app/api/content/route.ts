@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, createContentItem, updateContentItem, getContentItems, deleteContentItem } from '@/lib/db';
 import { validateBody, contentCreateSchema, contentUpdateSchema } from '@/lib/validation';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
       scheduledAt: v.data.scheduledAt ? new Date(v.data.scheduledAt).getTime() : null,
     };
     const id = await createContentItem(contentData as Parameters<typeof createContentItem>[0]);
+    auditCreate(request, 'content', id, { title: v.data.title, type: v.data.type });
     return NextResponse.json({ success: true, data: { id } });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -65,6 +67,7 @@ export async function PATCH(request: NextRequest) {
       updateData.scheduledAt = new Date(updateData.scheduledAt as string).getTime();
     }
     await updateContentItem(id, updateData as Partial<import('@/lib/db/schema_content').ContentItem>);
+    auditUpdate(request, 'content', id, updateData);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -79,6 +82,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id')!;
     await deleteContentItem(id);
+    auditDelete(request, 'content', id);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

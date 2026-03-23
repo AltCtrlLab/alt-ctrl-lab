@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { X, CheckCircle2 } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { Followup } from '@/lib/db/schema_postvente';
 import { FollowupTypeBadge } from './FollowupTypeBadge';
 import { NpsScore } from './NpsScore';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function FollowupDetailModal({ followup, onClose, onUpdated }: Props) {
+  const trapRef = useFocusTrap(true, onClose);
   const [nps, setNps] = useState<string>(followup.scoreNps?.toString() ?? '');
   const [saving, setSaving] = useState(false);
 
@@ -37,27 +39,27 @@ export function FollowupDetailModal({ followup, onClose, onUpdated }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md">
+      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Détails du suivi" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md">
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <h2 className="text-sm font-semibold text-zinc-100">{followup.clientName}</h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
             <FollowupTypeBadge type={followup.type as any} />
-            <span className="text-xs text-zinc-500">{followup.priority}</span>
+            <span className="text-xs text-zinc-400">{followup.priority}</span>
             <OverdueAlert scheduledAt={followup.scheduledAt} status={followup.status} />
             <NpsScore score={followup.scoreNps} />
           </div>
           {followup.notes && (
             <div>
-              <p className="text-xs text-zinc-500 mb-1">Notes</p>
+              <p className="text-xs text-zinc-400 mb-1">Notes</p>
               <p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3">{followup.notes}</p>
             </div>
           )}
           {followup.status === 'À faire' && (
             <div>
-              <p className="text-xs text-zinc-500 mb-2">Score NPS (1-10)</p>
+              <p className="text-xs text-zinc-400 mb-2">Score NPS (1-10)</p>
               <div className="flex gap-1.5 flex-wrap">
                 {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                   <button key={n} onClick={() => setNps(n === parseInt(nps) ? '' : n.toString())}

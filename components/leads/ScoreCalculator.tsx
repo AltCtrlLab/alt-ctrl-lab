@@ -90,7 +90,7 @@ export function ScoreCalculator({ initialCriteria, onChange }: ScoreCalculatorPr
       <div className="space-y-2">
         {CRITERIA_CONFIG.map(c => (
           <div key={c.key} className="space-y-1">
-            <label className="text-[11px] text-zinc-500 font-medium">{c.label}</label>
+            <label className="text-[11px] text-zinc-400 font-medium">{c.label}</label>
             <div className="flex flex-wrap gap-1.5">
               {c.options.map(opt => {
                 const isSelected = criteria[c.key] === opt.value;
@@ -102,11 +102,11 @@ export function ScoreCalculator({ initialCriteria, onChange }: ScoreCalculatorPr
                     className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
                       isSelected
                         ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300'
-                        : 'bg-zinc-900 border-zinc-700 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
+                        : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
                     }`}
                   >
                     {opt.label}
-                    <span className={`ml-1 font-semibold ${isSelected ? 'text-fuchsia-400' : 'text-zinc-600'}`}>
+                    <span className={`ml-1 font-semibold ${isSelected ? 'text-fuchsia-400' : 'text-zinc-400'}`}>
                       +{opt.points}
                     </span>
                   </button>

@@ -13,7 +13,7 @@ export function CategoryBreakdown({ entries }: CategoryBreakdownProps) {
   const total = entries.reduce((s, e) => s + (e.hours ?? 0), 0);
 
   if (total === 0) {
-    return <p className="text-xs text-zinc-600 italic">Aucune entrée de temps</p>;
+    return <p className="text-xs text-zinc-400 italic">Aucune entrée de temps</p>;
   }
 
   const byCategory = CATEGORIES.reduce((acc, cat) => {
@@ -42,9 +42,9 @@ export function CategoryBreakdown({ entries }: CategoryBreakdownProps) {
         {active.map(cat => (
           <div key={cat} className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full ${CATEGORY_COLORS[cat]}`} />
-            <span className="text-[10px] text-zinc-500">{cat}</span>
+            <span className="text-[10px] text-zinc-400">{cat}</span>
             <span className="text-[10px] font-semibold text-zinc-400">{byCategory[cat]}h</span>
-            <span className="text-[10px] text-zinc-600">({Math.round((byCategory[cat] / total) * 100)}%)</span>
+            <span className="text-[10px] text-zinc-400">({Math.round((byCategory[cat] / total) * 100)}%)</span>
           </div>
         ))}
         <div className="flex items-center gap-1.5 ml-auto">

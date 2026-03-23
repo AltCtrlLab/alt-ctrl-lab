@@ -85,7 +85,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       {children}
 
       {/* Toast container */}
-      <div className="fixed bottom-4 right-4 z-[200] flex flex-col gap-2 max-w-sm">
+      <div className="fixed bottom-4 right-4 z-[200] flex flex-col gap-2 max-w-sm" aria-live="polite" role="status">
         <AnimatePresence>
           {toasts.slice(-3).map(toast => {
             const Icon = ICONS[toast.type];
@@ -96,13 +96,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 50, scale: 0.95 }}
                 className={`flex items-start gap-3 p-4 rounded-xl border backdrop-blur-xl shadow-2xl ${COLORS[toast.type]}`}
+                {...(toast.type === 'error' ? { role: 'alert' } : {})}
               >
                 <Icon size={18} className={`shrink-0 mt-0.5 ${ICON_COLORS[toast.type]}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white">{toast.title}</p>
-                  {toast.message && <p className="text-xs text-white/60 mt-0.5 truncate">{toast.message}</p>}
+                  {toast.message && <p className="text-xs text-white/80 mt-0.5 truncate">{toast.message}</p>}
                 </div>
-                <button onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))} className="text-white/40 hover:text-white/70">
+                <button onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))} className="text-white/40 hover:text-white/70" aria-label="Fermer la notification">
                   <X size={14} />
                 </button>
               </motion.div>

@@ -9,7 +9,7 @@ interface Props {
 
 export function PortfolioGrid({ items, onSelect }: Props) {
   if (items.length === 0) {
-    return <p className="text-zinc-500 text-sm text-center py-12">Aucun projet dans le portfolio</p>;
+    return <p className="text-zinc-400 text-sm text-center py-12">Aucun projet dans le portfolio</p>;
   }
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

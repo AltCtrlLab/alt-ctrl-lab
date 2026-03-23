@@ -32,8 +32,11 @@ export function ProjectCard({ project, index = 0, onClick }: ProjectCardProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.2 }}
+      role="button"
+      tabIndex={0}
       onClick={() => onClick(project)}
-      className="group bg-zinc-900/80 border border-zinc-800 hover:border-zinc-600 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-black/20 space-y-4"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(project); } }}
+      className="group bg-zinc-900/80 border border-zinc-800 hover:border-zinc-600 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-black/20 space-y-4 focus-visible:ring-2 focus-visible:ring-fuchsia-500/50 focus-visible:outline-none"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
@@ -46,13 +49,13 @@ export function ProjectCard({ project, index = 0, onClick }: ProjectCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <ProjectTypeBadge type={project.projectType as ProjectType} />
-            <span className="text-[10px] text-zinc-600">{project.phase}</span>
+            <span className="text-[10px] text-zinc-400">{project.phase}</span>
           </div>
         </div>
         {project.budget && (
           <div className="flex-shrink-0 text-right">
             <p className="text-sm font-bold text-fuchsia-400">{project.budget.toLocaleString('fr-FR')} €</p>
-            <p className="text-[9px] text-zinc-600">budget</p>
+            <p className="text-[9px] text-zinc-400">budget</p>
           </div>
         )}
       </div>

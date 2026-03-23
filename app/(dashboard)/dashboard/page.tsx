@@ -131,7 +131,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
       target="_blank"
       rel="noopener noreferrer"
       variants={newsItemVariants}
-      className={`group block rounded-xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 overflow-hidden ${isFeatured ? 'col-span-2' : ''}`}
+      className={`group block rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 overflow-hidden ${isFeatured ? 'col-span-2' : ''}`}
     >
       {item.imageUrl && (
         <div className={`relative overflow-hidden ${isFeatured ? 'h-48' : 'h-36'}`}>
@@ -155,21 +155,21 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${colorClass}`}>
               {item.sourceLabel || item.source}
             </span>
-            <span className="text-xs text-zinc-600">{timeAgo(item.publishedAt)}</span>
+            <span className="text-xs text-zinc-400">{timeAgo(item.publishedAt)}</span>
           </div>
         )}
         <h3 className={`font-semibold text-zinc-100 group-hover:text-white transition-colors leading-snug ${isFeatured ? 'text-base' : 'text-sm'} line-clamp-3`}>
           {item.title}
         </h3>
         {item.summary && (
-          <p className="mt-1.5 text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+          <p className="mt-1.5 text-xs text-zinc-400 line-clamp-2 leading-relaxed">
             {item.summary}
           </p>
         )}
         {item.imageUrl && (
           <div className="flex items-center gap-2 mt-3">
-            <span className="text-xs text-zinc-600">{timeAgo(item.publishedAt)}</span>
-            <ExternalLink className="w-3 h-3 text-zinc-600 group-hover:text-zinc-400 ml-auto transition-colors" />
+            <span className="text-xs text-zinc-400">{timeAgo(item.publishedAt)}</span>
+            <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-zinc-400 ml-auto transition-colors" />
           </div>
         )}
       </div>
@@ -188,15 +188,15 @@ function StatCard({ label, value, sub, icon: Icon, color, href }: {
   const content = (
     <motion.div
       variants={statCardVariants}
-      className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all duration-200"
+      className="group flex items-center gap-4 p-4 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all duration-200"
     >
       <div className={`flex-shrink-0 p-2.5 rounded-lg ${color}`}>
         <Icon className="w-4 h-4" />
       </div>
       <div className="min-w-0">
         <p className="text-2xl font-bold text-zinc-100">{value}</p>
-        <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
-        {sub && <p className="text-[10px] text-zinc-600 mt-0.5">{sub}</p>}
+        <p className="text-xs text-zinc-400 mt-0.5">{label}</p>
+        {sub && <p className="text-[10px] text-zinc-400 mt-0.5">{sub}</p>}
       </div>
       {href && <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 ml-auto transition-colors" />}
     </motion.div>
@@ -218,14 +218,14 @@ function QuickAction({ label, description, href, icon: Icon, accent }: {
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className={`group flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12] transition-all duration-200 cursor-pointer`}
+        className={`group flex items-center gap-4 p-4 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:border-white/[0.12] transition-all duration-200 cursor-pointer`}
       >
         <div className={`p-2.5 rounded-lg ${accent}`}>
           <Icon className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors">{label}</p>
-          <p className="text-xs text-zinc-600 mt-0.5">{description}</p>
+          <p className="text-xs text-zinc-400 mt-0.5">{description}</p>
         </div>
         <ArrowRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
       </motion.div>
@@ -347,7 +347,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
 
       {/* ── Top bar ── */}
-      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
+      <div className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 flex items-center justify-center">
@@ -355,7 +355,7 @@ export default function DashboardPage() {
             </div>
             <span className="text-sm font-semibold text-zinc-200">Alt Ctrl Lab</span>
             <span className="text-zinc-700">·</span>
-            <span className="text-xs text-zinc-500 capitalize">{formatDate()}</span>
+            <span className="text-xs text-zinc-400 capitalize">{formatDate()}</span>
           </div>
           <div className="flex items-center gap-4">
             {online ? (
@@ -404,7 +404,7 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold text-zinc-100">
               {getGreeting()} 👋
             </h1>
-            <p className="mt-1 text-zinc-500 text-sm">
+            <p className="mt-1 text-zinc-400 text-sm">
               Voici l'état de votre agence IA ce {new Date().toLocaleDateString('fr-FR', { weekday: 'long' })}.
             </p>
           </div>
@@ -458,12 +458,12 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2">
                 <Newspaper className="w-4 h-4 text-zinc-400" />
                 <h2 className="text-sm font-semibold text-zinc-200">Actualités du jour</h2>
-                <span className="text-[10px] text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full">Auto 8h</span>
+                <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">Auto 8h</span>
               </div>
               <button
                 onClick={handleRefreshNews}
                 disabled={refreshing}
-                className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-300 transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
                 Rafraîchir
@@ -473,13 +473,13 @@ export default function DashboardPage() {
             {newsLoading ? (
               <div className="grid grid-cols-2 gap-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className={`rounded-xl border border-white/[0.06] bg-white/[0.03] animate-pulse ${i === 0 ? 'col-span-2 h-64' : 'h-40'}`} />
+                  <div key={i} className={`rounded-xl border border-white/[0.08] bg-white/[0.03] animate-pulse ${i === 0 ? 'col-span-2 h-64' : 'h-40'}`} />
                 ))}
               </div>
             ) : news.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-white/[0.08] rounded-xl">
                 <Globe className="w-8 h-8 text-zinc-700 mb-3" />
-                <p className="text-sm text-zinc-500">Aucune actualité disponible</p>
+                <p className="text-sm text-zinc-400">Aucune actualité disponible</p>
                 <button
                   onClick={handleRefreshNews}
                   className="mt-3 text-xs text-fuchsia-400 hover:text-fuchsia-300 transition-colors"
@@ -551,7 +551,7 @@ export default function DashboardPage() {
                 <Activity className="w-4 h-4 text-zinc-400" />
                 <h2 className="text-sm font-semibold text-zinc-200">Agents disponibles</h2>
               </div>
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] divide-y divide-white/[0.04]">
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] divide-y divide-white/[0.04]">
                 {[
                   { id: 'musawwir', label: 'Musawwir', role: 'Direction Artistique', emoji: '🎨' },
                   { id: 'matin', label: 'Matin', role: 'Lead Développeur', emoji: '⚙️' },
@@ -564,7 +564,7 @@ export default function DashboardPage() {
                     <span className="text-base">{agent.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-zinc-300">{agent.label}</p>
-                      <p className="text-[10px] text-zinc-600 truncate">{agent.role}</p>
+                      <p className="text-[10px] text-zinc-400 truncate">{agent.role}</p>
                     </div>
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   </div>
@@ -575,7 +575,7 @@ export default function DashboardPage() {
             {/* Sources info */}
             {news.length > 0 && (
               <div className="text-[10px] text-zinc-700 space-y-1 px-1">
-                <p className="font-medium text-zinc-600">Sources d'actualité</p>
+                <p className="font-medium text-zinc-400">Sources d'actualité</p>
                 <p>Le Monde · BFM TV · BBC News · The Guardian</p>
                 <p>Mise à jour automatique à 8h chaque matin</p>
               </div>

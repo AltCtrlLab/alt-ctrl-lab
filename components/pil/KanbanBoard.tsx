@@ -222,7 +222,7 @@ function TaskDetailModal({ task, onClose, onRefresh }: { task: Task; onClose: ()
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-white/[0.06]">
+        <div className="flex items-start justify-between p-6 border-b border-white/[0.08]">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-xl">{AGENT_EMOJIS[director] || '🤖'}</span>
@@ -240,7 +240,7 @@ function TaskDetailModal({ task, onClose, onRefresh }: { task: Task; onClose: ()
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors" aria-label="Fermer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -328,7 +328,7 @@ function TaskDetailModal({ task, onClose, onRefresh }: { task: Task; onClose: ()
           {/* Brief */}
           <div className="space-y-2">
             <p className="text-xs text-neutral-500 uppercase tracking-wider font-medium">Brief</p>
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+            <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
               <p className="text-sm text-neutral-300 whitespace-pre-wrap leading-relaxed">{brief}</p>
             </div>
           </div>

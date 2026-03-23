@@ -15,12 +15,21 @@ interface SendEmailResult {
   error?: string;
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 export async function sendEmail(
   to: string,
   name: string,
   subject: string,
   body: string,
 ): Promise<SendEmailResult> {
+  if (!to || !to.includes('@')) {
+    logger.warn('email', 'Invalid recipient — email skipped', { to, subject });
+    return { success: false, error: 'Invalid recipient email' };
+  }
+
   if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
     logger.warn('email', 'Mailjet credentials missing — email skipped', { to, subject });
     return { success: false, error: 'Mailjet credentials not configured' };
@@ -39,7 +48,7 @@ export async function sendEmail(
           To: [{ Email: to, Name: name }],
           Subject: subject,
           TextPart: body,
-          HTMLPart: body.split('\n').map(l => `<p>${l}</p>`).join(''),
+          HTMLPart: body.split('\n').map(l => `<p>${escapeHtml(l)}</p>`).join(''),
         }],
       }),
     });

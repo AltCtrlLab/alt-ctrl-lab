@@ -33,7 +33,7 @@ export function ActivityTimeline({ lead }: { lead: Lead }) {
   events.sort((a, b) => a.date - b.date);
 
   if (events.length === 0) {
-    return <p className="text-xs text-zinc-600 italic">Aucun événement enregistré</p>;
+    return <p className="text-xs text-zinc-400 italic">Aucun événement enregistré</p>;
   }
 
   return (
@@ -50,7 +50,7 @@ export function ActivityTimeline({ lead }: { lead: Lead }) {
             </div>
             <div className="pt-1">
               <p className="text-xs font-semibold text-zinc-200">{evt.label}</p>
-              <p className="text-[10px] text-zinc-600 mt-0.5">{formatDateTime(evt.date)}</p>
+              <p className="text-[10px] text-zinc-400 mt-0.5">{formatDateTime(evt.date)}</p>
             </div>
           </div>
         );

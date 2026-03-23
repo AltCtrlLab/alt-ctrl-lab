@@ -56,14 +56,14 @@ export default function HistoryPage() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-zinc-100">Historique des taches</h1>
-            <p className="text-xs text-zinc-500">Activite recente des agents IA</p>
+            <p className="text-xs text-zinc-400">Activite recente des agents IA</p>
           </div>
         </div>
 
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+            <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
           </div>
         )}
 
@@ -102,7 +102,7 @@ export default function HistoryPage() {
                     <p className="text-sm text-zinc-200 truncate">
                       {item.prompt?.slice(0, 80) || 'Tache sans titre'}
                     </p>
-                    <p className="text-[11px] text-zinc-500">
+                    <p className="text-[11px] text-zinc-400">
                       {item.agentName} &middot; {formatRelativeTime(new Date(item.createdAt))}
                     </p>
                   </div>

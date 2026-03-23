@@ -74,21 +74,21 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                   />
                 </th>
               )}
-              <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold w-[220px]">
+              <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold w-[220px]">
                 <ThBtn label="Nom" k="name" />
               </th>
-              <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Statut</th>
-              <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">
+              <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">Statut</th>
+              <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">
                 <ThBtn label="Score" k="score" />
               </th>
-              <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Source</th>
-              <th className="text-right px-4 py-3 text-xs text-zinc-500 font-semibold">
+              <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">Source</th>
+              <th className="text-right px-4 py-3 text-xs text-zinc-400 font-semibold">
                 <ThBtn label="Montant" k="propositionAmount" />
               </th>
-              <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">
+              <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">
                 <ThBtn label="Date" k="createdAt" />
               </th>
-              <th className="text-left px-4 py-3 text-xs text-zinc-500 font-semibold">Alerte</th>
+              <th className="text-left px-4 py-3 text-xs text-zinc-400 font-semibold">Alerte</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/60">
@@ -101,7 +101,9 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.02 }}
-                  className={`group hover:bg-zinc-800/30 cursor-pointer transition-colors ${isSelected ? 'bg-fuchsia-500/5' : ''}`}
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick(lead); } }}
+                  className={`group hover:bg-zinc-800/30 cursor-pointer transition-colors focus-visible:bg-white/[0.05] focus-visible:outline-none ${isSelected ? 'bg-fuchsia-500/5' : ''}`}
                 >
                   {hasBulk && (
                     <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
@@ -116,7 +118,7 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                   <td className="px-4 py-3" onClick={() => onRowClick(lead)}>
                     <div>
                       <p className="font-medium text-zinc-200 group-hover:text-white transition-colors">{lead.name}</p>
-                      {lead.company && <p className="text-[11px] text-zinc-600">{lead.company}</p>}
+                      {lead.company && <p className="text-[11px] text-zinc-400">{lead.company}</p>}
                     </div>
                   </td>
                   <td className="px-4 py-3" onClick={() => onRowClick(lead)}>
@@ -128,14 +130,14 @@ export function LeadsTable({ leads, onRowClick, selectedIds, onToggle, onToggleA
                   <td className="px-4 py-3" onClick={() => onRowClick(lead)}>
                     <ScoreBadge score={lead.score} />
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500" onClick={() => onRowClick(lead)}>{lead.source}</td>
+                  <td className="px-4 py-3 text-xs text-zinc-400" onClick={() => onRowClick(lead)}>{lead.source}</td>
                   <td className="px-4 py-3 text-right" onClick={() => onRowClick(lead)}>
                     {lead.propositionAmount
                       ? <span className="text-xs font-semibold text-fuchsia-400">{lead.propositionAmount.toLocaleString('fr-FR')} &euro;</span>
                       : <span className="text-xs text-zinc-700">&mdash;</span>
                     }
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500" onClick={() => onRowClick(lead)}>
+                  <td className="px-4 py-3 text-xs text-zinc-400" onClick={() => onRowClick(lead)}>
                     {formatDate(lead.createdAt as number)}
                   </td>
                   <td className="px-4 py-3" onClick={() => onRowClick(lead)}>

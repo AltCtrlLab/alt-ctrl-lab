@@ -112,18 +112,18 @@ export function N8nLivePanel() {
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-fuchsia-400" />
           <span className="text-sm font-semibold text-zinc-100">n8n Live Executions</span>
-          <span className={`text-xs px-1.5 py-0.5 rounded ${source === 'n8n' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+          <span className={`text-xs px-1.5 py-0.5 rounded ${source === 'n8n' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-400'}`}>
             {source === 'n8n' ? '● Live' : '○ Local'}
           </span>
         </div>
-        <button onClick={fetch_} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+        <button onClick={fetch_} className="text-zinc-400 hover:text-zinc-300 transition-colors" aria-label="Actualiser">
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
 
       <div className="divide-y divide-zinc-800/50">
         {automations.length === 0 && (
-          <div className="px-4 py-8 text-center text-sm text-zinc-500">
+          <div className="px-4 py-8 text-center text-sm text-zinc-400">
             Aucun workflow n8n trouvé. Les workflows seront ajoutés automatiquement au premier webhook reçu.
           </div>
         )}
@@ -141,20 +141,20 @@ export function N8nLivePanel() {
               ) : auto.status === 'Erreur' ? (
                 <XCircle className="w-4 h-4 text-rose-400" />
               ) : (
-                <Clock className="w-4 h-4 text-zinc-500" />
+                <Clock className="w-4 h-4 text-zinc-400" />
               )}
             </div>
 
             {/* Name */}
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-zinc-200 truncate">{auto.name}</div>
-              <div className="text-xs text-zinc-500 font-mono">{auto.n8n_workflow_id}</div>
+              <div className="text-xs text-zinc-400 font-mono">{auto.n8n_workflow_id}</div>
             </div>
 
             {/* Last run */}
             <div className="text-right shrink-0">
               <div className="text-xs text-zinc-400">{timeAgo(auto.last_run_at)}</div>
-              <div className="text-xs text-zinc-600">
+              <div className="text-xs text-zinc-400">
                 {auto.run_count > 0 ? `${auto.run_count} exéc.` : 'jamais'}
                 {auto.error_count > 0 && (
                   <span className="text-rose-400 ml-1">{auto.error_count} err.</span>
@@ -175,7 +175,7 @@ export function N8nLivePanel() {
             <button
               onClick={() => triggerWorkflow(auto.n8n_workflow_id, auto.name)}
               disabled={triggering === auto.n8n_workflow_id}
-              className="shrink-0 p-1.5 rounded-lg bg-zinc-800 hover:bg-fuchsia-500/20 hover:text-fuchsia-400 text-zinc-500 transition-colors disabled:opacity-50"
+              className="shrink-0 p-1.5 rounded-lg bg-zinc-800 hover:bg-fuchsia-500/20 hover:text-fuchsia-400 text-zinc-400 transition-colors disabled:opacity-50"
               title="Déclencher manuellement"
             >
               {triggering === auto.n8n_workflow_id ? (
@@ -189,7 +189,7 @@ export function N8nLivePanel() {
       </div>
 
       {automations.length > 0 && (
-        <div className="px-4 py-2 border-t border-zinc-800 flex items-center gap-4 text-xs text-zinc-500">
+        <div className="px-4 py-2 border-t border-zinc-800 flex items-center gap-4 text-xs text-zinc-400">
           <span>{active.length} actif{active.length > 1 ? 's' : ''}</span>
           <span>{inactive.length} inactif{inactive.length > 1 ? 's' : ''}</span>
           <span className="ml-auto">Auto-refresh 60s</span>

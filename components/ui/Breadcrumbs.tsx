@@ -56,7 +56,7 @@ export function Breadcrumbs() {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="hidden md:flex items-center gap-1.5 px-6 py-2 text-xs text-zinc-500"
+      className="hidden md:flex items-center gap-1.5 px-6 py-2 text-xs text-zinc-400"
     >
       <Link href="/dashboard" className="flex items-center gap-1 hover:text-zinc-300 transition-colors">
         <Home className="w-3 h-3" />
@@ -67,11 +67,11 @@ export function Breadcrumbs() {
         <>
           <ChevronRight className="w-3 h-3 text-zinc-700" />
           {sectionHref ? (
-            <Link href={sectionHref} className="text-zinc-600 hover:text-zinc-300 transition-colors">
+            <Link href={sectionHref} className="text-zinc-400 hover:text-zinc-300 transition-colors">
               {section}
             </Link>
           ) : (
-            <span className="text-zinc-600">{section}</span>
+            <span className="text-zinc-400">{section}</span>
           )}
         </>
       )}

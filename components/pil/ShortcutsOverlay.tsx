@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ShortcutsOverlayProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ const SHORTCUTS = [
 ];
 
 export function ShortcutsOverlay({ isOpen, onClose }: ShortcutsOverlayProps) {
+  const trapRef = useFocusTrap(isOpen, onClose);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -39,6 +42,11 @@ export function ShortcutsOverlay({ isOpen, onClose }: ShortcutsOverlayProps) {
           onClick={onClose}
         >
           <motion.div
+            ref={trapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Raccourcis clavier"
+            tabIndex={-1}
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -47,7 +55,7 @@ export function ShortcutsOverlay({ isOpen, onClose }: ShortcutsOverlayProps) {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-white">Raccourcis clavier</h2>
-              <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500">
+              <button onClick={onClose} aria-label="Fermer" className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500">
                 <X size={16} />
               </button>
             </div>

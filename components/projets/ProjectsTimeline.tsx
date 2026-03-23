@@ -80,7 +80,7 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
             style={{ left: `${m.pct}%` }}
           >
             <div className="w-px h-full bg-zinc-800" />
-            <span className="ml-1 text-[10px] text-zinc-600 whitespace-nowrap">{m.label}</span>
+            <span className="ml-1 text-[10px] text-zinc-400 whitespace-nowrap">{m.label}</span>
           </div>
         ))}
         {/* Today marker */}
@@ -113,7 +113,7 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
               {/* Label */}
               <div className="w-32 flex-shrink-0 text-right">
                 <p className="text-[11px] font-medium text-zinc-300 truncate" title={project.clientName}>{project.clientName}</p>
-                <p className="text-[9px] text-zinc-600">{type}</p>
+                <p className="text-[9px] text-zinc-400">{type}</p>
               </div>
 
               {/* Bar track */}

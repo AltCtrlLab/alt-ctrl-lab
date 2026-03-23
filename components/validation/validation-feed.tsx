@@ -163,7 +163,7 @@ export function ValidationFeed({ agentType, title, description }: ValidationFeed
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <RefreshCw size={24} className="animate-spin text-zinc-600" />
+        <RefreshCw size={24} className="animate-spin text-zinc-400" />
       </div>
     );
   }
@@ -173,7 +173,7 @@ export function ValidationFeed({ agentType, title, description }: ValidationFeed
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-white">{title}</h1>
-          <p className="text-sm text-zinc-500">{description}</p>
+          <p className="text-sm text-zinc-400">{description}</p>
         </div>
         <button
           onClick={handleMockSubmit}
@@ -187,7 +187,7 @@ export function ValidationFeed({ agentType, title, description }: ValidationFeed
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-white/10 bg-zinc-900/30 p-4">
           <div className="text-2xl font-semibold text-white">{currentTasks.length}</div>
-          <div className="text-xs text-zinc-500">Tâches actives</div>
+          <div className="text-xs text-zinc-400">Tâches actives</div>
         </div>
         <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-4">
           <div className="text-2xl font-semibold text-sky-400">{pendingValidations.length}</div>
@@ -202,15 +202,15 @@ export function ValidationFeed({ agentType, title, description }: ValidationFeed
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-500">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-400">
           Flux de Validation
         </h2>
 
         {pendingValidations.length === 0 ? (
           <div className="rounded-lg border border-dashed border-white/10 bg-zinc-900/30 p-12 text-center">
-            <Sparkles size={32} className="mx-auto mb-3 text-zinc-600" />
+            <Sparkles size={32} className="mx-auto mb-3 text-zinc-400" />
             <h3 className="text-sm font-medium text-white">Aucune validation en attente</h3>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-zinc-400">
               Les tâches à valider apparaîtront ici automatiquement
             </p>
           </div>
@@ -225,7 +225,7 @@ export function ValidationFeed({ agentType, title, description }: ValidationFeed
 
       {currentTasks.filter((t) => t.status !== 'Pending_Validation').length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-500">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-400">
             Historique
           </h2>
           <div className="space-y-2">
@@ -239,9 +239,9 @@ export function ValidationFeed({ agentType, title, description }: ValidationFeed
                 >
                   <div>
                     <span className="text-sm text-white">{task.title}</span>
-                    <span className="ml-3 text-xs text-zinc-500">{task.status}</span>
+                    <span className="ml-3 text-xs text-zinc-400">{task.status}</span>
                   </div>
-                  <span className="text-xs text-zinc-600">
+                  <span className="text-xs text-zinc-400">
                     {new Date(task.updatedAt).toLocaleDateString('fr-FR')}
                   </span>
                 </div>

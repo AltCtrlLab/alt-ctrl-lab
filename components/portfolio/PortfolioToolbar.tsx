@@ -13,7 +13,7 @@ export function PortfolioToolbar({ filterType, onFilterType, onCreate }: Props) 
       <div className="flex items-center gap-2 flex-wrap">
         {['', 'Web', 'Branding', 'IA', 'Marketing'].map(t => (
           <button key={t} onClick={() => onFilterType(t)}
-            className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${filterType === t ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${filterType === t ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:text-zinc-300'}`}>
             {t === '' ? 'Tous' : t}
           </button>
         ))}

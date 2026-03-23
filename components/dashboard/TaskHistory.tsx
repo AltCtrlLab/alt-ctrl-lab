@@ -21,7 +21,7 @@ export function TaskHistory({ tasks }: TaskHistoryProps) {
       case 'Rejected':
         return <X className="w-3 h-3 text-rose-400" />;
       default:
-        return <Clock className="w-3 h-3 text-zinc-500" />;
+        return <Clock className="w-3 h-3 text-zinc-400" />;
     }
   };
 
@@ -32,7 +32,7 @@ export function TaskHistory({ tasks }: TaskHistoryProps) {
       case 'Rejected':
         return 'text-rose-400';
       default:
-        return 'text-zinc-500';
+        return 'text-zinc-400';
     }
   };
 
@@ -41,11 +41,11 @@ export function TaskHistory({ tasks }: TaskHistoryProps) {
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-zinc-100">Historique</h3>
-          <span className="text-xs text-zinc-500">{completedTasks.length} tâches</span>
+          <span className="text-xs text-zinc-400">{completedTasks.length} tâches</span>
         </div>
 
         {completedTasks.length === 0 ? (
-          <div className="text-center py-6 text-zinc-500">
+          <div className="text-center py-6 text-zinc-400">
             <RotateCcw className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-xs">Aucune tâche dans l'historique</p>
           </div>

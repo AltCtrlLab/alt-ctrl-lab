@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { ContentItem, ContentStatus } from '@/lib/db/schema_content';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import { PlatformIcon } from './PlatformIcon';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
+  const trapRef = useFocusTrap(true, onClose);
   const [tab, setTab] = useState<'content' | 'notes'>('content');
   const [status, setStatus] = useState<ContentStatus>(item.status as ContentStatus);
   const [saving, setSaving] = useState(false);
@@ -39,43 +41,43 @@ export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div ref={trapRef} role="dialog" aria-modal="true" aria-label="Détails du contenu" tabIndex={-1} className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-zinc-800 sticky top-0 bg-zinc-900">
           <div className="flex items-center gap-2">
             <PlatformIcon platform={item.platform as any} />
             <span className="text-sm font-semibold text-zinc-100 line-clamp-1">{item.title}</span>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} aria-label="Fermer" className="text-zinc-400 hover:text-zinc-300"><X className="w-4 h-4" /></button>
         </div>
 
         <div className="p-4">
           <div className="flex items-center gap-2 mb-4">
             <ContentStatusBadge status={status} />
-            <span className="text-xs text-zinc-500">{item.type}</span>
+            <span className="text-xs text-zinc-400">{item.type}</span>
             {item.agent !== 'manuel' && <span className="text-xs text-fuchsia-400">{item.agent}</span>}
           </div>
 
-          <div className="flex gap-1 mb-4 bg-zinc-800 rounded-lg p-1">
+          <div role="tablist" className="flex gap-1 mb-4 bg-zinc-800 rounded-lg p-1">
             {(['content', 'notes'] as const).map(t => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`flex-1 px-3 py-1.5 rounded text-xs transition-colors ${tab === t ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+              <button key={t} id={`tab-content-${t}`} role="tab" aria-selected={tab === t} aria-controls={`panel-content-${t}`} onClick={() => setTab(t)}
+                className={`flex-1 px-3 py-1.5 rounded text-xs transition-colors ${tab === t ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}>
                 {t === 'content' ? 'Contenu' : 'Notes'}
               </button>
             ))}
           </div>
 
           {tab === 'content' ? (
-            <div className="space-y-3">
-              {item.hook && <div><p className="text-xs text-zinc-500 mb-1">Hook</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3">{item.hook}</p></div>}
-              {item.body && <div><p className="text-xs text-zinc-500 mb-1">Contenu</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 whitespace-pre-wrap">{item.body}</p></div>}
-              {item.cta && <div><p className="text-xs text-zinc-500 mb-1">CTA</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3">{item.cta}</p></div>}
+            <div role="tabpanel" id={`panel-content-${tab}`} aria-labelledby={`tab-content-${tab}`} className="space-y-3">
+              {item.hook && <div><p className="text-xs text-zinc-400 mb-1">Hook</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3">{item.hook}</p></div>}
+              {item.body && <div><p className="text-xs text-zinc-400 mb-1">Contenu</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 whitespace-pre-wrap">{item.body}</p></div>}
+              {item.cta && <div><p className="text-xs text-zinc-400 mb-1">CTA</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3">{item.cta}</p></div>}
             </div>
           ) : (
-            <p className="text-sm text-zinc-400">{item.notes ?? 'Aucune note'}</p>
+            <div role="tabpanel" id={`panel-content-${tab}`} aria-labelledby={`tab-content-${tab}`}><p className="text-sm text-zinc-400">{item.notes ?? 'Aucune note'}</p></div>
           )}
 
           <div className="mt-4">
-            <p className="text-xs text-zinc-500 mb-2">Changer statut</p>
+            <p className="text-xs text-zinc-400 mb-2">Changer statut</p>
             <div className="flex flex-wrap gap-2">
               {(['Idée', 'Brouillon', 'Planifié', 'Publié', 'Archivé'] as ContentStatus[]).map(s => (
                 <button key={s} onClick={() => updateStatus(s)} disabled={saving || s === status}

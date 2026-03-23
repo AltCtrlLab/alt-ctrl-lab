@@ -96,7 +96,7 @@ export function MobileNav() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 md:hidden h-14 flex items-center justify-between px-4 bg-zinc-950/95 backdrop-blur-xl border-b border-white/[0.06]">
+      <div className="fixed top-0 left-0 right-0 z-50 md:hidden h-14 flex items-center justify-between px-4 bg-zinc-950/95 backdrop-blur-xl border-b border-white/[0.08]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setOpen(true)}
@@ -114,7 +114,7 @@ export function MobileNav() {
           />
         </div>
         {currentPage && (
-          <span className="text-xs text-zinc-500 font-medium">{currentPage.label}</span>
+          <span className="text-xs text-zinc-400 font-medium">{currentPage.label}</span>
         )}
       </div>
 
@@ -141,7 +141,7 @@ export function MobileNav() {
               className="fixed left-0 top-0 bottom-0 w-72 z-50 md:hidden overflow-y-auto bg-zinc-950/95 backdrop-blur-xl border-r border-white/[0.08]"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between p-4 border-b border-white/[0.08]">
                 <Image
                   src={isDark ? '/email/LogoHeader1.png' : '/email/LogoHeader.png'}
                   alt="Alt Ctrl Lab"
@@ -152,7 +152,7 @@ export function MobileNav() {
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="Fermer le menu"
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-300 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -163,9 +163,9 @@ export function MobileNav() {
                 {navSections.map((section, sIdx) => (
                   <div key={section.title}>
                     {sIdx > 0 && (
-                      <div className="mx-2 my-2 border-t border-white/[0.06]" />
+                      <div className="mx-2 my-2 border-t border-white/[0.08]" />
                     )}
-                    <p className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-medium text-zinc-600">
+                    <p className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-medium text-zinc-400">
                       {section.title}
                     </p>
                     {section.items.map(item => {

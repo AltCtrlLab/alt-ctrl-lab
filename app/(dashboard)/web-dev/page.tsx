@@ -81,7 +81,7 @@ export default function WebDevPage() {
             </div>
             <div>
               <h1 className="text-lg font-semibold text-zinc-100">Web Dev</h1>
-              <p className="text-xs text-zinc-500">Abdul Matin &middot; Architecture & developpement</p>
+              <p className="text-xs text-zinc-400">Abdul Matin &middot; Architecture & developpement</p>
             </div>
           </div>
           <Link
@@ -123,7 +123,7 @@ export default function WebDevPage() {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Decrire une tache dev rapide..."
               disabled={sending}
-              className="flex-1 px-4 py-2.5 text-sm bg-zinc-900/60 border border-zinc-800 rounded-xl text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm bg-zinc-900/60 border border-zinc-800 rounded-xl text-zinc-200 placeholder:text-zinc-400 outline-none focus:border-zinc-600 transition-colors"
             />
             <button
               type="submit"
@@ -138,7 +138,7 @@ export default function WebDevPage() {
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+            <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
           </div>
         )}
 
@@ -155,7 +155,7 @@ export default function WebDevPage() {
         {/* Active tasks */}
         {activeTasks.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-xs uppercase tracking-widest text-zinc-500 font-medium mb-3">
+            <h2 className="text-xs uppercase tracking-widest text-zinc-400 font-medium mb-3">
               En cours ({activeTasks.length})
             </h2>
             <div className="space-y-2">
@@ -168,7 +168,7 @@ export default function WebDevPage() {
                     </span>
                   </div>
                   <p className="text-sm text-zinc-200 line-clamp-2">{t.prompt?.slice(0, 120)}</p>
-                  <p className="text-[11px] text-zinc-600 mt-1">
+                  <p className="text-[11px] text-zinc-400 mt-1">
                     {formatRelativeTime(new Date(t.createdAt))}
                   </p>
                 </div>
@@ -180,7 +180,7 @@ export default function WebDevPage() {
         {/* Done tasks */}
         {doneTasks.length > 0 && (
           <div>
-            <h2 className="text-xs uppercase tracking-widest text-zinc-500 font-medium mb-3">
+            <h2 className="text-xs uppercase tracking-widest text-zinc-400 font-medium mb-3">
               Terminees ({doneTasks.length})
             </h2>
             <div className="space-y-2">
@@ -197,13 +197,13 @@ export default function WebDevPage() {
                       <span className={`text-[11px] font-medium ${failed ? 'text-rose-400' : 'text-emerald-400'}`}>
                         {failed ? 'Echec' : 'Termine'}
                       </span>
-                      <span className="text-[11px] text-zinc-600 ml-auto">
+                      <span className="text-[11px] text-zinc-400 ml-auto">
                         {formatRelativeTime(new Date(t.updatedAt || t.createdAt))}
                       </span>
                     </div>
                     <p className="text-sm text-zinc-300 line-clamp-2">{t.prompt?.slice(0, 120)}</p>
                     {t.result && (
-                      <p className="text-xs text-zinc-500 mt-1 line-clamp-2">{t.result.slice(0, 150)}</p>
+                      <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{t.result.slice(0, 150)}</p>
                     )}
                     {t.error && (
                       <p className="text-xs text-rose-400/80 mt-1 line-clamp-1">{t.error.slice(0, 100)}</p>

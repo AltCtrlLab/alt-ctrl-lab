@@ -34,17 +34,17 @@ export function ContentCalendar({ items, onSelect }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <button onClick={() => setDate(new Date(year, month - 1, 1))} className="p-1.5 text-zinc-500 hover:text-zinc-300">
+        <button onClick={() => setDate(new Date(year, month - 1, 1))} className="p-1.5 text-zinc-400 hover:text-zinc-300">
           <ChevronLeft className="w-4 h-4" />
         </button>
         <span className="text-sm font-medium text-zinc-200 capitalize">{monthName}</span>
-        <button onClick={() => setDate(new Date(year, month + 1, 1))} className="p-1.5 text-zinc-500 hover:text-zinc-300">
+        <button onClick={() => setDate(new Date(year, month + 1, 1))} className="p-1.5 text-zinc-400 hover:text-zinc-300">
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
       <div className="grid grid-cols-7 gap-px bg-zinc-800 rounded-xl overflow-hidden">
         {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(d => (
-          <div key={d} className="bg-zinc-900 text-center text-[10px] text-zinc-500 py-2">{d}</div>
+          <div key={d} className="bg-zinc-900 text-center text-[10px] text-zinc-400 py-2">{d}</div>
         ))}
         {Array.from({ length: blanks }).map((_, i) => (
           <div key={`b${i}`} className="bg-zinc-900/50 h-24" />
@@ -55,7 +55,7 @@ export function ContentCalendar({ items, onSelect }: Props) {
           const isToday = new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year;
           return (
             <div key={day} className="bg-zinc-900 h-24 p-1 overflow-hidden">
-              <span className={`text-[10px] font-medium mb-1 inline-block w-5 h-5 flex items-center justify-center rounded-full ${isToday ? 'bg-fuchsia-500 text-white' : 'text-zinc-500'}`}>
+              <span className={`text-[10px] font-medium mb-1 inline-block w-5 h-5 flex items-center justify-center rounded-full ${isToday ? 'bg-fuchsia-500 text-white' : 'text-zinc-400'}`}>
                 {day}
               </span>
               {dayItems.slice(0, 3).map(item => (
@@ -67,7 +67,7 @@ export function ContentCalendar({ items, onSelect }: Props) {
                   {item.title}
                 </div>
               ))}
-              {dayItems.length > 3 && <span className="text-[9px] text-zinc-600">+{dayItems.length - 3}</span>}
+              {dayItems.length > 3 && <span className="text-[9px] text-zinc-400">+{dayItems.length - 3}</span>}
             </div>
           );
         })}

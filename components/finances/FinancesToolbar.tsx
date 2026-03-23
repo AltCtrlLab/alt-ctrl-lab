@@ -16,7 +16,7 @@ export function FinancesToolbar({ view, onViewChange, onCreateInvoice, onCreateE
         <button
           onClick={() => onViewChange('invoices')}
           className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${
-            view === 'invoices' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
+            view === 'invoices' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -25,7 +25,7 @@ export function FinancesToolbar({ view, onViewChange, onCreateInvoice, onCreateE
         <button
           onClick={() => onViewChange('expenses')}
           className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${
-            view === 'expenses' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
+            view === 'expenses' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
           }`}
         >
           <Receipt className="w-4 h-4" />

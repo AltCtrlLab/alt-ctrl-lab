@@ -10,7 +10,7 @@ interface DeadlineCountdownProps {
 export function DeadlineCountdown({ deadline, compact = false }: DeadlineCountdownProps) {
   if (!deadline) {
     return compact ? null : (
-      <span className="text-[10px] text-zinc-600">Pas de deadline</span>
+      <span className="text-[10px] text-zinc-400">Pas de deadline</span>
     );
   }
 
@@ -40,7 +40,7 @@ export function DeadlineCountdown({ deadline, compact = false }: DeadlineCountdo
           : `${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}`
         }
       </span>
-      <span className="text-[10px] text-zinc-600">
+      <span className="text-[10px] text-zinc-400">
         ({new Date(deadline).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })})
       </span>
     </div>

@@ -70,16 +70,16 @@ export function TimeLogPanel({ projectId, onHoursUpdated }: TimeLogPanelProps) {
     onHoursUpdated?.();
   };
 
-  const inputCls = "w-full px-3 py-2 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
+  const inputCls = "w-full px-3 py-2 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" role="region" aria-label="Journal de temps">
       {/* Breakdown */}
       {entries.length > 0 && <CategoryBreakdown entries={entries} />}
 
       {/* Add button */}
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+        <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5" />
           Entrées de temps
         </p>
@@ -129,7 +129,7 @@ export function TimeLogPanel({ projectId, onHoursUpdated }: TimeLogPanelProps) {
             />
           </div>
           <div className="flex gap-2 justify-end">
-            <button type="button" onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+            <button type="button" onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-300 transition-colors">
               Annuler
             </button>
             <button
@@ -150,7 +150,7 @@ export function TimeLogPanel({ projectId, onHoursUpdated }: TimeLogPanelProps) {
           {[1,2].map(i => <div key={i} className="h-10 rounded-lg bg-zinc-800/50 animate-pulse" />)}
         </div>
       ) : entries.length === 0 ? (
-        <p className="text-xs text-zinc-600 italic text-center py-4">Aucune entrée — loguez vos premières heures.</p>
+        <p className="text-xs text-zinc-400 italic text-center py-4">Aucune entrée — loguez vos premières heures.</p>
       ) : (
         <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
           {entries.map(entry => {
@@ -160,12 +160,12 @@ export function TimeLogPanel({ projectId, onHoursUpdated }: TimeLogPanelProps) {
                 <span className={`w-2 h-2 rounded-full flex-shrink-0 ${CATEGORY_COLORS[cat]}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-zinc-300 truncate">{entry.description}</p>
-                  <p className="text-[10px] text-zinc-600">{entry.category} · {formatDate(entry.date as number)}</p>
+                  <p className="text-[10px] text-zinc-400">{entry.category} · {formatDate(entry.date as number)}</p>
                 </div>
                 <span className="text-xs font-semibold text-zinc-300 flex-shrink-0">{entry.hours}h</span>
                 <button
                   onClick={() => handleDelete(entry.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-500/10 text-zinc-600 hover:text-rose-400 rounded transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 rounded transition-all"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>

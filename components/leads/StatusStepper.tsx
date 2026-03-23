@@ -36,7 +36,7 @@ export function StatusStepper({ currentStatus, onStatusChange, disabled }: Statu
                     ? `${meta.bg} ${meta.border} ${meta.color}`
                     : isDone
                     ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                    : 'bg-zinc-900 border-zinc-800 text-zinc-600 hover:border-zinc-600 hover:text-zinc-400'
+                    : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-400'
                 } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 {isDone && <Check className="w-2.5 h-2.5" />}
@@ -63,7 +63,7 @@ export function StatusStepper({ currentStatus, onStatusChange, disabled }: Statu
               className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all ${
                 isCurrent
                   ? `${meta.bg} ${meta.border} ${meta.color}`
-                  : 'bg-zinc-900 border-zinc-800 text-zinc-600 hover:border-zinc-600 hover:text-zinc-400'
+                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-400'
               } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
               {status}

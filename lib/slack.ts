@@ -94,16 +94,21 @@ export async function notifySlack(event: SlackEvent, data: SlackEventData): Prom
     }],
   };
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
     if (!res.ok) {
       logger.warn(`[slack] Webhook returned ${res.status} for event ${event}`);
     }
   } catch (err) {
     logger.warn(`[slack] Failed to send notification: ${err instanceof Error ? err.message : err}`);
+  } finally {
+    clearTimeout(timeout);
   }
 }

@@ -16,7 +16,7 @@ export function PostVenteToolbar({ filterStatus, onFilterStatus, filterType, onF
         <div className="flex items-center gap-1">
           {['', 'À faire', 'Fait', 'Annulé'].map(s => (
             <button key={s} onClick={() => onFilterStatus(s)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs transition-colors ${filterStatus === s ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}>
+              className={`px-2.5 py-1.5 rounded-lg text-xs transition-colors ${filterStatus === s ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:text-zinc-300'}`}>
               {s === '' ? 'Tous' : s}
             </button>
           ))}
@@ -25,7 +25,7 @@ export function PostVenteToolbar({ filterStatus, onFilterStatus, filterType, onF
         <div className="flex items-center gap-1 flex-wrap">
           {['', 'Check-in', 'Upsell', 'NPS', 'Support', 'Renouvellement'].map(t => (
             <button key={t} onClick={() => onFilterType(t)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs transition-colors ${filterType === t ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}>
+              className={`px-2.5 py-1.5 rounded-lg text-xs transition-colors ${filterType === t ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:text-zinc-300'}`}>
               {t === '' ? 'Tous types' : t}
             </button>
           ))}

@@ -23,7 +23,7 @@ export function ContentToolbar({ view, onViewChange, onCreate }: Props) {
             <button
               key={v.key}
               onClick={() => onViewChange(v.key)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${view === v.key ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${view === v.key ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
             >
               <Icon className="w-4 h-4" /> {v.label}
             </button>

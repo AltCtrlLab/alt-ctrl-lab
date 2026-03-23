@@ -54,7 +54,30 @@
       "Bash(curl -sk -X POST https://backboard.railway.app/graphql/v2 \\\\\n  -H \"Authorization: Bearer 183c00d5-7531-4e54-8d6d-52116be723a0\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"query\":\"{ deploymentLogs\\(deploymentId: \\\\\"a0bf5fa7-5e21-4148-bdda-1aa234c4a810\\\\\"\\) { message } }\"}' 2>&1 | python -c \"import sys,json; logs=json.load\\(sys.stdin\\); [print\\(l['message']\\) for l in logs.get\\('data',{}\\).get\\('deploymentLogs',[]\\)]\" 2>&1 | tail -50)",
       "Bash(curl -sk -X POST https://backboard.railway.app/graphql/v2 \\\\\n  -H \"Authorization: Bearer 183c00d5-7531-4e54-8d6d-52116be723a0\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"query\":\"{ buildLogs\\(deploymentId: \\\\\"a0bf5fa7-5e21-4148-bdda-1aa234c4a810\\\\\"\\) { message } }\"}' 2>&1 | python -c \"\nimport sys,json\ndata = json.load\\(sys.stdin\\)\nlogs = data.get\\('data',{}\\).get\\('buildLogs',[]\\)\nfor l in logs[-80:]:\n    print\\(l['message']\\)\n\" 2>&1)",
       "Bash(sleep 10 && curl -sk -X POST https://backboard.railway.app/graphql/v2 \\\\\n  -H \"Authorization: Bearer 183c00d5-7531-4e54-8d6d-52116be723a0\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"query\":\"{ project\\(id: \\\\\"f348c163-c857-48ec-b255-698e8a10b39c\\\\\"\\) { services { edges { node { deployments { edges { node { id status createdAt } } } } } } } }\"}' | python -c \"\nimport sys,json\ndata = json.load\\(sys.stdin\\)\ndeps = data['data']['project']['services']['edges'][0]['node']['deployments']['edges']\nfor d in deps[:3]:\n    n = d['node']\n    print\\(n['status'], n['createdAt'], n['id']\\)\n\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"fix: insights visibles + pipeline steps visuels sur /rd:*)",
+      "Bash(ssh root@24.199.104.202 \"cd /root/altctrl-app && git pull origin main 2>&1 | tail -3 && pm2 restart altctrl 2>&1 | tail -2\")",
+      "Bash(git commit:*)",
+      "Bash(npx next:*)",
+      "Bash(grep -l \"mock\\\\|MOCK\\\\|dummy\\\\|placeholder\" /c/temp/alt-ctrl-lab/app/api/**/route.ts)",
+      "Bash(grep -n \"loading\\\\|Loading\\\\|skeleton\\\\|Skeleton\" /c/temp/alt-ctrl-lab/app/\\\\\\(dashboard\\\\\\)/**/page.tsx)",
+      "Bash(ls -la /c/temp/alt-ctrl-lab/app/\\\\\\(dashboard\\\\\\)/)",
+      "Read(//c/temp/alt-ctrl-lab/**)",
+      "Bash(grep -E \"status|Status\" /c/temp/alt-ctrl-lab/lib/db/schema_*.ts)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Read(//c/Users/User/.claude/**)",
+      "Bash(npm run:*)",
+      "Bash(node -e \"console.log\\(require\\(''./node_modules/react/package.json''\\).version\\)\")",
+      "Bash(git stash:*)",
+      "Bash(grep -n \"console\\\\.log\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)",
+      "Bash(grep -n \"catch.*{$\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)",
+      "Bash(npx vitest:*)",
+      "Bash(grep -n \"validateWithZod\\\\|z\\\\.parse\\\\|Zod\\\\|validate\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)",
+      "Bash(grep -n \"rate.limit\\\\|rateLimit\\\\|RateLimit\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\User\\.claude",
+      "c:\\temp\\alt-ctrl-lab\\app\\client-portal"
     ]
   }
 }

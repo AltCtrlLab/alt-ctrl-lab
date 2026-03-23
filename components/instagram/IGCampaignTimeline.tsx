@@ -90,7 +90,7 @@ function StepCircle({ n, active, done }: { n: number; active: boolean; done: boo
   );
   return (
     <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700/50 flex items-center justify-center shrink-0">
-      <span className="text-[10px] font-semibold text-zinc-600">{n}</span>
+      <span className="text-[10px] font-semibold text-zinc-400">{n}</span>
     </div>
   );
 }
@@ -99,7 +99,7 @@ function StatusPill({ text, variant }: { text: string; variant: 'active' | 'done
   const cls =
     variant === 'done' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
     : variant === 'active' ? 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20 animate-pulse'
-    : 'bg-zinc-800/60 text-zinc-600 border-zinc-700/30';
+    : 'bg-zinc-800/60 text-zinc-400 border-zinc-700/30';
   return (
     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${cls}`}>{text}</span>
   );
@@ -144,7 +144,7 @@ export function IGCampaignTimeline({ data, running }: Props) {
         <div className="flex items-center gap-2.5">
           <StepCircle n={1} active={phase1Active} done={phase1Done} />
           <div className="flex-1 flex items-center justify-between gap-2 min-w-0">
-            <span className={`text-xs font-semibold ${phase1Active || phase1Done ? 'text-zinc-100' : 'text-zinc-600'}`}>
+            <span className={`text-xs font-semibold ${phase1Active || phase1Done ? 'text-zinc-100' : 'text-zinc-400'}`}>
               Recherche
             </span>
             <StatusPill
@@ -160,8 +160,8 @@ export function IGCampaignTimeline({ data, running }: Props) {
             animate={{ opacity: 1, y: 0 }}
             className="ml-8 mt-2 flex items-center gap-2"
           >
-            <Search className="w-3 h-3 text-zinc-600 shrink-0" />
-            <span className="text-[11px] text-zinc-500 font-mono">"{data.searchQuery}"</span>
+            <Search className="w-3 h-3 text-zinc-400 shrink-0" />
+            <span className="text-[11px] text-zinc-400 font-mono">"{data.searchQuery}"</span>
             {data.searchCount !== undefined && (
               <span className="text-[11px] text-fuchsia-400 font-semibold">→ {data.searchCount} trouvés</span>
             )}
@@ -180,7 +180,7 @@ export function IGCampaignTimeline({ data, running }: Props) {
           <div className="flex items-center gap-2.5">
             <StepCircle n={2} active={phase2Active} done={phase2Done} />
             <div className="flex-1 flex items-center justify-between gap-2 min-w-0">
-              <span className={`text-xs font-semibold ${phase2Active || phase2Done ? 'text-zinc-100' : 'text-zinc-600'}`}>
+              <span className={`text-xs font-semibold ${phase2Active || phase2Done ? 'text-zinc-100' : 'text-zinc-400'}`}>
                 Qualification
               </span>
               <StatusPill
@@ -209,13 +209,13 @@ export function IGCampaignTimeline({ data, running }: Props) {
                     : <XCircle className="w-3.5 h-3.5 text-zinc-700 shrink-0" />
                   }
                   <span className={`text-[11px] font-mono font-semibold flex-1 min-w-0 truncate ${
-                    p.passed ? 'text-zinc-200' : 'text-zinc-600'
+                    p.passed ? 'text-zinc-200' : 'text-zinc-400'
                   }`}>
                     @{p.handle}
                   </span>
                   {p.passed && <ScoreBadge score={p.score} />}
                   {p.passed && p.followers !== undefined && (
-                    <span className="text-[10px] text-zinc-500 tabular-nums shrink-0">
+                    <span className="text-[10px] text-zinc-400 tabular-nums shrink-0">
                       {formatFollowers(p.followers)}
                     </span>
                   )}
@@ -242,7 +242,7 @@ export function IGCampaignTimeline({ data, running }: Props) {
           <div className="flex items-center gap-2.5">
             <StepCircle n={3} active={phase3Active} done={phase3Done} />
             <div className="flex-1 flex items-center justify-between gap-2 min-w-0">
-              <span className={`text-xs font-semibold ${phase3Active || phase3Done ? 'text-zinc-100' : 'text-zinc-600'}`}>
+              <span className={`text-xs font-semibold ${phase3Active || phase3Done ? 'text-zinc-100' : 'text-zinc-400'}`}>
                 Envoi DMs
               </span>
               <StatusPill
@@ -284,13 +284,13 @@ export function IGCampaignTimeline({ data, running }: Props) {
                         href={dm.profileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 text-zinc-600 hover:text-fuchsia-400 transition-colors"
+                        className="shrink-0 text-zinc-400 hover:text-fuchsia-400 transition-colors"
                       >
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
                     {dm.status === 'sent' && dm.sentAt && (
-                      <span className="text-[10px] text-zinc-600 shrink-0">{dm.sentAt}</span>
+                      <span className="text-[10px] text-zinc-400 shrink-0">{dm.sentAt}</span>
                     )}
                     {dm.status === 'failed' && dm.error && (
                       <span className="text-[10px] text-rose-500 truncate max-w-[100px] shrink-0">{dm.error}</span>
@@ -320,8 +320,8 @@ export function IGCampaignTimeline({ data, running }: Props) {
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-zinc-900/40 border border-zinc-800/40"
               >
-                <Clock className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
-                <span className="text-[11px] text-zinc-600">Prochain DM dans</span>
+                <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <span className="text-[11px] text-zinc-400">Prochain DM dans</span>
                 <span className="text-[11px] font-mono font-bold text-fuchsia-400 tabular-nums">{countdown}s</span>
               </motion.div>
             )}
@@ -347,12 +347,12 @@ export function IGCampaignTimeline({ data, running }: Props) {
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-baseline gap-1">
                   <span className="text-xl font-bold text-fuchsia-400 tabular-nums">{data.summary.sent}</span>
-                  <span className="text-[11px] text-zinc-500">DMs envoyés</span>
+                  <span className="text-[11px] text-zinc-400">DMs envoyés</span>
                 </div>
                 <span className="text-zinc-700">·</span>
-                <span className="text-[11px] text-zinc-500">{data.profiles.length} profils analysés</span>
+                <span className="text-[11px] text-zinc-400">{data.profiles.length} profils analysés</span>
                 <span className="text-zinc-700">·</span>
-                <span className="text-[11px] text-zinc-500">{data.summary.filtered} filtrés</span>
+                <span className="text-[11px] text-zinc-400">{data.summary.filtered} filtrés</span>
               </div>
             </motion.div>
           </>

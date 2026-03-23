@@ -123,7 +123,7 @@ function ActiveTasksFeed({ tasks, onOpenKanban }: { tasks: any[]; onOpenKanban: 
             const ok = task.status === 'COMPLETED';
             return (
               <button key={task.id} onClick={onOpenKanban}
-                className="w-full text-left p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] transition-all group">
+                className="w-full text-left p-3 rounded-xl bg-white/[0.02] border border-white/[0.08] hover:bg-white/[0.05] transition-all group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-neutral-300">
                     {ok

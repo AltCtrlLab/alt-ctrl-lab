@@ -62,7 +62,7 @@ export default function PostVentePage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.06]">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-zinc-950/80 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <HeartHandshake className="w-5 h-5 text-cyan-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Post-Vente & Rétention</h1>
@@ -73,7 +73,7 @@ export default function PostVentePage() {
         <StatsBar loading={!stats} items={stats ? [
           { label: 'À faire', value: stats.aFaire, icon: ClipboardList, color: 'text-cyan-400' },
           { label: 'NPS moyen', value: stats.scoreNpsMoyen != null ? `${stats.scoreNpsMoyen}/10` : '—', icon: Star, color: 'text-fuchsia-400' },
-          { label: 'En retard', value: stats.overdueCount, icon: AlertTriangle, color: stats.overdueCount > 0 ? 'text-rose-400' : 'text-zinc-500', alert: true },
+          { label: 'En retard', value: stats.overdueCount, icon: AlertTriangle, color: stats.overdueCount > 0 ? 'text-rose-400' : 'text-zinc-400', alert: true },
           { label: 'Upsells', value: stats.upsellsIdentifies, icon: TrendingUp, color: 'text-emerald-400' },
         ] : []} columns={4} className="mb-6" />
         <PageToolbar

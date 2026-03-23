@@ -37,10 +37,10 @@ export function ProjectTimeline({ items }: ProjectTimelineProps) {
     return (
       <Card variant="default" className="p-8 text-center">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-          <Clock className="w-8 h-8 text-zinc-600" />
+          <Clock className="w-8 h-8 text-zinc-400" />
         </div>
         <h3 className="text-zinc-300 font-medium mb-1">Aucun historique</h3>
-        <p className="text-zinc-500 text-sm">Vos projets validés apparaîtront ici</p>
+        <p className="text-zinc-400 text-sm">Vos projets validés apparaîtront ici</p>
       </Card>
     );
   }
@@ -58,7 +58,7 @@ export function ProjectTimeline({ items }: ProjectTimelineProps) {
           {Object.entries(grouped).map(([date, dayItems]) => (
             <div key={date}>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
                   {date}
                 </span>
                 <div className="flex-1 h-px bg-zinc-800" />
@@ -94,7 +94,7 @@ export function ProjectTimeline({ items }: ProjectTimelineProps) {
                       <h4 className="text-sm font-medium text-zinc-200 truncate">
                         {item.title}
                       </h4>
-                      <div className="flex items-center gap-2 text-xs text-zinc-500">
+                      <div className="flex items-center gap-2 text-xs text-zinc-400">
                         <span style={{ color: item.agentColor }}>{item.agentName}</span>
                         {item.xpEarned && (
                           <>
@@ -106,7 +106,7 @@ export function ProjectTimeline({ items }: ProjectTimelineProps) {
                     </div>
 
                     {/* Arrow */}
-                    <ChevronRight className="w-4 h-4 text-zinc-600" />
+                    <ChevronRight className="w-4 h-4 text-zinc-400" />
                   </div>
                 ))}
               </div>

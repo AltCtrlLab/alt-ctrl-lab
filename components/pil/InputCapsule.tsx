@@ -87,7 +87,7 @@ export const InputCapsule: React.FC<InputCapsuleProps> = ({
       {/* Header */}
       <div className={`flex items-center justify-between px-5 py-4 border-b ${t.borderLight}`}>
         <h2 className={`${t.textHeading} font-medium tracking-tight`}>Directives Opérationnelles</h2>
-        <button className={`${t.textMuted} hover:${t.textMain} transition-colors`}>
+        <button className={`${t.textMuted} hover:${t.textMain} transition-colors`} aria-label="Plus d'options">
           <MoreHorizontal size={16} />
         </button>
       </div>

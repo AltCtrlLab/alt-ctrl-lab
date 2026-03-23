@@ -13,13 +13,13 @@ interface SearchInputProps {
 function ToolbarSearch({ value, onChange, placeholder = 'Rechercher...' }: SearchInputProps) {
   return (
     <div className="relative flex-1 min-w-[200px] max-w-xs">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
       <input
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
+        className="w-full pl-9 pr-3 py-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/20 transition-all"
       />
     </div>
   );
@@ -140,7 +140,7 @@ export function PageToolbar({
                 key={opt}
                 onClick={() => f.onChange(opt)}
                 className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                  f.value === opt ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
+                  f.value === opt ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:text-zinc-300'
                 }`}
               >
                 {opt === '' ? (f.allLabel ?? 'Tous') : opt}
@@ -154,7 +154,7 @@ export function PageToolbar({
       {hasActiveFilters && (
         <button
           onClick={() => filters?.forEach(f => f.onChange(''))}
-          className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
         >
           <RotateCcw className="w-3 h-3" />
           Reset
@@ -163,7 +163,7 @@ export function PageToolbar({
 
       {/* Count */}
       {count && (
-        <span className="text-xs text-zinc-600">
+        <span className="text-xs text-zinc-400">
           {count.value} {count.label}
         </span>
       )}
@@ -206,7 +206,7 @@ export function PageToolbar({
                 key={opt.key}
                 onClick={() => viewToggle.onChange(opt.key)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  viewToggle.current === opt.key ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'
+                  viewToggle.current === opt.key ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'
                 }`}
               >
                 <VIcon className="w-3.5 h-3.5" />

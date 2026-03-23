@@ -48,7 +48,7 @@ export function PhaseProgress({ currentPhase, onPhaseChange, interactive = false
               </button>
               {size === 'md' && (
                 <span className={`${labelSize} text-center whitespace-nowrap ${
-                  isCurrent ? 'text-cyan-400 font-semibold' : isDone ? 'text-emerald-400' : 'text-zinc-600'
+                  isCurrent ? 'text-cyan-400 font-semibold' : isDone ? 'text-emerald-400' : 'text-zinc-400'
                 }`}>
                   {phase}
                 </span>

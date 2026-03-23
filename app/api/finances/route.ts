@@ -7,6 +7,8 @@ import {
 } from '@/lib/db';
 import { validateBody, invoiceCreateSchema, invoiceUpdateSchema, expenseCreateSchema, expenseUpdateSchema } from '@/lib/validation';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { notifySlack } from '@/lib/slack';
+import { auditCreate, auditUpdate, auditDelete } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,6 +60,7 @@ export async function POST(request: NextRequest) {
         date: ve.data.date ? new Date(ve.data.date).getTime() : Date.now(),
       };
       const id = await createExpense(expenseData as Parameters<typeof createExpense>[0]);
+      auditCreate(request, 'expense', id, { label: ve.data.label, amount: ve.data.amount });
       return NextResponse.json({ success: true, data: { id } });
     }
     const vi = validateBody(data, invoiceCreateSchema);
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
       dueDate: vi.data.dueDate ? new Date(vi.data.dueDate).getTime() : null,
     };
     const id = await createInvoice(invoiceData as Parameters<typeof createInvoice>[0]);
+    auditCreate(request, 'invoice', id, { clientName: vi.data.clientName, amount: vi.data.amount });
     return NextResponse.json({ success: true, data: { id } });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -91,6 +95,7 @@ export async function PATCH(request: NextRequest) {
         expenseUpdate.date = new Date(expenseUpdate.date as string).getTime();
       }
       await updateExpense(id, expenseUpdate as Partial<import('@/lib/db/schema_finances').Expense>);
+      auditUpdate(request, 'expense', id, expenseUpdate);
     } else {
       const vi = validateBody(body, invoiceUpdateSchema);
       if (!vi.success) return vi.response;
@@ -99,6 +104,7 @@ export async function PATCH(request: NextRequest) {
         invoiceUpdate.dueDate = new Date(invoiceUpdate.dueDate as string).getTime();
       }
       await updateInvoice(id, invoiceUpdate as Partial<import('@/lib/db/schema_finances').Invoice>);
+      auditUpdate(request, 'invoice', id, invoiceUpdate);
 
       // Auto-chain: Facture → "Payée"
       if (vi.data.status === 'Payée') {
@@ -125,6 +131,8 @@ export async function PATCH(request: NextRequest) {
             });
             autoChainActions.push('Follow-up Upsell J+30 planifié');
           }
+          // Notify Slack
+          notifySlack('invoice_paid', { Client: invoice.client_name, Montant: `${invoice.amount}€` }).catch(() => {});
         } catch (chainErr: any) {
           console.error('Auto-chain invoice→Payée error:', chainErr.message);
         }
@@ -146,8 +154,10 @@ export async function DELETE(request: NextRequest) {
     const type = searchParams.get('type');
     if (type === 'expense') {
       await deleteExpense(id);
+      auditDelete(request, 'expense', id);
     } else {
       await deleteInvoice(id);
+      auditDelete(request, 'invoice', id);
     }
     return NextResponse.json({ success: true });
   } catch (err: any) {
