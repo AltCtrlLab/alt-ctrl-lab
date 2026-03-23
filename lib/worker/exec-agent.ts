@@ -2,9 +2,10 @@
  * 🔧 CORE EXECUTOR - Single Source of Truth
  *
  * Exécute un agent OpenClaw de manière robuste et fiable.
- * Supporte deux modes :
+ * Supporte trois modes :
  *   - Windows (local dev) : via WSL bash
- *   - Linux (VPS/Railway)  : bash natif + openclaw installé en /usr/local/bin
+ *   - Linux (VPS direct)  : bash natif + openclaw installé en /usr/local/bin
+ *   - Railway (proxy)     : forward vers VPS via HTTP quand VPS_BASE_URL est défini
  *
  * Gestion complète : nettoyage, spawn, timeout, graceful shutdown.
  * Chaque agent charge ses COMPETENCES.md au démarrage.
@@ -16,6 +17,11 @@ import { logAgentExecution } from '@/lib/db';
 import { logger } from '@/lib/logger';
 
 const execPromise = promisify(exec);
+
+// ─── VPS Proxy (Railway → VPS) ───────────────────────────────────────────────
+
+const VPS_BASE_URL = process.env.VPS_BASE_URL || '';
+const DASH_KEY = process.env.CRON_SECRET || 'altctrl-cron-secret';
 
 // ─── Détection plateforme ────────────────────────────────────────────────────
 
@@ -96,6 +102,75 @@ export async function executeOpenClawAgent(
 ): Promise<AgentExecutionResult> {
   const startTime = Date.now();
 
+  // ─── Mode proxy : Railway → VPS ──────────────────────────────────────
+  // Si on est sur Linux (Railway) et VPS_BASE_URL est défini, proxy vers le VPS
+  // qui a openclaw installé. Sur Windows (dev local) on utilise WSL directement.
+  if (!IS_WINDOWS && VPS_BASE_URL) {
+    logger.info('CoreExecutor', 'Proxying to VPS', { agentId, vps: VPS_BASE_URL, timeoutMs, taskId });
+    try {
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), timeoutMs + 15000);
+
+      const res = await fetch(`${VPS_BASE_URL}/api/agents/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-dashboard-key': DASH_KEY,
+        },
+        body: JSON.stringify({ agentId, prompt, timeoutMs, taskId }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(fetchTimeout);
+      const data: AgentExecutionResult = await res.json();
+
+      // Log execution locally for monitoring
+      const durationMs = Date.now() - startTime;
+      try {
+        logAgentExecution({
+          agentId,
+          taskId: taskId ?? null,
+          prompt: prompt.slice(0, 2000),
+          durationMs,
+          success: data.success,
+          error: data.success ? null : (data.stderr || 'VPS error').slice(0, 1000),
+          tokenInput: null,
+          tokenOutput: null,
+        });
+      } catch (logErr) {
+        logger.error('CoreExecutor', 'Failed to log VPS execution', { agentId }, logErr as Error);
+      }
+
+      if (data.success) {
+        logger.info('CoreExecutor', 'VPS execution completed', { agentId, durationMs, taskId });
+      } else {
+        logger.warn('CoreExecutor', 'VPS execution failed', { agentId, durationMs, error: data.stderr?.slice(0, 200) });
+      }
+
+      return data;
+    } catch (err) {
+      const durationMs = Date.now() - startTime;
+      const errorMsg = err instanceof Error ? err.message : 'Unknown VPS proxy error';
+      logger.error('CoreExecutor', 'VPS proxy failed', { agentId, durationMs, error: errorMsg });
+
+      try {
+        logAgentExecution({
+          agentId,
+          taskId: taskId ?? null,
+          prompt: prompt.slice(0, 2000),
+          durationMs,
+          success: false,
+          error: `VPS proxy failed: ${errorMsg}`.slice(0, 1000),
+          tokenInput: null,
+          tokenOutput: null,
+        });
+      } catch { /* ignore log error */ }
+
+      return { success: false, stdout: '', stderr: `VPS proxy failed: ${errorMsg}` };
+    }
+  }
+
+  // ─── Mode local : WSL (Windows) ou bash natif (VPS Linux) ────────────
   await cleanupLocks(agentId);
 
   // Charger les compétences et les préfixer au prompt
