@@ -29,10 +29,10 @@ function KpiCard({ label, value, sub, subColor, icon: Icon }: {
   icon: React.ElementType;
 }) {
   return (
-    <div className="bg-[#1f1f22] p-6 rounded-lg border-t border-white/5 flex flex-col justify-between min-h-[140px]">
+    <div className="bg-surface-container-high p-6 rounded-lg border-t border-white/5 flex flex-col justify-between min-h-[140px]">
       <div>
-        <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold mb-2">{label}</p>
-        <h3 className="text-4xl font-headline font-extrabold text-zinc-100 tracking-tight">{value}</h3>
+        <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold mb-2">{label}</p>
+        <h3 className="text-3xl font-headline font-bold text-on-background">{value}</h3>
       </div>
       <div className={`mt-4 flex items-center gap-2 text-sm ${subColor}`}>
         <Icon className="w-4 h-4" />
@@ -62,7 +62,7 @@ function FilterPill({ value, onChange, placeholder, options, icon: Icon }: {
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="appearance-none bg-[#262528] text-zinc-300 text-sm font-medium pl-4 pr-9 py-2.5 rounded-full border-none focus:ring-1 focus:ring-fuchsia-500/30 cursor-pointer hover:bg-[#2c2c2f] transition-colors"
+        className="appearance-none bg-surface-container-highest text-on-background text-sm font-medium pl-5 pr-9 py-2.5 rounded-full border-none focus:ring-1 focus:ring-fuchsia-500/30 cursor-pointer hover:bg-surface-bright transition-colors"
       >
         <option value="">{placeholder}</option>
         {options.map(opt => {

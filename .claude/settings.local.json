@@ -82,7 +82,18 @@
       "WebSearch",
       "WebFetch(domain:www.hostinger.com)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:uxdesign.cc)"
+      "WebFetch(domain:uxdesign.cc)",
+      "Bash(ssh -o ConnectTimeout=10 root@24.199.104.202 \"cd /root/altctrl-app && git log --oneline -1\")",
+      "Bash(ssh -o ConnectTimeout=10 root@24.199.104.202 \"cd /root/altctrl-app && git pull origin main && npm install 2>&1 | tail -3 && npm run build 2>&1 | tail -5 && pm2 restart altctrl && echo ''=== VPS DEPLOY OK ===''\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"ls ~/.openclaw/agents/abdulhakim/\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"ls ~/.openclaw/agents/abdulhakim/agent/\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"cp ~/.openclaw/agents/musawwir/agent/auth.json ~/.openclaw/agents/abdulhakim/agent/auth.json && cp ~/.openclaw/agents/musawwir/agent/auth-profiles.json ~/.openclaw/agents/abdulhakim/agent/auth-profiles.json && cp ~/.openclaw/agents/musawwir/agent/models.json ~/.openclaw/agents/abdulhakim/agent/models.json && echo ''Config copied'' && openclaw agents list 2>&1 | grep abdulhakim\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"openclaw agent add --help 2>&1 || openclaw agents add --help 2>&1 || openclaw --help 2>&1 | head -30\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"openclaw agents --help 2>&1\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"openclaw agents add --help 2>&1\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"openclaw agents add abdulhakim --workspace /home/user/.openclaw/agents/abdulhakim --agent-dir /home/user/.openclaw/agents/abdulhakim/agent --model kimi-coding/k2p5 --non-interactive 2>&1\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"openclaw agents list 2>&1 | grep abdulhakim\")",
+      "Bash(ssh -o ConnectTimeout=30 root@24.199.104.202 \"openclaw agent --agent abdulhakim --message ''dis juste bonjour en une phrase'' --local --timeout 30 2>&1 | tail -10\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\.claude",

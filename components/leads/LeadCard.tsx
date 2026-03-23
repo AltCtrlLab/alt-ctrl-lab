@@ -52,7 +52,7 @@ export function LeadCard({ lead, index = 0, onClick }: LeadCardProps) {
       tabIndex={0}
       onClick={() => onClick(lead)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(lead); } }}
-      className={`group bg-[#19191c] border-l-4 ${borderColor} p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-[#1f1f22] focus-visible:ring-2 focus-visible:ring-fuchsia-500/50 focus-visible:outline-none`}
+      className={`group bg-surface-container border-l-4 ${borderColor} p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-surface-container-high focus-visible:ring-2 focus-visible:ring-fuchsia-500/50 focus-visible:outline-none`}
     >
       {/* Top row: source tag + amount */}
       <div className="flex justify-between items-start mb-3">
@@ -71,13 +71,13 @@ export function LeadCard({ lead, index = 0, onClick }: LeadCardProps) {
       </div>
 
       {/* Name */}
-      <h5 className="font-bold text-zinc-100 mb-1 group-hover:text-white transition-colors truncate">
+      <h5 className="font-bold text-on-background mb-1 group-hover:text-white transition-colors truncate">
         {lead.name}
       </h5>
 
       {/* Company / contact info */}
       {lead.company && (
-        <p className="text-xs text-zinc-400 mb-3 truncate">
+        <p className="text-xs text-on-surface-variant mb-3 truncate">
           <Building2 className="w-3 h-3 inline mr-1 -mt-0.5" />
           {lead.company}
         </p>

@@ -43,7 +43,7 @@ export function KanbanColumn({ status, leads, onCardClick, onDrop }: KanbanColum
           <h4 className="font-headline font-bold text-sm uppercase tracking-wider text-zinc-400">
             {status}
           </h4>
-          <span className="bg-[#19191c] px-2 py-0.5 rounded-full text-[10px] text-zinc-500 font-bold">
+          <span className="bg-surface-container px-2 py-0.5 rounded-full text-[10px] text-zinc-500 font-bold">
             {leads.length}
           </span>
         </div>
@@ -54,7 +54,7 @@ export function KanbanColumn({ status, leads, onCardClick, onDrop }: KanbanColum
         isDragOver ? 'ring-1 ring-fuchsia-500/30 rounded-xl p-1 bg-fuchsia-500/5' : ''
       }`}>
         {leads.length === 0 ? (
-          <div className="bg-[#19191c]/30 border-2 border-dashed border-white/5 rounded-xl h-32 flex items-center justify-center">
+          <div className="bg-surface-container/30 border-2 border-dashed border-white/5 rounded-xl h-32 flex items-center justify-center">
             <p className="text-zinc-600 text-xs italic">Déposer ici</p>
           </div>
         ) : (

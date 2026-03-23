@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
-import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
+import { Loader2, X, UserPlus, ChevronDown, Mail, Phone } from 'lucide-react';
 import type { LeadSource, LeadBudget } from '@/lib/db/schema_leads';
 import type { ScoreCriteria } from '@/lib/scoring';
 import { ScoreCalculator } from './ScoreCalculator';
@@ -74,60 +73,132 @@ export function LeadFormModal({ onClose, onCreated }: LeadFormModalProps) {
     }
   };
 
-  const inputCls = "w-full px-3 py-2.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:border-fuchsia-500/60 focus:ring-1 focus:ring-fuchsia-500/20 transition-all";
+  const inputCls = "w-full rounded-full bg-[#131315] border-none focus:ring-2 focus:ring-fuchsia-500/50 text-[#f9f5f8] placeholder:text-[#adaaad]/30 py-4 px-6 text-sm outline-none transition-all";
+  const selectCls = "w-full rounded-full bg-[#131315] border-none focus:ring-2 focus:ring-fuchsia-500/50 text-[#f9f5f8] py-4 px-6 pr-12 text-sm outline-none appearance-none transition-all";
+  const labelCls = "text-[10px] uppercase tracking-widest text-[#adaaad] px-4 block mb-2";
 
   return (
-    <AdaptiveModal isOpen={true} onClose={onClose} title="Nouveau lead">
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Identity */}
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Identité</p>
-              <div className="grid grid-cols-2 gap-3">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-[#0e0e10]/60 backdrop-blur-md"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-[#19191c]/70 backdrop-blur-[20px] border border-[#48474a]/20 border-t-white/10 w-full max-w-2xl rounded-xl shadow-[0px_24px_48px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="flex justify-between items-center px-8 py-6 border-b border-[#48474a]/10 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-fuchsia-500/10 flex items-center justify-center">
+              <UserPlus className="w-5 h-5 text-fuchsia-400" />
+            </div>
+            <h2 className="font-headline font-bold text-xl text-[#f9f5f8]">Nouveau lead</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#262528] transition-colors"
+          >
+            <X className="w-5 h-5 text-[#adaaad]" />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+            {/* Identity section */}
+            <div className="space-y-4">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#adaaad] px-4">Identit&eacute;</p>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1 block">Nom *</label>
-                  <input className={inputCls} placeholder="Jean Dupont" value={form.name} onChange={e => set('name', e.target.value)} required />
+                  <label className={labelCls}>Nom du lead *</label>
+                  <input
+                    className={inputCls}
+                    placeholder="Jean Dupont"
+                    value={form.name}
+                    onChange={e => set('name', e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1 block">Entreprise</label>
-                  <input className={inputCls} placeholder="ACME Corp" value={form.company} onChange={e => set('company', e.target.value)} />
+                  <label className={labelCls}>Entreprise</label>
+                  <input
+                    className={inputCls}
+                    placeholder="ACME Corp"
+                    value={form.company}
+                    onChange={e => set('company', e.target.value)}
+                  />
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1 block">Email</label>
-                  <input type="email" className={inputCls} placeholder="jean@acme.fr" value={form.email} onChange={e => set('email', e.target.value)} />
+                  <label className={labelCls}>Adresse email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#adaaad]/40" />
+                    <input
+                      type="email"
+                      className={`${inputCls} pl-12`}
+                      placeholder="jean@acme.fr"
+                      value={form.email}
+                      onChange={e => set('email', e.target.value)}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1 block">Téléphone</label>
-                  <input className={inputCls} placeholder="+33 6 00 00 00 00" value={form.phone} onChange={e => set('phone', e.target.value)} />
+                  <label className={labelCls}>T&eacute;l&eacute;phone</label>
+                  <div className="relative">
+                    <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#adaaad]/40" />
+                    <input
+                      className={`${inputCls} pl-12`}
+                      placeholder="+33 6 00 00 00 00"
+                      value={form.phone}
+                      onChange={e => set('phone', e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Commercial */}
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Commercial</p>
-              <div className="grid grid-cols-3 gap-3">
+            {/* Commercial section */}
+            <div className="space-y-4">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#adaaad] px-4">Commercial</p>
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1 block">Source</label>
-                  <select className={inputCls} value={form.source} onChange={e => set('source', e.target.value as LeadSource)}>
-                    {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                  <label className={labelCls}>Source</label>
+                  <div className="relative">
+                    <select
+                      className={selectCls}
+                      value={form.source}
+                      onChange={e => set('source', e.target.value as LeadSource)}
+                    >
+                      {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-[#adaaad]/40 pointer-events-none" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1 block">Budget estimé</label>
-                  <select className={inputCls} value={form.budget} onChange={e => set('budget', e.target.value)}>
-                    <option value="">—</option>
-                    {BUDGETS.map(b => <option key={b} value={b}>{b}</option>)}
-                  </select>
+                  <label className={labelCls}>Budget estim&eacute;</label>
+                  <div className="relative">
+                    <select
+                      className={selectCls}
+                      value={form.budget}
+                      onChange={e => set('budget', e.target.value)}
+                    >
+                      <option value="">&mdash;</option>
+                      {BUDGETS.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-[#adaaad]/40 pointer-events-none" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1 block">Timeline</label>
-                  <input className={inputCls} placeholder="ex: 6 semaines" value={form.timeline} onChange={e => set('timeline', e.target.value)} />
+                  <label className={labelCls}>Timeline</label>
+                  <input
+                    className={inputCls}
+                    placeholder="ex: 6 semaines"
+                    value={form.timeline}
+                    onChange={e => set('timeline', e.target.value)}
+                  />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-zinc-400 mb-1 block">Notes</label>
+                <label className={labelCls}>Notes strat&eacute;giques</label>
                 <textarea
-                  className={`${inputCls} resize-none`}
+                  className="w-full rounded-lg bg-[#131315] border-none focus:ring-2 focus:ring-fuchsia-500/50 text-[#f9f5f8] placeholder:text-[#adaaad]/30 py-4 px-6 text-sm outline-none resize-none transition-all"
                   rows={2}
                   placeholder="Contexte, besoins, red flags..."
                   value={form.notes}
@@ -137,28 +208,35 @@ export function LeadFormModal({ onClose, onCreated }: LeadFormModalProps) {
             </div>
 
             {/* Score calculator */}
-            <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800 space-y-3">
+            <div className="p-4 bg-[#131315] rounded-xl border border-[#48474a]/20 space-y-3">
               <ScoreCalculator onChange={handleScoreChange} />
             </div>
 
             {error && (
-              <p className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">{error}</p>
+              <p className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-4 py-3">{error}</p>
             )}
+          </div>
 
-            <div className="flex gap-3 justify-end">
-              <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-all">
-                Annuler
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex items-center gap-2 px-6 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-all"
-              >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Créer le lead
-              </button>
-            </div>
-          </form>
-    </AdaptiveModal>
+          {/* Footer */}
+          <div className="p-8 bg-[#1f1f22]/40 flex justify-between items-center gap-4 border-t border-[#48474a]/10 shrink-0">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-8 py-4 rounded-full text-[#adaaad] hover:text-[#f9f5f8] text-sm uppercase tracking-widest transition-all"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 px-12 py-4 rounded-full text-white font-headline font-extrabold text-sm uppercase tracking-widest shadow-[0px_8px_24px_rgba(223,142,255,0.3)] hover:scale-105 active:scale-95 disabled:opacity-50 transition-all"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              Cr&eacute;er le lead
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
