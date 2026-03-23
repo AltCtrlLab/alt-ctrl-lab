@@ -73,7 +73,16 @@
       "Bash(grep -n \"catch.*{$\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)",
       "Bash(npx vitest:*)",
       "Bash(grep -n \"validateWithZod\\\\|z\\\\.parse\\\\|Zod\\\\|validate\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)",
-      "Bash(grep -n \"rate.limit\\\\|rateLimit\\\\|RateLimit\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)"
+      "Bash(grep -n \"rate.limit\\\\|rateLimit\\\\|RateLimit\" /c/temp/alt-ctrl-lab/app/api/cron/*/route.ts)",
+      "Bash(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@24.199.104.202 \"which openclaw && openclaw --version && ls ~/.openclaw/agents/ && pm2 list 2>/dev/null || systemctl list-units --type=service --state=running | head -20\")",
+      "Bash(ssh -o ConnectTimeout=5 root@24.199.104.202 \"cd /root/altctrl-app && git remote -v && git log --oneline -3\")",
+      "Bash(ssh -o ConnectTimeout=10 root@24.199.104.202 \"cd /root/altctrl-app && git pull origin main && npm install --production=false 2>&1 | tail -5 && npm run build 2>&1 | tail -10 && pm2 restart altctrl && echo ''=== DEPLOY OK ===''\")",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://backboard.railway.com/graphql/v2'' -Method POST -Headers @{''Content-Type''=''application/json''; ''Authorization''=''Bearer db70e7d8-71e4-4aa3-a2ee-ab33c2078f64''} -Body ''{\"\"query\"\":\"\"mutation { variableUpsert\\(input: { projectId: \\\\\"\"f348c163-c857-48ec-b255-698e8a10b39c\\\\\"\", environmentId: \\\\\"\"5195dde5-a4c6-45ed-b046-413594734cb3\\\\\"\", serviceId: \\\\\"\"03e4ac6a-0422-4fbd-b6dc-6dbc5d788a72\\\\\"\", name: \\\\\"\"VPS_BASE_URL\\\\\"\", value: \\\\\"\"http://24.199.104.202:3001\\\\\"\" }\\) }\"\"}''  | ConvertTo-Json\")",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://backboard.railway.com/graphql/v2'' -Method POST -Headers @{''Content-Type''=''application/json''; ''Authorization''=''Bearer db70e7d8-71e4-4aa3-a2ee-ab33c2078f64''} -Body ''{\"\"query\"\":\"\"mutation { serviceInstanceRedeploy\\(environmentId: \\\\\"\"5195dde5-a4c6-45ed-b046-413594734cb3\\\\\"\", serviceId: \\\\\"\"03e4ac6a-0422-4fbd-b6dc-6dbc5d788a72\\\\\"\"\\) }\"\"}''  | ConvertTo-Json\")",
+      "WebSearch",
+      "WebFetch(domain:www.hostinger.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:uxdesign.cc)"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\.claude",

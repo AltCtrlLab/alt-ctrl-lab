@@ -308,6 +308,13 @@ export const reportGenerateSchema = z.object({
   period: z.string().optional(),
 });
 
+// ─── Chat (Sprint 9) ─────────────────────────────────────────────────
+
+export const chatMessageSchema = z.object({
+  message: z.string().min(1, 'Le message est requis').max(4000, 'Message trop long (max 4000 caractères)'),
+  conversationId: z.string().optional(),
+});
+
 // ─── Rate limit helper ────────────────────────────────────────────────
 
 export { checkRateLimit } from '@/lib/rate-limiter';

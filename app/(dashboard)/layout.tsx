@@ -18,6 +18,11 @@ const NotificationCenter = dynamic(
   { ssr: false },
 );
 
+const ChatCapsule = dynamic(
+  () => import('@/components/ai/ChatCapsule').then(m => ({ default: m.ChatCapsule })),
+  { ssr: false },
+);
+
 export default function DashboardLayout({
   children,
 }: {
@@ -37,6 +42,7 @@ export default function DashboardLayout({
       </div>
       <SearchPill />
       <StatusCapsule />
+      <ChatCapsule />
       <OnboardingTour />
     </div>
   );

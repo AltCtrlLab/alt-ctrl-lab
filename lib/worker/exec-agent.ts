@@ -187,7 +187,7 @@ export async function executeOpenClawAgent(
     const timeoutSec = Math.floor(timeoutMs / 1000);
     const escapedPrompt = fullPrompt.replace(/'/g, `'\\''`);
 
-    const REGISTERED_AGENTS = ['main', 'musawwir', 'matin', 'fatah', 'hasib', 'raqim', 'banna', 'khatib', 'sani'];
+    const REGISTERED_AGENTS = ['main', 'musawwir', 'matin', 'fatah', 'hasib', 'raqim', 'banna', 'khatib', 'sani', 'abdulhakim'];
     const resolvedAgent = REGISTERED_AGENTS.includes(agentId) ? agentId : 'main';
 
     // Commande bash à exécuter

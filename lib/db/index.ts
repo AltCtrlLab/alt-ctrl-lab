@@ -670,6 +670,29 @@ export function getDb() {
       `);
     } catch (_) { /* already exists */ }
 
+    // Sprint 9 — Chat conversations + messages
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS chat_conversations (
+          id TEXT PRIMARY KEY,
+          title TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_chat_conv_updated ON chat_conversations(updated_at DESC);
+
+        CREATE TABLE IF NOT EXISTS chat_messages (
+          id TEXT PRIMARY KEY,
+          conversation_id TEXT NOT NULL REFERENCES chat_conversations(id),
+          role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+          content TEXT NOT NULL,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_chat_msg_conv ON chat_messages(conversation_id);
+        CREATE INDEX IF NOT EXISTS idx_chat_msg_created ON chat_messages(created_at DESC);
+      `);
+    } catch (_) { /* already exists */ }
+
     // Seed n8n workflow IDs
     const seedWorkflows = [
       { name: "Cal.com → Lead", n8nId: "Abf2sv4YFM6MDzjf", status: "Actif", desc: "Booking Cal.com → création lead cockpit" },
@@ -1698,4 +1721,78 @@ export function getAuditTrail(filters?: {
     ip: r.ip as string | null,
     createdAt: r.created_at as number,
   }));
+}
+
+// ============================================================
+// CHAT (Sprint 9 — AbdulHakim CEO Chatbot)
+// ============================================================
+
+export interface ChatConversation {
+  id: string;
+  title: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: number;
+}
+
+export function createConversation(title?: string): ChatConversation {
+  const rawDb = (getDb() as any).$client;
+  const id = `conv_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const now = Date.now();
+  rawDb.prepare(`
+    INSERT INTO chat_conversations (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)
+  `).run(id, title ?? null, now, now);
+  return { id, title: title ?? null, createdAt: now, updatedAt: now };
+}
+
+export function addChatMessage(conversationId: string, role: 'user' | 'assistant', content: string): ChatMessage {
+  const rawDb = (getDb() as any).$client;
+  const id = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const now = Date.now();
+  rawDb.prepare(`
+    INSERT INTO chat_messages (id, conversation_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)
+  `).run(id, conversationId, role, content, now);
+  rawDb.prepare(`UPDATE chat_conversations SET updated_at = ? WHERE id = ?`).run(now, conversationId);
+  return { id, conversationId, role, content, createdAt: now };
+}
+
+export function getConversationMessages(conversationId: string, limit: number = 50): ChatMessage[] {
+  const rawDb = (getDb() as any).$client;
+  const rows = rawDb.prepare(`
+    SELECT id, conversation_id, role, content, created_at
+    FROM chat_messages WHERE conversation_id = ? ORDER BY created_at ASC LIMIT ?
+  `).all(conversationId, limit) as Array<Record<string, unknown>>;
+  return rows.map(r => ({
+    id: r.id as string,
+    conversationId: r.conversation_id as string,
+    role: r.role as 'user' | 'assistant',
+    content: r.content as string,
+    createdAt: r.created_at as number,
+  }));
+}
+
+export function getRecentConversations(limit: number = 10): ChatConversation[] {
+  const rawDb = (getDb() as any).$client;
+  const rows = rawDb.prepare(`
+    SELECT id, title, created_at, updated_at
+    FROM chat_conversations ORDER BY updated_at DESC LIMIT ?
+  `).all(limit) as Array<Record<string, unknown>>;
+  return rows.map(r => ({
+    id: r.id as string,
+    title: r.title as string | null,
+    createdAt: r.created_at as number,
+    updatedAt: r.updated_at as number,
+  }));
+}
+
+export function updateConversationTitle(id: string, title: string): void {
+  const rawDb = (getDb() as any).$client;
+  rawDb.prepare(`UPDATE chat_conversations SET title = ?, updated_at = ? WHERE id = ?`).run(title, Date.now(), id);
 }
