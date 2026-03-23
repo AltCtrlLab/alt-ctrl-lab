@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Lead, LeadStatus, LeadSource } from '@/lib/db/schema_leads';
 import { Users, TrendingUp, Euro, Clock, AlertTriangle, LayoutGrid, Table2, Plus, Search, Download, CheckCircle2, ChevronDown, CalendarDays } from 'lucide-react';
@@ -9,7 +10,6 @@ import { useNotifications } from '@/providers/NotificationProvider';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
 import { LeadsTable } from '@/components/leads/LeadsTable';
 import { LeadFormModal } from '@/components/leads/LeadFormModal';
-import { LeadDetailModal } from '@/components/leads/LeadDetailModal';
 
 interface LeadsStats {
   totalLeads: number;
@@ -88,8 +88,8 @@ export default function LeadsPage() {
   const [filterSource, setFilterSource] = useState<LeadSource | ''>('');
   const [filterDate, setFilterDate] = useState('');
   const [filterScore, setFilterScore] = useState('');
+  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<LeadStatus | ''>('');
   const { push } = useNotifications();
@@ -138,10 +138,9 @@ export default function LeadsPage() {
     fetchAll();
   }, [fetchAll]);
 
-  const handleDeleted = useCallback(() => {
-    setSelectedLead(null);
-    fetchAll();
-  }, [fetchAll]);
+  const navigateToLead = useCallback((lead: Lead) => {
+    router.push(`/leads/${lead.id}`);
+  }, [router]);
 
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
@@ -219,14 +218,6 @@ export default function LeadsPage() {
     }));
     exportCSV(data, `leads-${new Date().toISOString().slice(0, 10)}.csv`);
   }, [filteredLeads]);
-
-  // Sync selectedLead with updated data
-  useEffect(() => {
-    if (selectedLead) {
-      const updated = leads.find(l => l.id === selectedLead.id);
-      if (updated) setSelectedLead(updated);
-    }
-  }, [leads]);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300">
@@ -370,7 +361,7 @@ export default function LeadsPage() {
                 <motion.div key="kanban" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <LeadsKanban
                     leads={filteredLeads}
-                    onCardClick={setSelectedLead}
+                    onCardClick={navigateToLead}
                     onStatusChange={handleStatusChange}
                   />
                 </motion.div>
@@ -378,7 +369,7 @@ export default function LeadsPage() {
                 <motion.div key="table" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <LeadsTable
                     leads={filteredLeads}
-                    onRowClick={setSelectedLead}
+                    onRowClick={navigateToLead}
                     selectedIds={selectedIds}
                     onToggle={handleToggle}
                     onToggleAll={handleToggleAll}
@@ -427,16 +418,6 @@ export default function LeadsPage() {
             key="create-modal"
             onClose={() => setCreateOpen(false)}
             onCreated={handleCreated}
-          />
-        )}
-        {selectedLead && (
-          <LeadDetailModal
-            key="detail-modal"
-            lead={selectedLead}
-            onClose={() => setSelectedLead(null)}
-            onStatusChange={handleStatusChange}
-            onUpdated={fetchAll}
-            onDeleted={handleDeleted}
           />
         )}
       </AnimatePresence>
