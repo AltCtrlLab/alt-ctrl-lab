@@ -54,6 +54,15 @@ export const carouselBriefSchema = z.object({
   slides: z.array(slideSpecSchema).min(5).max(16),
 });
 
+export const suggestTopicsInputSchema = z.object({
+  pillar: z.enum(CAROUSEL_PILLARS),
+  language: z.enum(['en', 'fr']),
+});
+
+export const topicSuggestionSchema = z.object({
+  topics: z.array(z.string().min(5).max(200)).min(1).max(8),
+});
+
 export const generateBriefInputSchema = z.object({
   topic: z.string().min(1).max(500),
   pillar: z.enum(CAROUSEL_PILLARS),

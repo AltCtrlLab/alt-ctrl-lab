@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, Suspense } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, Sparkles, Loader2, ChevronDown, ChevronUp,
@@ -19,6 +19,69 @@ function BriefBuilderForm({ onBriefGenerated }: { onBriefGenerated: (brief: Caro
   const [slideCount, setSlideCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
+  const [loadingTopics, setLoadingTopics] = useState(false);
+  const [selectedChip, setSelectedChip] = useState<number | null>(null);
+
+  // Auto-fetch topic suggestions when pillar or language changes
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoadingTopics(true);
+    setSuggestedTopics([]);
+    setSelectedChip(null);
+
+    fetch('/api/ai/suggest-carousel-topics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pillar, language }),
+      signal: controller.signal,
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data?.topics) {
+          setSuggestedTopics(data.data.topics);
+        }
+      })
+      .catch(err => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        // Silently fail — manual input still works
+      })
+      .finally(() => setLoadingTopics(false));
+
+    return () => controller.abort();
+  }, [pillar, language]);
+
+  const handleSelectChip = (index: number, topicText: string) => {
+    setSelectedChip(index);
+    setTopic(topicText);
+  };
+
+  const handleManualInput = (value: string) => {
+    setTopic(value);
+    setSelectedChip(null);
+  };
+
+  const handleRefreshTopics = () => {
+    const controller = new AbortController();
+    setLoadingTopics(true);
+    setSuggestedTopics([]);
+    setSelectedChip(null);
+
+    fetch('/api/ai/suggest-carousel-topics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pillar, language }),
+      signal: controller.signal,
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data?.topics) {
+          setSuggestedTopics(data.data.topics);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingTopics(false));
+  };
 
   const handleGenerate = async () => {
     if (!topic.trim()) { setError('Le sujet est requis'); return; }
@@ -53,15 +116,58 @@ function BriefBuilderForm({ onBriefGenerated }: { onBriefGenerated: (brief: Caro
         <p className="text-sm text-zinc-400">L'IA génère un brief structuré que vous pouvez éditer avant de générer les images.</p>
       </div>
 
-      {/* Topic */}
+      {/* Topic — AI suggestions + manual input */}
       <div>
-        <label className="block text-xs font-medium text-zinc-400 mb-1.5">Sujet du carrousel *</label>
-        <input
-          value={topic}
-          onChange={e => setTopic(e.target.value)}
-          placeholder="ex: L'effet Bouba-Kiki dans le branding, Pourquoi 90% des landing pages sous-performent..."
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-fuchsia-500 transition-colors"
-        />
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-medium text-zinc-400">Sujet du carrousel *</label>
+          <button
+            type="button"
+            onClick={handleRefreshTopics}
+            disabled={loadingTopics}
+            className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-fuchsia-400 transition-colors disabled:opacity-40"
+          >
+            <RefreshCw className={`w-3 h-3 ${loadingTopics ? 'animate-spin' : ''}`} />
+            Nouvelles idées
+          </button>
+        </div>
+
+        {/* AI-suggested topic chips */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {loadingTopics ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-9 rounded-full bg-zinc-800 animate-pulse" style={{ width: `${140 + (i % 3) * 40}px` }} />
+            ))
+          ) : (
+            suggestedTopics.map((t, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => handleSelectChip(i, t)}
+                className={`px-3 py-2 rounded-full text-xs font-medium border transition-all text-left ${
+                  selectedChip === i
+                    ? 'bg-fuchsia-600 text-white border-fuchsia-500'
+                    : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-fuchsia-500/10 hover:border-fuchsia-500/30'
+                }`}
+              >
+                {t}
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Manual input */}
+        <div className="relative">
+          <div className="absolute left-0 top-0 w-full flex items-center justify-center -translate-y-1/2">
+            <span className="text-[10px] text-zinc-600 bg-zinc-950 px-2">ou saisissez votre propre sujet</span>
+          </div>
+          <input
+            value={selectedChip !== null ? '' : topic}
+            onChange={e => handleManualInput(e.target.value)}
+            onFocus={() => { if (selectedChip !== null) { setSelectedChip(null); setTopic(''); } }}
+            placeholder="Tapez votre propre sujet..."
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-fuchsia-500 transition-colors mt-2"
+          />
+        </div>
       </div>
 
       {/* Pillar */}
