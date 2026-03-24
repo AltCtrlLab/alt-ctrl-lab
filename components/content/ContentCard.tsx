@@ -1,6 +1,7 @@
 'use client';
 import type { ContentItem } from '@/lib/db/schema_content';
 import { motion } from 'framer-motion';
+import { Images } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import { PlatformIcon } from './PlatformIcon';
 
@@ -25,6 +26,15 @@ export function ContentCard({ item, onClick }: Props) {
         <div className="flex items-center gap-1.5">
           <PlatformIcon platform={item.platform as any} className="w-3.5 h-3.5" />
           <span className="text-[10px] text-zinc-400">{item.type}</span>
+          {item.type === 'Carousel' && item.imagePaths && (() => {
+            const paths: string[] = JSON.parse(item.imagePaths as string);
+            return paths.length > 0 ? (
+              <span className="flex items-center gap-0.5 text-[10px] text-cyan-400 bg-cyan-900/30 px-1.5 py-0.5 rounded">
+                <Images className="w-3 h-3" />
+                {paths.length}
+              </span>
+            ) : null;
+          })()}
         </div>
         {item.agent !== 'manuel' && (
           <span className="text-[10px] text-fuchsia-400 bg-fuchsia-900/30 px-1.5 py-0.5 rounded">{item.agent}</span>

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
-import { CalendarDays, Sparkles, CheckCircle2, Calendar, Lightbulb, TrendingUp, Kanban, List, Plus } from 'lucide-react';
+import { CalendarDays, Sparkles, CheckCircle2, Calendar, Lightbulb, TrendingUp, Kanban, List, Plus, Image } from 'lucide-react';
 import type { ContentItem, ContentStatus } from '@/lib/db/schema_content';
 import { useNotifications } from '@/providers/NotificationProvider';
 import { StatsBar } from '@/components/ui/StatsBar';
@@ -38,6 +39,7 @@ export default function ContentPage() {
   const [selected, setSelected] = useState<ContentItem | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<ContentStatus | ''>('');
+  const router = useRouter();
   const { push } = useNotifications();
 
   const fetchAll = useCallback(async () => {
@@ -110,7 +112,14 @@ export default function ContentPage() {
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <CalendarDays className="w-5 h-5 text-fuchsia-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Content Calendar</h1>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => router.push('/content/carousel-studio')}
+              className="flex items-center gap-2 px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-300 rounded-lg text-xs font-medium transition-colors"
+            >
+              <Image className="w-3.5 h-3.5" />
+              Carousel Studio
+            </button>
             <button
               onClick={() => setBatchOpen(true)}
               className="flex items-center gap-2 px-3 py-1.5 bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/30 text-fuchsia-300 rounded-lg text-xs font-medium transition-colors"

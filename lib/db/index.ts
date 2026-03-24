@@ -693,6 +693,15 @@ export function getDb() {
       `);
     } catch (_) { /* already exists */ }
 
+    // Migration: carousel fields on content_items
+    const contentCarouselMigrations = [
+      `ALTER TABLE content_items ADD COLUMN slide_data TEXT;`,
+      `ALTER TABLE content_items ADD COLUMN image_paths TEXT;`,
+    ];
+    for (const m of contentCarouselMigrations) {
+      try { sqlite.exec(m); } catch (_) { /* column already exists */ }
+    }
+
     // Seed n8n workflow IDs
     const seedWorkflows = [
       { name: "Cal.com → Lead", n8nId: "Abf2sv4YFM6MDzjf", status: "Actif", desc: "Booking Cal.com → création lead cockpit" },
@@ -1042,6 +1051,10 @@ export async function getContentItems(filters?: { status?: string; platform?: st
     (!filters.platform || i.platform === filters.platform) &&
     (!filters.agent || i.agent === filters.agent)
   );
+}
+export async function getContentItemById(id: string) {
+  const rows = await getDb().select().from(contentItems).where(eq(contentItems.id, id));
+  return rows[0] ?? null;
 }
 export async function deleteContentItem(id: string) {
   await getDb().delete(contentItems).where(eq(contentItems.id, id));

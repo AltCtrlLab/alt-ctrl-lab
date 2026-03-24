@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Images, ExternalLink } from 'lucide-react';
 import { AdaptiveModal } from '@/components/mobile/AdaptiveModal';
 import type { ContentItem, ContentStatus } from '@/lib/db/schema_content';
 import { ContentStatusBadge } from './ContentStatusBadge';
@@ -13,9 +14,13 @@ interface Props {
 }
 
 export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
+  const router = useRouter();
   const [tab, setTab] = useState<'content' | 'notes'>('content');
   const [status, setStatus] = useState<ContentStatus>(item.status as ContentStatus);
   const [saving, setSaving] = useState(false);
+
+  const isCarousel = item.type === 'Carousel';
+  const imagePaths: string[] = item.imagePaths ? JSON.parse(item.imagePaths as string) : [];
 
   const updateStatus = async (s: ContentStatus) => {
     setStatus(s);
@@ -66,6 +71,31 @@ export function ContentDetailModal({ item, onClose, onUpdated }: Props) {
 
           {tab === 'content' ? (
             <div role="tabpanel" id={`panel-content-${tab}`} aria-labelledby={`tab-content-${tab}`} className="space-y-3">
+              {isCarousel && imagePaths.length > 0 && (
+                <div>
+                  <p className="text-xs text-zinc-400 mb-2 flex items-center gap-1.5"><Images className="w-3.5 h-3.5" />Slides ({imagePaths.length})</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {imagePaths.map((filename) => {
+                      const slideNum = filename.replace('slide-', '').replace('.png', '');
+                      return (
+                        <img
+                          key={filename}
+                          src={`/api/carousel-images/${item.id}/${slideNum}`}
+                          alt={`Slide ${slideNum}`}
+                          className="w-full aspect-[4/5] object-cover rounded-md border border-zinc-700"
+                        />
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => { onClose(); router.push(`/content/carousel-studio?id=${item.id}`); }}
+                    className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-300 rounded-lg text-xs font-medium transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Ouvrir dans le Studio
+                  </button>
+                </div>
+              )}
               {item.hook && <div><p className="text-xs text-zinc-400 mb-1">Hook</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3">{item.hook}</p></div>}
               {item.body && <div><p className="text-xs text-zinc-400 mb-1">Contenu</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 whitespace-pre-wrap">{item.body}</p></div>}
               {item.cta && <div><p className="text-xs text-zinc-400 mb-1">CTA</p><p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3">{item.cta}</p></div>}

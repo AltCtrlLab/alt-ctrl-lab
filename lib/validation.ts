@@ -126,6 +126,8 @@ export const contentCreateSchema = z.object({
   tags: z.string().nullable().optional(),
   hook: z.string().nullable().optional(),
   cta: z.string().nullable().optional(),
+  slideData: z.string().nullable().optional(),
+  imagePaths: z.string().nullable().optional(),
 });
 
 export const contentUpdateSchema = z.object({
@@ -134,6 +136,8 @@ export const contentUpdateSchema = z.object({
   platform: z.string().optional(),
   status: z.string().optional(),
   body: z.string().nullable().optional(),
+  slideData: z.string().nullable().optional(),
+  imagePaths: z.string().nullable().optional(),
 }).passthrough();
 
 // ─── Automations ──────────────────────────────────────────────────────

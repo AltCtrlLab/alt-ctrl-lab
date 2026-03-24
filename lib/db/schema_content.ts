@@ -34,6 +34,8 @@ export const contentItems = sqliteTable('content_items', {
   publishedAt: integer('published_at'),
   tags: text('tags'), // JSON array
   notes: text('notes'),
+  slideData: text('slide_data'), // JSON: CarouselBrief for carousel items
+  imagePaths: text('image_paths'), // JSON array: ["slide-1.png", "slide-2.png", ...]
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
 });
