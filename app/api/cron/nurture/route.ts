@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { sendEmail } from '@/lib/email';
 import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
 import { logger } from '@/lib/logger';
-import { NURTURE_STEPS, renderTemplate } from '@/lib/constants/nurture-templates';
+import { selectNurtureStep, renderTemplate } from '@/lib/constants/nurture-templates';
 
 const CRON_SECRET = process.env.CRON_SECRET || 'altctrl-cron-secret';
 const DAY_MS = 86_400_000;
@@ -25,14 +25,17 @@ export async function POST(request: NextRequest) {
   }
 
   const now = Date.now();
-  const results = { j1: 0, j3: 0, j7: 0, j14: 0, errors: [] as string[] };
+  const results: Record<string, number | string[]> = { j1: 0, j3: 0, j3_engaged: 0, j7: 0, j7_engaged: 0, j14: 0, errors: [] as string[] };
 
   try {
     const rawDb = (getDb() as any).$client;
 
     // Leads éligibles : Nouveau, avec email, non-GMB, pas encore terminé la séquence
     const leads = rawDb.prepare(`
-      SELECT id, name, company, email, source, nurture_step, nurture_started_at, created_at
+      SELECT id, name, company, email, source, nurture_step, nurture_started_at, created_at,
+             COALESCE(email_opened_count, 0) as email_opened_count,
+             COALESCE(email_clicked_count, 0) as email_clicked_count,
+             COALESCE(visited_pricing, 0) as visited_pricing
       FROM leads
       WHERE status = 'Nouveau'
         AND email IS NOT NULL
@@ -48,6 +51,9 @@ export async function POST(request: NextRequest) {
       nurture_step: number | null;
       nurture_started_at: number | null;
       created_at: number;
+      email_opened_count: number;
+      email_clicked_count: number;
+      visited_pricing: number;
     }>;
 
     for (const lead of leads) {
@@ -55,8 +61,11 @@ export async function POST(request: NextRequest) {
       const startedAt = lead.nurture_started_at ?? lead.created_at;
       const daysSinceStart = (now - startedAt) / DAY_MS;
 
-      // Find the next step to execute
-      const step = NURTURE_STEPS[currentStep];
+      // Adaptive: check if lead has engaged (opened/clicked emails or visited pricing)
+      const hasEngaged = lead.email_opened_count > 0 || lead.email_clicked_count > 0 || lead.visited_pricing > 0;
+
+      // Select step from the right branch (standard vs engaged)
+      const step = selectNurtureStep(currentStep, hasEngaged);
       if (!step) continue;
 
       // Check if enough days have passed for this step
@@ -82,7 +91,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Agent error';
-        results.errors.push(`${step.key} agent error for ${lead.id}: ${msg}`);
+        (results.errors as string[]).push(`${step.key} agent error for ${lead.id}: ${msg}`);
         body = getFallbackBody(step.key, vars);
       }
 
@@ -131,7 +140,7 @@ export async function POST(request: NextRequest) {
         `).run(newStep, now, startedAt, stepNote, now, lead.id);
       }
 
-      results[step.key]++;
+      (results[step.key] as number)++;
     }
 
     logger.info('nurture', 'Cron completed', results);

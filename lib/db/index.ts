@@ -693,6 +693,41 @@ export function getDb() {
       `);
     } catch (_) { /* already exists */ }
 
+    // Sprint 10 — visitor_events table (trigger outreach + behavioral scoring)
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS visitor_events (
+          id TEXT PRIMARY KEY,
+          fingerprint TEXT NOT NULL,
+          lead_id TEXT,
+          event_type TEXT NOT NULL,
+          page TEXT NOT NULL,
+          referrer TEXT,
+          ip TEXT,
+          user_agent TEXT,
+          metadata TEXT,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_visitor_fp ON visitor_events(fingerprint);
+        CREATE INDEX IF NOT EXISTS idx_visitor_lead ON visitor_events(lead_id);
+        CREATE INDEX IF NOT EXISTS idx_visitor_type ON visitor_events(event_type);
+        CREATE INDEX IF NOT EXISTS idx_visitor_created ON visitor_events(created_at DESC);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // Sprint 10 — behavioral scoring columns on leads
+    const behavioralMigrations = [
+      `ALTER TABLE leads ADD COLUMN behavioral_score INTEGER DEFAULT 0;`,
+      `ALTER TABLE leads ADD COLUMN last_page_visit TEXT;`,
+      `ALTER TABLE leads ADD COLUMN visited_pricing INTEGER DEFAULT 0;`,
+      `ALTER TABLE leads ADD COLUMN email_opened_count INTEGER DEFAULT 0;`,
+      `ALTER TABLE leads ADD COLUMN email_clicked_count INTEGER DEFAULT 0;`,
+      `ALTER TABLE leads ADD COLUMN total_page_views INTEGER DEFAULT 0;`,
+    ];
+    for (const sql of behavioralMigrations) {
+      try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
+    }
+
     // Migration: carousel fields on content_items
     const contentCarouselMigrations = [
       `ALTER TABLE content_items ADD COLUMN slide_data TEXT;`,

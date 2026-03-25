@@ -10,7 +10,9 @@ export type SlackEvent =
   | 'invoice_paid'
   | 'project_delivered'
   | 'deadline_t_minus_1'
-  | 'ai_agent_error';
+  | 'ai_agent_error'
+  | 'hot_visitor'
+  | 'cold_email_sent';
 
 interface SlackEventData {
   [key: string]: string | number | undefined;
@@ -50,6 +52,18 @@ const EVENT_CONFIG: Record<SlackEvent, { emoji: string; color: string; title: st
     color: '#ef4444', // rose
     title: 'Erreur Agent IA',
     link: '/automations',
+  },
+  hot_visitor: {
+    emoji: ':fire:',
+    color: '#f97316', // orange
+    title: 'Visiteur Chaud (Pricing)',
+    link: '/leads',
+  },
+  cold_email_sent: {
+    emoji: ':outbox_tray:',
+    color: '#06b6d4', // cyan
+    title: 'Cold Email Envoyé',
+    link: '/prospection',
   },
 };
 
