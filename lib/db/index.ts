@@ -883,6 +883,70 @@ export function getDb() {
         CREATE INDEX IF NOT EXISTS idx_ce_lead ON contact_engagement(lead_id);
       `);
     } catch (_) { /* already exists */ }
+
+    // ── Vague 2 migrations ──────────────────────────────────────────────────
+
+    // lead_magnets table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS lead_magnets (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          description TEXT,
+          file_url TEXT NOT NULL,
+          category TEXT DEFAULT 'guide',
+          slug TEXT,
+          landing_headline TEXT,
+          landing_subheadline TEXT,
+          cta_text TEXT DEFAULT 'Telecharger',
+          downloads INTEGER DEFAULT 0,
+          leads_captured INTEGER DEFAULT 0,
+          active INTEGER DEFAULT 1,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_lm_slug ON lead_magnets(slug);
+        CREATE INDEX IF NOT EXISTS idx_lm_active ON lead_magnets(active);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // sales_objections table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS sales_objections (
+          id TEXT PRIMARY KEY,
+          objection TEXT NOT NULL,
+          responses TEXT NOT NULL,
+          category TEXT DEFAULT 'other',
+          lead_id TEXT,
+          usage_count INTEGER DEFAULT 0,
+          success_count INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_obj_category ON sales_objections(category);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // knowledge_base table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS knowledge_base (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          content_md TEXT NOT NULL,
+          category TEXT NOT NULL DEFAULT 'resource',
+          tags TEXT,
+          views INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_kb_category ON knowledge_base(category);
+        CREATE INDEX IF NOT EXISTS idx_kb_updated ON knowledge_base(updated_at DESC);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // client_email column on projects (for weekly digest + health score)
+    try { sqlite.exec('ALTER TABLE projects ADD COLUMN client_email TEXT;'); } catch (_) { /* exists */ }
   }
   return db;
 }
