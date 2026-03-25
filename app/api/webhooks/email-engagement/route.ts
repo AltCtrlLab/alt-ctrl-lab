@@ -53,6 +53,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Record engagement timing for send time optimization
+    for (const evt of eventList) {
+      const evtEmail = evt.email || evt.Email || evt.recipient;
+      const evtType = evt.event || evt.Event;
+      if (!evtEmail || !evtType) continue;
+
+      const evtTime = evt.time ? new Date(evt.time * 1000) : new Date();
+      const ceId = `ce_${now}_${Math.random().toString(36).substr(2, 9)}`;
+      const lead = rawDb.prepare('SELECT id FROM leads WHERE email = ? LIMIT 1').get(evtEmail) as { id: string } | undefined;
+
+      try {
+        rawDb.prepare(`
+          INSERT OR IGNORE INTO contact_engagement (id, email, lead_id, open_hour, open_day, event_type, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(ceId, evtEmail, lead?.id || null, evtTime.getUTCHours(), evtTime.getUTCDay(), evtType, now);
+      } catch { /* table may not exist yet — ignore */ }
+    }
+
     logger.info('email-engagement', 'Webhook processed', { events: eventList.length, opens, clicks });
     return NextResponse.json({ success: true, processed: { opens, clicks } });
   } catch (err) {

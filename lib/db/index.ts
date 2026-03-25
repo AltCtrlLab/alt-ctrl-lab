@@ -766,6 +766,123 @@ export function getDb() {
         insertStmt.run(id, wf.name, wf.desc, wf.status, wf.n8nId, now, now);
       }
     }
+
+    // ── Vague 1 migrations ──────────────────────────────────────────────────
+
+    // document_templates table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS document_templates (
+          id TEXT PRIMARY KEY,
+          type TEXT NOT NULL,
+          name TEXT NOT NULL,
+          html_template TEXT NOT NULL,
+          variables_schema TEXT,
+          client_id TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_doctpl_type ON document_templates(type);
+        CREATE INDEX IF NOT EXISTS idx_doctpl_client ON document_templates(client_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // brand_kits table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS brand_kits (
+          id TEXT PRIMARY KEY,
+          client_id TEXT,
+          company_name TEXT NOT NULL,
+          logo_url TEXT,
+          primary_color TEXT NOT NULL DEFAULT '#d946ef',
+          secondary_color TEXT DEFAULT '#6366f1',
+          accent_color TEXT DEFAULT '#f59e0b',
+          font_heading TEXT DEFAULT 'Inter',
+          font_body TEXT DEFAULT 'Inter',
+          tagline TEXT,
+          tone_of_voice TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_brand_client ON brand_kits(client_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // campaigns table (UTM tracker)
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS campaigns (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          source TEXT NOT NULL,
+          medium TEXT NOT NULL,
+          content TEXT,
+          term TEXT,
+          base_url TEXT NOT NULL,
+          budget REAL DEFAULT 0,
+          start_date TEXT,
+          end_date TEXT,
+          clicks INTEGER DEFAULT 0,
+          leads_generated INTEGER DEFAULT 0,
+          revenue_attributed REAL DEFAULT 0,
+          status TEXT NOT NULL DEFAULT 'active',
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_camp_status ON campaigns(status);
+        CREATE INDEX IF NOT EXISTS idx_camp_source ON campaigns(source);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // testimonials table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS testimonials (
+          id TEXT PRIMARY KEY,
+          client_name TEXT NOT NULL,
+          company TEXT,
+          role TEXT,
+          rating INTEGER DEFAULT 5,
+          text TEXT NOT NULL,
+          photo_url TEXT,
+          video_url TEXT,
+          project_id TEXT,
+          approved INTEGER DEFAULT 0,
+          featured INTEGER DEFAULT 0,
+          source TEXT DEFAULT 'manual',
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_testi_approved ON testimonials(approved);
+        CREATE INDEX IF NOT EXISTS idx_testi_featured ON testimonials(featured);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // expense analytics columns
+    const expenseAnalyticsMigrations = [
+      'ALTER TABLE expenses ADD COLUMN vendor TEXT;',
+      'ALTER TABLE expenses ADD COLUMN recurring INTEGER DEFAULT 0;',
+    ];
+    for (const sql of expenseAnalyticsMigrations) {
+      try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
+    }
+
+    // contact_engagement table (send time optimization)
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS contact_engagement (
+          id TEXT PRIMARY KEY,
+          email TEXT NOT NULL,
+          lead_id TEXT,
+          open_hour INTEGER,
+          open_day INTEGER,
+          event_type TEXT NOT NULL,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_ce_email ON contact_engagement(email);
+        CREATE INDEX IF NOT EXISTS idx_ce_lead ON contact_engagement(lead_id);
+      `);
+    } catch (_) { /* already exists */ }
   }
   return db;
 }
