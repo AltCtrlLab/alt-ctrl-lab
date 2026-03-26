@@ -67,6 +67,27 @@ Le projet "${project.clientName}" (${project.projectType}) est actuellement en p
 *Rapport généré depuis template statique*`;
     }
 
+    // Resolve white-label branding from brand_kits if client has one
+    let brandConfig: { company: string; logo: string; primary: string; footer: string } | null = null;
+    if (v.data.brandKitId || v.data.whiteLabel) {
+      try {
+        const { getDb: getDbFn } = await import('@/lib/db');
+        const rawDb = (getDbFn() as unknown as { $client: import('better-sqlite3').Database }).$client;
+        const kitQuery = v.data.brandKitId
+          ? rawDb.prepare('SELECT * FROM brand_kits WHERE id = ?').get(v.data.brandKitId)
+          : rawDb.prepare('SELECT * FROM brand_kits WHERE client_id = ?').get(v.data.projectId);
+        if (kitQuery) {
+          const kit = kitQuery as Record<string, string>;
+          brandConfig = {
+            company: kit.company_name || project.clientName,
+            logo: kit.logo_url || '',
+            primary: kit.primary_color || '#d946ef',
+            footer: kit.company_name ? `${kit.company_name}` : 'AltCtrl.Lab',
+          };
+        }
+      } catch (_) { /* brand kit optional */ }
+    }
+
     // Generate HTML report
     const htmlContent = generateHtmlReport({
       clientName: project.clientName,
@@ -78,6 +99,7 @@ Le projet "${project.clientName}" (${project.projectType}) est actuellement en p
       totalInvoiced,
       paidAmount,
       prose: proseContent,
+      brandConfig,
     });
 
     // Save report
@@ -136,12 +158,18 @@ function generateHtmlReport(data: {
   totalInvoiced: number;
   paidAmount: number;
   prose: string;
+  brandConfig?: { company: string; logo: string; primary: string; footer: string } | null;
 }): string {
   const safeClient = escapeHtml(data.clientName);
   const safeType = escapeHtml(data.projectType);
   const safePhase = escapeHtml(data.phase);
   const safePeriod = escapeHtml(data.period);
   const safeProse = escapeHtml(data.prose).replace(/\n/g, '<br>');
+
+  const brand = data.brandConfig || { company: 'AltCtrl.Lab', logo: '', primary: '#d946ef', footer: 'AltCtrl.Lab' };
+  const logoHtml = brand.logo
+    ? `<img src="${escapeHtml(brand.logo)}" alt="${escapeHtml(brand.company)}" style="max-height:36px;">`
+    : `<div class="logo">${escapeHtml(brand.company)}</div>`;
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -150,8 +178,8 @@ function generateHtmlReport(data: {
   <title>Rapport Mensuel — ${safeClient}</title>
   <style>
     body { font-family: 'Inter', system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #18181b; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #d946ef; padding-bottom: 20px; margin-bottom: 30px; }
-    .logo { font-size: 24px; font-weight: 700; color: #d946ef; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid ${brand.primary}; padding-bottom: 20px; margin-bottom: 30px; }
+    .logo { font-size: 24px; font-weight: 700; color: ${brand.primary}; }
     .meta { color: #71717a; font-size: 14px; }
     .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
     .kpi { background: #fafafa; border: 1px solid #e4e4e7; border-radius: 8px; padding: 16px; text-align: center; }
@@ -163,7 +191,7 @@ function generateHtmlReport(data: {
 </head>
 <body>
   <div class="header">
-    <div class="logo">AltCtrl.Lab</div>
+    ${logoHtml}
     <div class="meta">
       <div>${safeClient} — ${safeType}</div>
       <div>Période : ${safePeriod}</div>
@@ -178,8 +206,8 @@ function generateHtmlReport(data: {
   </div>
   <div class="content">${safeProse}</div>
   <div class="footer">
-    Généré le ${new Date().toLocaleDateString('fr-FR')} par AltCtrl.Lab<br>
-    contact@altctrl.lab
+    Généré le ${new Date().toLocaleDateString('fr-FR')} par ${escapeHtml(brand.footer)}<br>
+    ${data.brandConfig ? '' : 'contact@altctrl.lab'}
   </div>
 </body>
 </html>`;

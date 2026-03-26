@@ -310,6 +310,8 @@ export const deliverableCreateSchema = z.object({
 export const reportGenerateSchema = z.object({
   projectId: z.string().min(1, 'projectId requis'),
   period: z.string().optional(),
+  whiteLabel: z.boolean().optional(),
+  brandKitId: z.string().optional(),
 });
 
 // ─── Chat (Sprint 9) ─────────────────────────────────────────────────

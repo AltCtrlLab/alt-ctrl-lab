@@ -91,20 +91,22 @@ export async function POST(request: NextRequest) {
 
     // ─── Create/update config ─────────────────────────────────────────
     if (action === 'configure') {
-      const { url, alertThreshold, alertEmail, monitoringEnabled } = body as {
+      const { url, alertThreshold, alertEmail, monitoringEnabled, whiteLabel, brandKitId } = body as {
         url: string;
         alertThreshold?: number;
         alertEmail?: string;
         monitoringEnabled?: boolean;
+        whiteLabel?: boolean;
+        brandKitId?: string;
       };
 
       if (!url) return NextResponse.json({ error: 'Missing url' }, { status: 400 });
 
       const id = `seocfg_${now}_${Math.random().toString(36).substr(2, 6)}`;
       rawDb.prepare(`
-        INSERT OR REPLACE INTO seo_pilot_configs (id, client_id, url, alert_threshold, alert_email, monitoring_enabled, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(id, clientId, url, alertThreshold || 70, alertEmail || null, monitoringEnabled !== false ? 1 : 0, now, now);
+        INSERT OR REPLACE INTO seo_pilot_configs (id, client_id, url, alert_threshold, alert_email, monitoring_enabled, white_label, brand_kit_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(id, clientId, url, alertThreshold || 70, alertEmail || null, monitoringEnabled !== false ? 1 : 0, whiteLabel ? 1 : 0, brandKitId || null, now, now);
 
       return NextResponse.json({ success: true, configId: id });
     }
@@ -211,8 +213,22 @@ export async function POST(request: NextRequest) {
       const avgScore = Math.round(audits.reduce((s, a) => s + a.score_overall, 0) / audits.length);
       const trend = lastScore - firstScore;
 
-      // Generate report content via Kimi
-      const reportContent = await generateReport(config.url, audits, trend, avgScore);
+      // Resolve white-label branding if enabled
+      let brandConfig: { company: string; logo: string; primary: string; secondary: string } | null = null;
+      if (config.white_label && config.brand_kit_id) {
+        const kit = rawDb.prepare('SELECT * FROM brand_kits WHERE id = ?').get(config.brand_kit_id) as Record<string, string> | undefined;
+        if (kit) {
+          brandConfig = {
+            company: kit.company_name || 'Client',
+            logo: kit.logo_url || '',
+            primary: kit.primary_color || '#d946ef',
+            secondary: kit.secondary_color || '#6366f1',
+          };
+        }
+      }
+
+      // Generate report content via Kimi (with optional white-label)
+      const reportContent = await generateReport(config.url, audits, trend, avgScore, brandConfig);
 
       // Save report
       const reportId = `seoreport_${now}_${Math.random().toString(36).substr(2, 6)}`;
@@ -284,6 +300,8 @@ interface SeoConfig {
   alert_threshold: number;
   alert_email: string | null;
   monitoring_enabled: number;
+  white_label: number;
+  brand_kit_id: string | null;
 }
 
 // ─── DB setup ─────────────────────────────────────────────────────────────────
@@ -297,6 +315,8 @@ function ensureTables(rawDb: import('better-sqlite3').Database) {
       alert_threshold INTEGER NOT NULL DEFAULT 70,
       alert_email TEXT,
       monitoring_enabled INTEGER NOT NULL DEFAULT 1,
+      white_label INTEGER NOT NULL DEFAULT 0,
+      brand_kit_id TEXT,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     );
@@ -338,7 +358,10 @@ async function generateReport(
   audits: Array<{ score_overall: number; score_performance: number; score_seo: number; score_accessibility: number; score_security: number; recommendations_json: string; created_at: number }>,
   trend: number,
   avgScore: number,
+  brandConfig?: { company: string; logo: string; primary: string; secondary: string } | null,
 ): Promise<string> {
+  const brand = brandConfig || { company: 'AltCtrl.Lab', logo: '', primary: '#d946ef', secondary: '#6366f1' };
+  const brandLabel = brandConfig ? `${brand.company}` : 'AltCtrl SEO Pilot';
   const latestRecommendations = (() => {
     try { return JSON.parse(audits[audits.length - 1].recommendations_json); } catch { return []; }
   })();
@@ -371,7 +394,7 @@ Génère un rapport HTML (pas de balise html/head/body, juste le contenu) avec :
 - Tableau des scores par catégorie
 - Section tendances
 - Top 5 recommandations
-- Signature "Rapport généré par AltCtrl SEO Pilot"
+- Signature "Rapport généré par ${brandLabel}"
 
 Style professionnel, tailwind classes pour le styling.`;
 
@@ -392,7 +415,8 @@ Style professionnel, tailwind classes pour le styling.`;
 
   // Fallback template
   return `<div style="font-family: sans-serif; max-width: 700px; margin: 0 auto; padding: 24px;">
-<h1 style="color: #6366f1;">Rapport SEO Mensuel</h1>
+${brand.logo ? `<img src="${brand.logo}" alt="${brand.company}" style="max-height:40px;margin-bottom:12px;">` : ''}
+<h1 style="color: ${brand.primary};">Rapport SEO Mensuel</h1>
 <p><strong>Site:</strong> ${url} | <strong>Période:</strong> ${new Date().toISOString().slice(0, 7)}</p>
 <h2>Score Global: ${avgScore}/100 (${trendEmoji}, ${trend > 0 ? '+' : ''}${trend} pts)</h2>
 <table style="width: 100%; border-collapse: collapse;">
@@ -404,6 +428,6 @@ Style professionnel, tailwind classes pour le styling.`;
 </table>
 <h3>Recommandations prioritaires</h3>
 <ol>${(latestRecommendations as string[]).slice(0, 5).map((r: string) => `<li>${r}</li>`).join('')}</ol>
-<hr><p style="color: #666; font-size: 12px;">Rapport généré par AltCtrl SEO Pilot — ${new Date().toLocaleDateString('fr-FR')}</p>
+<hr><p style="color: #666; font-size: 12px;">Rapport généré par ${brandLabel} — ${new Date().toLocaleDateString('fr-FR')}</p>
 </div>`;
 }

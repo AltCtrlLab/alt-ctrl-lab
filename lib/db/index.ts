@@ -947,6 +947,222 @@ export function getDb() {
 
     // client_email column on projects (for weekly digest + health score)
     try { sqlite.exec('ALTER TABLE projects ADD COLUMN client_email TEXT;'); } catch (_) { /* exists */ }
+
+    // ── Vague 3 migrations ──────────────────────────────────────────────────
+
+    // White-label columns on seo_pilot_configs
+    const whitelabelMigrations = [
+      'ALTER TABLE seo_pilot_configs ADD COLUMN white_label INTEGER NOT NULL DEFAULT 0;',
+      'ALTER TABLE seo_pilot_configs ADD COLUMN brand_kit_id TEXT;',
+    ];
+    for (const sql of whitelabelMigrations) {
+      try { sqlite.exec(sql); } catch (_) { /* column already exists */ }
+    }
+
+    // social_templates table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS social_templates (
+          id TEXT PRIMARY KEY,
+          template_type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          content_data TEXT NOT NULL,
+          html_output TEXT,
+          platform TEXT DEFAULT 'instagram',
+          client_id TEXT,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_stpl_type ON social_templates(template_type);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // ab_tests table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS ab_tests (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          page_url TEXT NOT NULL,
+          variant_a_label TEXT DEFAULT 'Variante A',
+          variant_b_label TEXT DEFAULT 'Variante B',
+          split_ratio INTEGER DEFAULT 50,
+          goal TEXT DEFAULT 'conversion',
+          views_a INTEGER DEFAULT 0,
+          views_b INTEGER DEFAULT 0,
+          conversions_a INTEGER DEFAULT 0,
+          conversions_b INTEGER DEFAULT 0,
+          status TEXT DEFAULT 'active',
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_ab_status ON ab_tests(status);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // referral_codes table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS referral_codes (
+          id TEXT PRIMARY KEY,
+          code TEXT NOT NULL UNIQUE,
+          referrer_name TEXT NOT NULL,
+          referrer_email TEXT,
+          referrer_client_id TEXT,
+          commission_percent REAL DEFAULT 10,
+          clicks INTEGER DEFAULT 0,
+          conversions INTEGER DEFAULT 0,
+          revenue_generated REAL DEFAULT 0,
+          commission_earned REAL DEFAULT 0,
+          commission_paid REAL DEFAULT 0,
+          expires_at INTEGER,
+          active INTEGER DEFAULT 1,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_ref_code ON referral_codes(code);
+        CREATE INDEX IF NOT EXISTS idx_ref_active ON referral_codes(active);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // serp_keywords + serp_results tables
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS serp_keywords (
+          id TEXT PRIMARY KEY,
+          keyword TEXT NOT NULL,
+          target_domain TEXT NOT NULL,
+          current_position INTEGER DEFAULT 0,
+          previous_position INTEGER DEFAULT 0,
+          trend INTEGER DEFAULT 0,
+          active INTEGER DEFAULT 1,
+          last_checked INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_serpkw_active ON serp_keywords(active);
+
+        CREATE TABLE IF NOT EXISTS serp_results (
+          id TEXT PRIMARY KEY,
+          keyword_id TEXT NOT NULL,
+          keyword TEXT NOT NULL,
+          position INTEGER NOT NULL,
+          url TEXT,
+          title TEXT,
+          snippet TEXT,
+          checked_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_serpres_kw ON serp_results(keyword_id);
+        CREATE INDEX IF NOT EXISTS idx_serpres_date ON serp_results(checked_at DESC);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // conversations + conversation_messages tables (inbox)
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS conversations (
+          id TEXT PRIMARY KEY,
+          channel TEXT NOT NULL DEFAULT 'email',
+          contact_name TEXT NOT NULL,
+          contact_email TEXT,
+          client_id TEXT,
+          subject TEXT,
+          status TEXT NOT NULL DEFAULT 'open',
+          assigned_to TEXT,
+          unread_count INTEGER DEFAULT 0,
+          message_count INTEGER DEFAULT 0,
+          last_message_at INTEGER NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_conv_status ON conversations(status);
+        CREATE INDEX IF NOT EXISTS idx_conv_channel ON conversations(channel);
+        CREATE INDEX IF NOT EXISTS idx_conv_client ON conversations(client_id);
+
+        CREATE TABLE IF NOT EXISTS conversation_messages (
+          id TEXT PRIMARY KEY,
+          conversation_id TEXT NOT NULL,
+          direction TEXT NOT NULL DEFAULT 'inbound',
+          sender_name TEXT,
+          content TEXT NOT NULL,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_cmsg_conv ON conversation_messages(conversation_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // client_alerts + alert_triggers tables
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS client_alerts (
+          id TEXT PRIMARY KEY,
+          client_id TEXT,
+          alert_type TEXT NOT NULL,
+          channel TEXT NOT NULL DEFAULT 'slack',
+          threshold REAL DEFAULT 0,
+          webhook_url TEXT,
+          email_to TEXT,
+          custom_message TEXT,
+          enabled INTEGER DEFAULT 1,
+          triggers_count INTEGER DEFAULT 0,
+          last_triggered INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_alert_client ON client_alerts(client_id);
+        CREATE INDEX IF NOT EXISTS idx_alert_type ON client_alerts(alert_type);
+
+        CREATE TABLE IF NOT EXISTS alert_triggers (
+          id TEXT PRIMARY KEY,
+          alert_id TEXT NOT NULL,
+          payload TEXT,
+          delivered INTEGER DEFAULT 0,
+          acknowledged INTEGER DEFAULT 0,
+          triggered_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_atrig_alert ON alert_triggers(alert_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // showcase_items + showcase_pages tables
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS showcase_items (
+          id TEXT PRIMARY KEY,
+          project_id TEXT,
+          title TEXT NOT NULL,
+          description TEXT,
+          image_url TEXT,
+          tech_stack TEXT,
+          live_url TEXT,
+          category TEXT DEFAULT 'web',
+          featured INTEGER DEFAULT 1,
+          display_order INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_show_featured ON showcase_items(featured);
+
+        CREATE TABLE IF NOT EXISTS showcase_pages (
+          id TEXT PRIMARY KEY,
+          html TEXT NOT NULL,
+          items_count INTEGER DEFAULT 0,
+          generated_at INTEGER NOT NULL
+        );
+      `);
+    } catch (_) { /* already exists */ }
+
+    // capacity_config table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS capacity_config (
+          id TEXT PRIMARY KEY,
+          team_size INTEGER DEFAULT 3,
+          hours_per_week INTEGER DEFAULT 40,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+      `);
+    } catch (_) { /* already exists */ }
   }
   return db;
 }
