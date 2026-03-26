@@ -1163,6 +1163,119 @@ export function getDb() {
         );
       `);
     } catch (_) { /* already exists */ }
+
+    // ── Vague 4 migrations ──────────────────────────────────────────────────
+
+    // media_kits table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS media_kits (
+          id TEXT PRIMARY KEY,
+          client_id TEXT,
+          company_name TEXT NOT NULL,
+          tagline TEXT,
+          html_content TEXT NOT NULL,
+          metadata TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_mkit_client ON media_kits(client_id);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // email_health + email_events tables
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS email_health (
+          id TEXT PRIMARY KEY,
+          domain TEXT NOT NULL UNIQUE,
+          spf_valid INTEGER DEFAULT 0,
+          dkim_valid INTEGER DEFAULT 0,
+          dmarc_valid INTEGER DEFAULT 0,
+          mx_valid INTEGER DEFAULT 0,
+          spf_record TEXT,
+          dkim_record TEXT,
+          dmarc_record TEXT,
+          bounce_rate REAL DEFAULT 0,
+          spam_rate REAL DEFAULT 0,
+          open_rate REAL DEFAULT 0,
+          score INTEGER DEFAULT 0,
+          last_check INTEGER NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_eh_domain ON email_health(domain);
+
+        CREATE TABLE IF NOT EXISTS email_events (
+          id TEXT PRIMARY KEY,
+          domain TEXT NOT NULL,
+          email TEXT NOT NULL,
+          event_type TEXT NOT NULL,
+          message_id TEXT,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_ee_domain ON email_events(domain);
+        CREATE INDEX IF NOT EXISTS idx_ee_type ON email_events(event_type);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // voc_reports table
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS voc_reports (
+          id TEXT PRIMARY KEY,
+          period TEXT NOT NULL,
+          total_feedback INTEGER DEFAULT 0,
+          avg_rating REAL DEFAULT 0,
+          nps_score INTEGER,
+          sentiment_score INTEGER DEFAULT 0,
+          overall_sentiment TEXT DEFAULT 'neutral',
+          themes_json TEXT,
+          pain_points_json TEXT,
+          drivers_json TEXT,
+          recommendations_json TEXT,
+          executive_summary TEXT,
+          created_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_voc_period ON voc_reports(period);
+      `);
+    } catch (_) { /* already exists */ }
+
+    // sla_configs + sla_breaches tables
+    try {
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS sla_configs (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          client_id TEXT,
+          client_name TEXT,
+          metric TEXT NOT NULL,
+          threshold_hours REAL NOT NULL,
+          warning_percent INTEGER DEFAULT 80,
+          alert_email TEXT,
+          enabled INTEGER DEFAULT 1,
+          last_checked INTEGER DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sla_client ON sla_configs(client_id);
+        CREATE INDEX IF NOT EXISTS idx_sla_enabled ON sla_configs(enabled);
+
+        CREATE TABLE IF NOT EXISTS sla_breaches (
+          id TEXT PRIMARY KEY,
+          config_id TEXT NOT NULL,
+          metric TEXT NOT NULL,
+          current_value REAL NOT NULL,
+          threshold_value REAL NOT NULL,
+          details TEXT,
+          acknowledged INTEGER DEFAULT 0,
+          acknowledged_at INTEGER,
+          detected_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_breach_config ON sla_breaches(config_id);
+        CREATE INDEX IF NOT EXISTS idx_breach_date ON sla_breaches(detected_at DESC);
+      `);
+    } catch (_) { /* already exists */ }
   }
   return db;
 }
