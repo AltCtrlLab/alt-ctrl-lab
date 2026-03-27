@@ -58,16 +58,19 @@ export const leadUpdateSchema = z.object({
 // ─── Projects ─────────────────────────────────────────────────────────
 
 export const projectCreateSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis'),
+  name: z.string().optional(),
   clientName: z.string().min(1, 'Le nom client est requis'),
-  type: z.string().optional().default('Site Web'),
+  projectType: z.string().optional().default('Web'),
+  type: z.string().optional(),
   phase: z.string().optional().default('Découverte'),
-  status: z.string().optional().default('En cours'),
+  status: z.string().optional().default('Actif'),
   budget: z.number().nullable().optional(),
-  deadline: z.string().nullable().optional(),
+  deadline: z.union([z.string(), z.number()]).nullable().optional(),
+  startDate: z.union([z.string(), z.number()]).nullable().optional(),
   hoursEstimated: z.number().nullable().optional(),
   leadId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  teamAgents: z.array(z.string()).optional(),
 });
 
 export const projectUpdateSchema = z.object({

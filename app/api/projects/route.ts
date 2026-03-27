@@ -68,21 +68,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const v = validateBody(body, projectCreateSchema);
     if (!v.success) return v.response;
+    const projectType = v.data.projectType ?? v.data.type ?? 'Web';
+    const deadlineRaw = v.data.deadline;
+    const deadlineMs = deadlineRaw
+      ? (typeof deadlineRaw === 'number' ? deadlineRaw : new Date(deadlineRaw).getTime())
+      : null;
+    const startDateRaw = v.data.startDate;
+    const startDateMs = startDateRaw
+      ? (typeof startDateRaw === 'number' ? startDateRaw : new Date(startDateRaw).getTime())
+      : null;
     const result = await createProject({
       clientName: v.data.clientName,
-      projectType: body.projectType,
-      phase: body.phase,
+      projectType,
+      phase: v.data.phase,
       status: v.data.status,
       budget: v.data.budget ?? null,
-      startDate: body.startDate ?? null,
+      startDate: startDateMs,
       kickoffDate: body.kickoffDate ?? null,
-      deadline: v.data.deadline ? new Date(v.data.deadline).getTime() : null,
+      deadline: deadlineMs,
       hoursEstimated: v.data.hoursEstimated ?? 0,
       notes: v.data.notes ?? null,
-      teamAgents: body.teamAgents ? JSON.stringify(body.teamAgents) : null,
+      teamAgents: v.data.teamAgents ? JSON.stringify(v.data.teamAgents) : null,
       leadId: v.data.leadId ?? null,
     });
-    auditCreate(request, 'project', result.id, { clientName: v.data.clientName, type: body.projectType });
+    auditCreate(request, 'project', result.id, { clientName: v.data.clientName, type: projectType });
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
