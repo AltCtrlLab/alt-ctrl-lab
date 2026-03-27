@@ -12,6 +12,9 @@ const MorningBriefingWidget = dynamic(() => import('@/components/dashboard/Morni
 const RevenueIntelligenceWidget = dynamic(() => import('@/components/dashboard/RevenueIntelligence').then(m => ({ default: m.RevenueIntelligence })), { ssr: false });
 const RecommendedActionsWidget = dynamic(() => import('@/components/dashboard/RecommendedActions').then(m => ({ default: m.RecommendedActions })), { ssr: false });
 const AIMonitoringWidget = dynamic(() => import('@/components/dashboard/AIMonitoringWidget').then(m => ({ default: m.AIMonitoringWidget })), { ssr: false });
+const ClientHealthWidget = dynamic(() => import('@/components/dashboard/ClientHealthWidget').then(m => ({ default: m.ClientHealthWidget })), { ssr: false });
+const CapacityWidget = dynamic(() => import('@/components/dashboard/CapacityWidget').then(m => ({ default: m.CapacityWidget })), { ssr: false });
+const VocSummaryWidget = dynamic(() => import('@/components/dashboard/VocSummaryWidget').then(m => ({ default: m.VocSummaryWidget })), { ssr: false });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -245,9 +248,16 @@ export default function DashboardPage() {
           <RecommendedActionsWidget />
         </motion.div>
 
-        {/* ── Morning Briefing + AI Monitoring ── */}
+        {/* ── Client Health + Capacity ── */}
         <motion.div variants={sectionVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <ClientHealthWidget />
+          <CapacityWidget />
+        </motion.div>
+
+        {/* ── Morning Briefing + VoC + AI Monitoring ── */}
+        <motion.div variants={sectionVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <MorningBriefingWidget />
+          <VocSummaryWidget />
           <AIMonitoringWidget />
         </motion.div>
 

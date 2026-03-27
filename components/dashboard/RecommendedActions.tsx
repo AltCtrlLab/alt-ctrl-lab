@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import {
   Zap, RefreshCw, ArrowRight, Clock, FileText, AlertCircle,
-  Target, Briefcase, DollarSign, CheckCircle2,
+  Target, Briefcase, DollarSign, CheckCircle2, HeartPulse,
 } from 'lucide-react';
 import Link from 'next/link';
 
 interface RecommendedAction {
-  type: 'lead' | 'followup' | 'content' | 'invoice';
+  type: 'lead' | 'followup' | 'content' | 'invoice' | 'churn';
   label: string;
   sub: string;
   urgency: 'high' | 'medium' | 'low';
@@ -32,11 +32,12 @@ export function RecommendedActions() {
       setLoading(true);
       const now = Date.now();
 
-      const [leadsRes, followupsRes, contentRes, invoicesRes] = await Promise.all([
+      const [leadsRes, followupsRes, contentRes, invoicesRes, healthRes] = await Promise.all([
         fetch('/api/leads'),
         fetch('/api/postvente'),
         fetch('/api/content'),
         fetch('/api/finances'),
+        fetch('/api/analytics/client-health').catch(() => null),
       ]);
 
       const [leadsData, followupsData, contentData, invoicesData] = await Promise.all([
@@ -45,6 +46,7 @@ export function RecommendedActions() {
         contentRes.json(),
         invoicesRes.json(),
       ]);
+      const healthData = healthRes ? await healthRes.json().catch(() => null) : null;
 
       const newActions: RecommendedAction[] = [];
 
@@ -115,6 +117,22 @@ export function RecommendedActions() {
         }
       }
 
+      // Clients à risque de churn
+      if (healthData?.success) {
+        const atRisk = (healthData.data?.clients ?? []).filter((c: any) =>
+          c.tier === 'critical' || c.tier === 'at-risk'
+        );
+        for (const client of atRisk.slice(0, 2)) {
+          newActions.push({
+            type: 'churn',
+            label: `Client à risque : ${client.clientName}`,
+            sub: `Score santé ${client.score}/100 — ${client.tier === 'critical' ? 'critique' : 'à risque'}`,
+            urgency: client.tier === 'critical' ? 'high' : 'medium',
+            href: '/postvente',
+          });
+        }
+      }
+
       setActions(newActions);
     } catch (err) {
       console.error('RecommendedActions load error:', err);
@@ -160,6 +178,13 @@ export function RecommendedActions() {
       icon: FileText,
       color: 'text-amber-400',
       actions: actions.filter(a => a.type === 'content'),
+    },
+    {
+      key: 'churn',
+      title: 'Rétention',
+      icon: HeartPulse,
+      color: 'text-rose-400',
+      actions: actions.filter(a => a.type === 'churn'),
     },
   ].filter(cat => cat.actions.length > 0);
 
@@ -220,6 +245,7 @@ export function RecommendedActions() {
                     const ActionIcon = action.type === 'lead' ? ArrowRight
                       : action.type === 'followup' ? Clock
                       : action.type === 'content' ? FileText
+                      : action.type === 'churn' ? HeartPulse
                       : AlertCircle;
                     return (
                       <Link

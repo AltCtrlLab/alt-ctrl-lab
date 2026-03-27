@@ -21,6 +21,9 @@ import {
   Code2,
   Megaphone,
   FlaskConical,
+  BookOpen,
+  Inbox,
+  Bell,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -63,6 +66,9 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: 'Cockpit Ops', href: '/pil', icon: Terminal, color: 'text-zinc-400', desc: 'Centre de contrôle avancé des agents IA' },
       { label: 'Planning', href: '/planning', icon: CalendarClock, color: 'text-zinc-400', desc: 'Charge équipe et capacité hebdomadaire' },
       { label: 'Historique', href: '/history', icon: History, color: 'text-zinc-400', desc: 'Journal de toutes les exécutions passées des agents' },
+      { label: 'Knowledge Base', href: '/knowledge', icon: BookOpen, color: 'text-zinc-400', desc: 'Wiki interne — process, templates, runbooks et décisions' },
+      { label: 'Messagerie', href: '/inbox', icon: Inbox, color: 'text-zinc-400', desc: 'Inbox unifiée — emails, WhatsApp, chat, SMS' },
+      { label: 'Alertes', href: '/alerts', icon: Bell, color: 'text-zinc-400', desc: 'Règles d\'alertes et notifications client' },
     ],
   },
 ];

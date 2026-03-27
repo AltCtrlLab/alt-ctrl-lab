@@ -10,6 +10,11 @@ import { PhaseProgress } from './PhaseProgress';
 import { BudgetHealthBar } from './BudgetHealthBar';
 import { DeadlineCountdown } from './DeadlineCountdown';
 import { TimeLogPanel } from './TimeLogPanel';
+import { PortalLinkButton } from './PortalLinkButton';
+import { CaseStudyButton } from './CaseStudyButton';
+import { ContractButton } from './ContractButton';
+import { ExportPdfButton } from './ExportPdfButton';
+import { SlaIndicator } from './SlaIndicator';
 
 const STATUS_OPTIONS: ProjectStatus[] = ['Actif', 'En pause', 'Terminé', 'Annulé'];
 
@@ -125,6 +130,7 @@ export function ProjectDetailModal({ project, onClose, onPhaseChange, onUpdated,
                 >
                   {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
+                <SlaIndicator projectId={project.id} />
               </div>
               {project.budget && (
                 <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-1">
@@ -230,6 +236,17 @@ export function ProjectDetailModal({ project, onClose, onPhaseChange, onUpdated,
                     </div>
                   </div>
                 )}
+
+                {/* Actions rapides */}
+                <div>
+                  <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Actions</p>
+                  <div className="flex flex-wrap gap-2">
+                    <PortalLinkButton projectId={project.id} />
+                    <ExportPdfButton projectId={project.id} projectType={project.projectType} clientName={project.clientName} />
+                    <ContractButton projectId={project.id} clientName={project.clientName} budget={project.budget} />
+                    <CaseStudyButton projectId={project.id} projectPhase={localProject.phase} />
+                  </div>
+                </div>
               </div>
             )}
 

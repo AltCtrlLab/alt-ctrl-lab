@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
-import { CalendarDays, Sparkles, CheckCircle2, Calendar, Lightbulb, TrendingUp, Kanban, List, Plus, Image } from 'lucide-react';
+import { CalendarDays, Sparkles, CheckCircle2, Calendar, Lightbulb, TrendingUp, Kanban, List, Plus, Image, BookOpen, Layout } from 'lucide-react';
 import type { ContentItem, ContentStatus } from '@/lib/db/schema_content';
 import { useNotifications } from '@/providers/NotificationProvider';
 import { StatsBar } from '@/components/ui/StatsBar';
@@ -14,6 +14,9 @@ import { ContentCalendar } from '@/components/content/ContentCalendar';
 import { ContentFormModal } from '@/components/content/ContentFormModal';
 import { ContentDetailModal } from '@/components/content/ContentDetailModal';
 import { BatchGeneratorModal } from '@/components/content/BatchGeneratorModal';
+import { ContentCalendarAI } from '@/components/content/ContentCalendarAI';
+import { CaseStudyList } from '@/components/content/CaseStudyList';
+import { SocialTemplates } from '@/components/content/SocialTemplates';
 
 interface ContentStats {
   totalPublie: number;
@@ -33,9 +36,10 @@ export default function ContentPage() {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [stats, setStats] = useState<ContentStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'kanban' | 'calendar' | 'list'>('kanban');
+  const [view, setView] = useState<'kanban' | 'calendar' | 'list' | 'casestudies' | 'templates'>('kanban');
   const [createOpen, setCreateOpen] = useState(false);
   const [batchOpen, setBatchOpen] = useState(false);
+  const [calendarAIOpen, setCalendarAIOpen] = useState(false);
   const [selected, setSelected] = useState<ContentItem | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<ContentStatus | ''>('');
@@ -121,6 +125,13 @@ export default function ContentPage() {
               Carousel Studio
             </button>
             <button
+              onClick={() => setCalendarAIOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 rounded-lg text-xs font-medium transition-colors"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              Calendrier IA
+            </button>
+            <button
               onClick={() => setBatchOpen(true)}
               className="flex items-center gap-2 px-3 py-1.5 bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/30 text-fuchsia-300 rounded-lg text-xs font-medium transition-colors"
             >
@@ -141,18 +152,24 @@ export default function ContentPage() {
         <PageToolbar
           viewToggle={{
             current: view,
-            onChange: v => setView(v as 'kanban' | 'calendar' | 'list'),
+            onChange: v => setView(v as typeof view),
             options: [
               { key: 'kanban', label: 'Kanban', icon: Kanban },
               { key: 'list', label: 'Liste', icon: List },
               { key: 'calendar', label: 'Calendrier', icon: Calendar },
+              { key: 'casestudies', label: 'Case Studies', icon: BookOpen },
+              { key: 'templates', label: 'Templates', icon: Layout },
             ],
           }}
           createButton={{ label: 'Nouveau contenu', icon: Plus, onClick: () => setCreateOpen(true) }}
           className="mb-4"
         />
 
-        {loading ? (
+        {view === 'casestudies' ? (
+          <CaseStudyList />
+        ) : view === 'templates' ? (
+          <SocialTemplates />
+        ) : loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="w-8 h-8 rounded-full border-2 border-fuchsia-500 border-t-transparent animate-spin" />
           </div>
@@ -269,6 +286,12 @@ export default function ContentPage() {
           <BatchGeneratorModal
             onClose={() => setBatchOpen(false)}
             onSuccess={() => { fetchAll(); }}
+          />
+        )}
+        {calendarAIOpen && (
+          <ContentCalendarAI
+            onClose={() => setCalendarAIOpen(false)}
+            onCreated={() => { fetchAll(); }}
           />
         )}
       </AnimatePresence>

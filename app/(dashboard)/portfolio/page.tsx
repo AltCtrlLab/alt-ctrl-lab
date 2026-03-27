@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Briefcase, Globe, LayoutGrid, Star, Plus } from 'lucide-react';
+import { Briefcase, Globe, LayoutGrid, Star, Plus, Sparkles } from 'lucide-react';
 import type { PortfolioItem } from '@/lib/db/schema_portfolio';
 import { useNotifications } from '@/providers/NotificationProvider';
 import { StatsBar } from '@/components/ui/StatsBar';
@@ -11,6 +11,7 @@ import { PortfolioGrid } from '@/components/portfolio/PortfolioGrid';
 import { PortfolioFormModal } from '@/components/portfolio/PortfolioFormModal';
 import { PortfolioDetailModal } from '@/components/portfolio/PortfolioDetailModal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ShowcaseGenerator } from '@/components/portfolio/ShowcaseGenerator';
 
 interface PortfolioStats {
   totalPublie: number;
@@ -61,6 +62,9 @@ export default function PortfolioPage() {
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <Briefcase className="w-5 h-5 text-amber-400" />
           <h1 className="text-sm font-semibold text-zinc-100">Portfolio & Case Studies</h1>
+          <div className="ml-auto">
+            <ShowcaseGenerator />
+          </div>
         </div>
       </header>
 

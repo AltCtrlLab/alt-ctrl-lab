@@ -13,6 +13,8 @@ import type { ScoreCriteria } from '@/lib/scoring';
 import { ScoreBadge } from './ScoreBadge';
 import { ScoreBreakdown } from './ScoreBreakdown';
 import { AuditTimeline } from '@/components/shared/AuditTimeline';
+import { ObjectionHandler } from './ObjectionHandler';
+import { PricingOptimizer } from './PricingOptimizer';
 import { ActivityTimeline } from './ActivityTimeline';
 import { StatusStepper } from './StatusStepper';
 import { RelanceAlert } from './RelanceAlert';
@@ -392,14 +394,18 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
               {/* IA Actions Card */}
               <GlassPanel>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-4">Actions IA</p>
-                <button
-                  onClick={generateProposal}
-                  disabled={generatingProposal}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/30 text-fuchsia-300 rounded-xl text-sm font-bold transition-colors disabled:opacity-50"
-                >
-                  {generatingProposal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  Générer proposition IA
-                </button>
+                <div className="space-y-2 mb-3">
+                  <button
+                    onClick={generateProposal}
+                    disabled={generatingProposal}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/30 text-fuchsia-300 rounded-xl text-sm font-bold transition-colors disabled:opacity-50"
+                  >
+                    {generatingProposal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    Générer proposition IA
+                  </button>
+                  <PricingOptimizer leadBudget={lead.budget} leadTimeline={lead.timeline} leadProjectType={lead.projectType} />
+                  <ObjectionHandler leadId={lead.id} leadName={lead.name} />
+                </div>
                 {proposal && (
                   <div className="mt-4 rounded-xl border border-zinc-700/60 bg-black/30 p-4">
                     <div className="flex items-center justify-between mb-3">

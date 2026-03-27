@@ -15,6 +15,7 @@ import { InvoiceFormModal } from '@/components/finances/InvoiceFormModal';
 import { ExpenseFormModal } from '@/components/finances/ExpenseFormModal';
 import { InvoiceDetailModal } from '@/components/finances/InvoiceDetailModal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ExpenseCategoryBreakdown } from '@/components/finances/ExpenseCategoryBreakdown';
 
 interface FinancesStats {
   caEncaisse: number;
@@ -128,7 +129,10 @@ export default function FinancesPage() {
         ) : view === 'invoices' ? (
           <InvoiceList invoices={invoices} onSelect={setSelectedInvoice} />
         ) : (
-          <ExpenseList expenses={expenses} />
+          <>
+            <ExpenseList expenses={expenses} />
+            <ExpenseCategoryBreakdown />
+          </>
         )}
       </main>
 

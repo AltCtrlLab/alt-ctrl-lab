@@ -9,6 +9,7 @@ import {
   Sparkles, Activity, BookOpen, GitBranch, X, Filter,
   Copy, ChevronRight, Send, Ban, PenLine,
 } from 'lucide-react';
+import { SerpMonitor } from '@/components/rd/SerpMonitor';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -186,7 +187,7 @@ export default function RDPage() {
   const [insightsList, setInsightsList] = useState<BusinessInsight[]>([]);
 
   // UI
-  const [activeTab, setActiveTab] = useState<'insights' | 'innovations' | 'discoveries' | 'patterns'>('insights');
+  const [activeTab, setActiveTab] = useState<'insights' | 'innovations' | 'discoveries' | 'patterns' | 'serp'>('insights');
   const [innovFilter, setInnovFilter] = useState<string>('all');
   const [selectedInnovation, setSelectedInnovation] = useState<Innovation | null>(null);
   const [selectedTopic, setSelectedTopic] = useState('instagram-acquisition');
@@ -677,6 +678,7 @@ export default function RDPage() {
             { id: 'innovations', label: 'Innovations', icon: Zap, count: stats.innovations },
             { id: 'discoveries', label: 'Découvertes', icon: Telescope, count: stats.discoveries },
             { id: 'patterns', label: 'Patterns', icon: GitBranch, count: stats.patterns },
+            { id: 'serp', label: 'SERP Monitor', icon: Search, count: 0 },
           ] as const).map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -998,6 +1000,11 @@ export default function RDPage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── Tab: SERP Monitor ──────────────────────────────────────────── */}
+        {activeTab === 'serp' && (
+          <SerpMonitor />
         )}
 
       </div>
