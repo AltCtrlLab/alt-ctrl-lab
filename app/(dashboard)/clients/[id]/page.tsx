@@ -148,6 +148,84 @@ const PHASE_COLORS: Record<string, string> = {
   Terminé:    'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
 };
 
+// ─── Contract Generator ───────────────────────────────────────────────────────
+
+function ContractGenerator({ lead }: { lead: Lead }) {
+  const [loading, setLoading] = useState(false);
+  const [contractType, setContractType] = useState<'prestation' | 'nda' | 'maintenance'>('prestation');
+
+  async function generate() {
+    setLoading(true);
+    try {
+      const variables: Record<string, string | number> = {
+        prestataire: 'AltCtrl.Lab',
+        client: lead.company || lead.name,
+        clientId: lead.id,
+        scope: lead.notes ? lead.notes.slice(0, 300) : 'Prestations de services digitaux selon devis',
+        montant: lead.propositionAmount ?? lead.budget ?? 0,
+        duree: '3 mois',
+        paiement: '50% à la commande, 50% à la livraison',
+        livrables: 'Selon proposition commerciale validée',
+      };
+      if (contractType === 'nda') {
+        variables.objet = lead.notes?.slice(0, 200) ?? 'Projet digital en cours de discussion';
+        variables.duree = '2 ans';
+      }
+      if (contractType === 'maintenance') {
+        variables.services = 'Maintenance corrective, mises à jour, support technique (Mo-Fr 9h-18h)';
+        variables.sla = 'Incidents critiques : 4h. Incidents majeurs : 24h. Demandes standard : 72h.';
+        variables.montantMensuel = 490;
+        variables.duree = '12 mois';
+      }
+
+      const res = await fetch('/api/documents/contract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: contractType, variables }),
+      });
+      const data = await res.json();
+      if (data.success && data.html) {
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.write(data.html);
+          win.document.close();
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-xl p-4 space-y-3">
+      <p className="text-xs font-semibold text-fuchsia-300 uppercase tracking-widest">Générateur de contrat</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        {(['prestation', 'nda', 'maintenance'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setContractType(t)}
+            className={`text-xs px-3 py-1 rounded-lg border transition-all ${
+              contractType === t
+                ? 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300'
+                : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+            }`}
+          >
+            {t === 'prestation' ? 'Prestation' : t === 'nda' ? 'NDA' : 'Maintenance'}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={generate}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-2 bg-fuchsia-500/15 hover:bg-fuchsia-500/25 border border-fuchsia-500/30 text-fuchsia-300 rounded-xl py-2.5 text-sm font-medium transition-all disabled:opacity-50"
+      >
+        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+        {loading ? 'Génération...' : 'Générer et ouvrir le contrat'}
+      </button>
+    </div>
+  );
+}
+
 interface StepPanelProps {
   step: WorkflowStep;
   data: ClientData;
@@ -338,6 +416,7 @@ function StepPanel({ step, data, onAction, actionLoading }: StepPanelProps) {
               <p className="text-sm font-semibold text-zinc-100">{fmt(lead.signedAt) ?? '—'}</p>
             </div>
           </div>
+          <ContractGenerator lead={lead} />
           {step.status === 'current' && (
             <ActionBtn label="Marquer contrat signé" onClick={() => onAction('signed')} loading={actionLoading === 'signed'} />
           )}
