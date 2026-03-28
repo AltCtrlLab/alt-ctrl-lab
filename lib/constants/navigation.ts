@@ -24,6 +24,7 @@ import {
   BookOpen,
   Inbox,
   Bell,
+  Users,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -52,6 +53,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Pipeline',
     items: [
       { label: 'Leads', href: '/leads', icon: TrendingUp, color: 'text-zinc-400', desc: 'Pipeline commercial : du prospect au client signé' },
+      { label: 'Clients', href: '/clients', icon: Users, color: 'text-fuchsia-400', desc: 'Fiche 360° par client — workflow, factures, livrables et portail' },
       { label: 'Projets', href: '/projets', icon: FolderKanban, color: 'text-zinc-400', desc: 'Suivi des projets en cours avec phases et deadlines' },
       { label: 'Finances', href: '/finances', icon: Wallet, color: 'text-zinc-400', desc: 'Factures, dépenses et trésorerie' },
       { label: 'Prospection', href: '/prospection', icon: Target, color: 'text-zinc-400', desc: 'Prospection froide et outreach automatisé' },

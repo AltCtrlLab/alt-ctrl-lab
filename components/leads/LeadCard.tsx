@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Clock } from 'lucide-react';
+import { Building2, Clock, ExternalLink } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import type { Lead } from '@/lib/db/schema_leads';
 import { STATUS_META } from '@/lib/db/schema_leads';
 import { ScoreBadge } from './ScoreBadge';
@@ -26,6 +27,7 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, index = 0, onClick }: LeadCardProps) {
+  const router = useRouter();
   const isHighValue = (lead.score ?? 0) > 7 || (lead.propositionAmount ?? 0) >= 20000;
   const isHot = (lead.score ?? 0) > 8;
   const meta = STATUS_META[lead.status];
@@ -119,6 +121,13 @@ export function LeadCard({ lead, index = 0, onClick }: LeadCardProps) {
             <Clock className="w-3 h-3" />
             {timeAgo(lead.createdAt as number)}
           </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); router.push(`/clients/${lead.id}`); }}
+            title="Fiche client"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-zinc-500 hover:text-fuchsia-400"
+          >
+            <ExternalLink className="w-3 h-3" />
+          </button>
         </div>
       </div>
     </motion.div>
