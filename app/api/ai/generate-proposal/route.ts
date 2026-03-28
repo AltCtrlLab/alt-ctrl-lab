@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-
-const KIMI_API_KEY = process.env.KIMI_API_KEY || '';
+import { executeOpenClawAgent } from '@/lib/worker/exec-agent';
 
 type Sector = 'beaute' | 'resto' | 'ecom' | 'immobilier' | 'sante' | 'coach' | 'artisan' | 'web' | 'default';
 
@@ -230,75 +229,65 @@ export async function POST(request: NextRequest) {
 
     if (!name) return NextResponse.json({ success: false, error: 'name requis' }, { status: 400 });
 
-    // Fallback if API key missing
-    if (!KIMI_API_KEY) {
-      logger.warn('generate-proposal', 'KIMI_API_KEY missing, using fallback template', { leadId });
-      const proposal = generateFallbackProposal(name, company, budget, timeline, projectType, notes);
-      return NextResponse.json({ success: true, data: { proposal, leadId, fromTemplate: true } });
-    }
+    const clientName = company || name;
+    const prompt = `Tu es Khatib, expert en copywriting et propositions commerciales pour AltCtrl.Lab, une agence digitale premium basée à Paris.
 
-    const prompt = `Tu es un expert en proposition commerciale pour une agence digitale.
-Génère une proposition commerciale professionnelle et convaincante en français pour le prospect suivant.
+Génère une proposition commerciale professionnelle, personnalisée et convaincante en français pour ce prospect.
 
 **Prospect :**
 - Nom : ${name}
 - Entreprise : ${company || 'Non précisé'}
 - Budget estimé : ${budget || 'Non précisé'}
-- Timeline : ${timeline || 'Non précisé'}
-- Type de projet : ${projectType || 'Développement web / Marketing Digital'}
+- Timeline souhaitée : ${timeline || 'Non précisé'}
+- Type de projet : ${projectType || 'Non précisé'}
 - Notes / Contexte : ${notes || 'Aucun contexte supplémentaire'}
 
-**Format de la proposition :**
+**Instructions :**
+- Adapte le contenu au secteur d'activité réel du client
+- Utilise les informations fournies pour personnaliser chaque section
+- Sois concis, direct, orienté résultats et bénéfices client
+- Évite le jargon inutile
 
-## Proposition commerciale — ${company || name}
+**Format exact à respecter (markdown) :**
+
+## Proposition commerciale — ${clientName}
 
 ### 1. Compréhension de votre besoin
-[2-3 phrases montrant que tu as compris leur problématique]
+[2-3 phrases qui montrent que tu as compris leur problématique spécifique]
 
 ### 2. Notre approche
-[Description de la méthodologie et des étapes clés]
+[4 phases numérotées avec durée — adaptées au projet et au secteur]
 
 ### 3. Livrables
-[Liste bullet des livrables concrets]
+[6-8 livrables concrets et spécifiques au projet]
 
 ### 4. Timeline
-[Calendrier réaliste basé sur les informations fournies]
+[Calendrier réaliste avec démarrage et livraison estimée]
 
 ### 5. Investissement
-[Fourchette de prix justifiée, ROI estimé]
+[Fourchette de prix si budget fourni, sinon "sur-mesure après Discovery" + ROI estimé chiffré]
 
 ### 6. Prochaines étapes
-[Call to action clair]
+[3 étapes concrètes avec call to action clair]
 
-Sois concis, direct et orienté résultats. Évite le jargon inutile.`;
+*— L'équipe AltCtrl.Lab*`;
 
     try {
-      const res = await fetch('https://api.moonshot.cn/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${KIMI_API_KEY}`,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'kimi-k2.5',
-          messages: [{ role: 'user', content: prompt }],
-        }),
-        signal: AbortSignal.timeout(30_000),
-      });
+      logger.info('generate-proposal', 'Calling OpenClaw khatib agent', { leadId, clientName });
+      const result = await executeOpenClawAgent('khatib', prompt, 60000);
 
-      if (!res.ok) {
-        throw new Error(`Kimi API ${res.status}: ${await res.text()}`);
+      if (result.success && result.stdout.trim()) {
+        const stdout = result.stdout.trim();
+        // Extract markdown — OpenClaw output may contain logs before the actual response
+        const mdStart = stdout.indexOf('## Proposition');
+        const proposal = mdStart !== -1 ? stdout.slice(mdStart) : stdout;
+        logger.info('generate-proposal', 'OpenClaw khatib succeeded', { leadId, chars: proposal.length });
+        return NextResponse.json({ success: true, data: { proposal, leadId, fromTemplate: false } });
       }
 
-      const data = await res.json();
-      const proposal = data.choices?.[0]?.message?.content ?? '';
-
-      if (!proposal) throw new Error('Empty response from Kimi');
-
-      return NextResponse.json({ success: true, data: { proposal, leadId, fromTemplate: false } });
-    } catch (apiErr) {
-      // Fallback on API failure
-      logger.error('generate-proposal', 'Kimi API failed, using fallback template', { leadId }, apiErr as Error);
+      throw new Error(result.stderr || 'Empty response from OpenClaw');
+    } catch (agentErr) {
+      logger.error('generate-proposal', 'OpenClaw failed, using fallback template', { leadId }, agentErr as Error);
       const proposal = generateFallbackProposal(name, company, budget, timeline, projectType, notes);
       return NextResponse.json({ success: true, data: { proposal, leadId, fromTemplate: true } });
     }
