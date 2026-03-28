@@ -18,6 +18,7 @@ import { PricingOptimizer } from './PricingOptimizer';
 import { ActivityTimeline } from './ActivityTimeline';
 import { StatusStepper } from './StatusStepper';
 import { RelanceAlert } from './RelanceAlert';
+import { ProposalViewerModal } from '@/components/proposals/ProposalViewerModal';
 
 const SOURCE_ICONS: Record<string, string> = {
   LinkedIn: '💼', Email: '✉️', Instagram: '📸', GMB: '🗺️', Referral: '🤝', Site: '🌐',
@@ -56,8 +57,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [autoChainActions, setAutoChainActions] = useState<string[]>([]);
   const [generatingProposal, setGeneratingProposal] = useState(false);
-  const [proposal, setProposal] = useState<string | null>(null);
-  const [proposalFromTemplate, setProposalFromTemplate] = useState(false);
+  const [proposalModal, setProposalModal] = useState<{ markdown: string; fromTemplate: boolean } | null>(null);
 
   const scoreCriteria: ScoreCriteria | null = lead.scoreCriteria
     ? JSON.parse(lead.scoreCriteria as string)
@@ -90,7 +90,6 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
 
   const generateProposal = async () => {
     setGeneratingProposal(true);
-    setProposal(null);
     try {
       const res = await fetch('/api/ai/generate-proposal', {
         method: 'POST',
@@ -106,8 +105,7 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
       });
       const data = await res.json();
       if (data.success) {
-        setProposal(data.data.proposal);
-        setProposalFromTemplate(data.data.fromTemplate === true);
+        setProposalModal({ markdown: data.data.proposal, fromTemplate: data.data.fromTemplate === true });
       } else {
         console.error('Proposal generation failed:', data.error);
       }
@@ -406,26 +404,6 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
                   <PricingOptimizer leadBudget={lead.budget} leadTimeline={lead.timeline} leadProjectType={lead.projectType} />
                   <ObjectionHandler leadId={lead.id} leadName={lead.name} />
                 </div>
-                {proposal && (
-                  <div className="mt-4 rounded-xl border border-zinc-700/60 bg-black/30 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Proposition générée
-                        {proposalFromTemplate && (
-                          <span className="ml-2 text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full normal-case tracking-normal">depuis template</span>
-                        )}
-                      </span>
-                      <button
-                        onClick={() => navigator.clipboard.writeText(proposal)}
-                        className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        Copier
-                      </button>
-                    </div>
-                    <pre className="text-xs text-zinc-300 whitespace-pre-wrap font-sans leading-relaxed max-h-60 overflow-y-auto">{proposal}</pre>
-                  </div>
-                )}
               </GlassPanel>
 
             </div>
@@ -439,6 +417,16 @@ export function LeadDetailModal({ lead, onClose, onStatusChange, onUpdated, onDe
       <AutoChainToast
         actions={autoChainActions}
         onClose={() => setAutoChainActions([])}
+      />
+    )}
+
+    {proposalModal && (
+      <ProposalViewerModal
+        markdown={proposalModal.markdown}
+        fromTemplate={proposalModal.fromTemplate}
+        leadName={lead.name}
+        leadCompany={lead.company ?? undefined}
+        onClose={() => setProposalModal(null)}
       />
     )}
     </>

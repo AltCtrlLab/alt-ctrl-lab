@@ -122,7 +122,8 @@ export function LeadCard({ lead, index = 0, onClick }: LeadCardProps) {
             {timeAgo(lead.createdAt as number)}
           </span>
           <button
-            onClick={(e) => { e.stopPropagation(); router.push(`/clients/${lead.id}`); }}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onClick={(e) => { e.stopPropagation(); (router.push as any)(`/clients/${lead.id}`); }}
             title="Fiche client"
             className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-zinc-500 hover:text-fuchsia-400"
           >

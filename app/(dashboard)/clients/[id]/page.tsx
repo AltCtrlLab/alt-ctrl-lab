@@ -13,6 +13,7 @@ import type { Lead } from '@/lib/db/schema_leads';
 import type { Project } from '@/lib/db/schema_projects';
 import type { Invoice } from '@/lib/db/schema_finances';
 import type { Followup } from '@/lib/db/schema_postvente';
+import { ProposalViewerModal } from '@/components/proposals/ProposalViewerModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -222,6 +223,7 @@ export default function ClientPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [proposalModal, setProposalModal] = useState<{ markdown: string; fromTemplate: boolean } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -263,8 +265,7 @@ export default function ClientPage() {
         });
         const json = await res.json();
         if (json.success) {
-          await navigator.clipboard.writeText(json.data.proposal);
-          showToast('Proposition copiée dans le presse-papier');
+          setProposalModal({ markdown: json.data.proposal, fromTemplate: json.data.fromTemplate === true });
         }
       } catch {
         showToast('Erreur lors de la génération');
@@ -685,6 +686,17 @@ export default function ClientPage() {
           )}
         </div>
       </main>
+
+      {/* Proposal Viewer Modal */}
+      {proposalModal && (
+        <ProposalViewerModal
+          markdown={proposalModal.markdown}
+          fromTemplate={proposalModal.fromTemplate}
+          leadName={lead.name}
+          leadCompany={lead.company ?? undefined}
+          onClose={() => setProposalModal(null)}
+        />
+      )}
 
       {/* Toast */}
       <AnimatePresence>

@@ -85,7 +85,8 @@ export default function ClientsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
-                  onClick={() => router.push(`/clients/${lead.id}`)}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onClick={() => (router.push as any)(`/clients/${lead.id}`)}
                   className="group bg-zinc-900/60 border border-white/[0.07] hover:border-fuchsia-500/30 rounded-2xl p-5 cursor-pointer transition-all"
                 >
                   <div className="flex items-start gap-3 mb-4">
