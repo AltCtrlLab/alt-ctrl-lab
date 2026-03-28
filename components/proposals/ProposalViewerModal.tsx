@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Copy, Check, Download, ExternalLink, FileText,
-  Loader2, Sparkles, AlertTriangle,
+  Sparkles, AlertTriangle,
 } from 'lucide-react';
 
 interface ProposalViewerModalProps {
@@ -107,8 +107,6 @@ export function ProposalViewerModal({
   onClose,
 }: ProposalViewerModalProps) {
   const [copied, setCopied] = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const clientName = leadCompany || leadName || 'Client';
   const { title, sections } = parseMarkdown(markdown);
@@ -119,34 +117,156 @@ export function ProposalViewerModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleGeneratePdf = async () => {
-    setPdfLoading(true);
-    setPdfError(null);
-    try {
-      const res = await fetch('/api/documents/generate-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'proposal',
-          data: {
-            clientName,
-            projectType: 'Transformation Digitale',
-            budget: 0,
-            timeline: '',
-            description: markdown,
-            phases: [],
-            deliverables: [],
-          },
-        }),
+  const handleGeneratePdf = () => {
+    // Build a branded HTML document from the markdown, open in new tab for print-to-PDF
+    const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const { title, sections } = parseMarkdown(markdown);
+
+    const sectionsHtml = sections.map(s => {
+      const linesHtml = s.lines.map(line => {
+        if (line.startsWith('- ') || line.startsWith('* ')) {
+          return `<li>${line.replace(/^[-*] /, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')}</li>`;
+        }
+        if (/^\d+\.\s/.test(line)) {
+          return `<li>${line.replace(/^\d+\.\s/, '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')}</li>`;
+        }
+        return `<p>${line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')}</p>`;
       });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
-      // Open in new tab — user can print to PDF
-      window.open(data.downloadUrl, '_blank');
-    } catch (e: any) {
-      setPdfError(e.message ?? 'Erreur génération PDF');
-    } finally {
-      setPdfLoading(false);
+
+      // Group consecutive li into ul/ol
+      const grouped: string[] = [];
+      let inList = false;
+      let isOrdered = false;
+      for (const h of linesHtml) {
+        if (h.startsWith('<li>')) {
+          if (!inList) {
+            isOrdered = false; // detect based on original
+            grouped.push(isOrdered ? '<ol>' : '<ul>');
+            inList = true;
+          }
+          grouped.push(h);
+        } else {
+          if (inList) { grouped.push(isOrdered ? '</ol>' : '</ul>'); inList = false; }
+          grouped.push(h);
+        }
+      }
+      if (inList) grouped.push(isOrdered ? '</ol>' : '</ul>');
+
+      return `
+        <div class="section">
+          ${s.heading ? `<h2>${s.heading}</h2>` : ''}
+          ${grouped.join('\n')}
+        </div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Proposition — ${clientName}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; color: #18181b; background: #fff; line-height: 1.65; }
+  .page { max-width: 780px; margin: 0 auto; padding: 56px 48px; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; padding-bottom: 28px; border-bottom: 3px solid #d946ef; }
+  .brand { font-size: 22px; font-weight: 800; color: #d946ef; letter-spacing: -0.5px; }
+  .brand-sub { font-size: 11px; color: #a1a1aa; margin-top: 3px; text-transform: uppercase; letter-spacing: 1px; }
+  .meta { text-align: right; font-size: 13px; color: #71717a; }
+  .meta strong { color: #18181b; font-size: 14px; display: block; margin-bottom: 4px; }
+
+  /* Title */
+  .doc-title { font-size: 30px; font-weight: 800; color: #09090b; letter-spacing: -0.8px; margin-bottom: 6px; }
+  .doc-subtitle { font-size: 15px; color: #71717a; margin-bottom: 40px; }
+
+  /* Sections */
+  .section { margin-bottom: 32px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #d946ef; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #fae8ff; }
+  p { font-size: 14px; color: #3f3f46; margin-bottom: 10px; }
+  strong { color: #18181b; }
+  ul, ol { padding-left: 0; list-style: none; }
+  ul li, ol li { font-size: 14px; color: #3f3f46; padding: 7px 12px 7px 32px; margin-bottom: 4px; border-radius: 6px; background: #fafafa; position: relative; }
+  ul li::before { content: '→'; position: absolute; left: 10px; color: #d946ef; font-weight: 700; }
+  ol { counter-reset: step; }
+  ol li { counter-increment: step; }
+  ol li::before { content: counter(step); position: absolute; left: 8px; top: 7px; width: 18px; height: 18px; background: #d946ef; color: white; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+  /* CTA block */
+  .cta-block { background: linear-gradient(135deg, #fdf4ff, #f5f3ff); border: 1px solid #e9d5ff; border-radius: 12px; padding: 24px; margin: 40px 0; text-align: center; }
+  .cta-block h3 { font-size: 16px; font-weight: 700; color: #7e22ce; margin-bottom: 8px; }
+  .cta-block p { font-size: 13px; color: #6b21a8; margin: 0; }
+
+  /* Signature */
+  .signature { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 56px; padding-top: 32px; border-top: 1px solid #e4e4e7; }
+  .sig-box h4 { font-size: 13px; font-weight: 600; color: #18181b; margin-bottom: 4px; }
+  .sig-box p { font-size: 12px; color: #71717a; }
+  .sig-line { margin-top: 48px; border-top: 1px solid #a1a1aa; padding-top: 6px; font-size: 11px; color: #a1a1aa; }
+
+  /* Footer */
+  .footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #e4e4e7; display: flex; justify-content: space-between; align-items: center; }
+  .footer-brand { font-size: 12px; font-weight: 700; color: #d946ef; }
+  .footer-note { font-size: 11px; color: #a1a1aa; }
+
+  @media print {
+    .page { padding: 32px; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="brand">AltCtrl.Lab</div>
+      <div class="brand-sub">Agence Digitale Premium · Paris</div>
+    </div>
+    <div class="meta">
+      <strong>Proposition commerciale</strong>
+      <span>${clientName}</span><br>
+      <span>${date}</span>
+    </div>
+  </div>
+
+  <div class="doc-title">${title || `Proposition — ${clientName}`}</div>
+  <div class="doc-subtitle">Préparée exclusivement pour ${clientName}</div>
+
+  ${sectionsHtml}
+
+  <div class="cta-block">
+    <h3>Prêt à démarrer ?</h3>
+    <p>Contactez-nous pour planifier votre call de découverte — réponse garantie sous 24h.</p>
+  </div>
+
+  <div class="signature">
+    <div class="sig-box">
+      <h4>AltCtrl.Lab</h4>
+      <p>Agence Digitale Premium</p>
+      <div class="sig-line">Date &amp; Signature</div>
+    </div>
+    <div class="sig-box">
+      <h4>${clientName}</h4>
+      <p>Client</p>
+      <div class="sig-line">Date &amp; Signature</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-brand">AltCtrl.Lab</span>
+    <span class="footer-note">Document confidentiel · Généré le ${date}</span>
+  </div>
+</div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if (win) {
+      win.onload = () => {
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      };
     }
   };
 
@@ -196,14 +316,10 @@ export function ProposalViewerModal({
 
               <button
                 onClick={handleGeneratePdf}
-                disabled={pdfLoading}
-                className="flex items-center gap-1.5 text-xs text-fuchsia-300 bg-fuchsia-500/15 hover:bg-fuchsia-500/25 border border-fuchsia-500/25 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs text-fuchsia-300 bg-fuchsia-500/15 hover:bg-fuchsia-500/25 border border-fuchsia-500/25 px-3 py-1.5 rounded-lg transition-all"
               >
-                {pdfLoading
-                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  : <Download className="w-3.5 h-3.5" />
-                }
-                {pdfLoading ? 'Génération...' : 'Exporter PDF'}
+                <Download className="w-3.5 h-3.5" />
+                Exporter PDF
               </button>
 
               <button
@@ -214,13 +330,6 @@ export function ProposalViewerModal({
               </button>
             </div>
           </div>
-
-          {/* Error */}
-          {pdfError && (
-            <div className="mx-5 mt-3 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2 shrink-0">
-              {pdfError}
-            </div>
-          )}
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
